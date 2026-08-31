@@ -1,0 +1,133 @@
+.sidebar {
+  width: var(--sidebar-width);
+  height: 100vh;
+  background: #ffffff;
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  transition: width 0.3s ease;
+  flex-shrink: 0;
+  overflow: hidden;
+  z-index: 100;
+
+  &.collapsed {
+    width: var(--sidebar-collapsed-width);
+
+    .menu-label,
+    .logo-text {
+      display: none;
+    }
+
+    .sidebar-logo {
+      justify-content: center;
+      padding: 1.25rem 0;
+    }
+
+    .menu-item {
+      justify-content: center;
+      padding: 0.75rem;
+    }
+
+    .collapse-btn {
+      justify-content: center;
+      padding: 0.75rem;
+
+      span {
+        display: none;
+      }
+    }
+  }
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 1.25rem 1.25rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+
+  .logo-text {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+  }
+}
+
+.menu-list {
+  list-style: none;
+  margin: 0.5rem 0;
+  padding: 0 0.75rem;
+  flex: 1;
+  overflow-y: auto;
+
+  li {
+    margin: 2px 0;
+  }
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.875rem;
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+
+  i {
+    font-size: 1rem;
+    flex-shrink: 0;
+    width: 20px;
+    text-align: center;
+  }
+
+  &:hover {
+    background: var(--secondary-color);
+    color: var(--primary-dark);
+  }
+
+  &.active {
+    background: #f7fee7;
+    color: #4d7c0f;
+    font-weight: 600;
+
+    i {
+      color: #65a30d;
+    }
+  }
+}
+
+.sidebar-footer {
+  border-top: 1px solid var(--border-color);
+  padding: 0.75rem;
+}
+
+.collapse-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.6rem 0.875rem;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+
+  &:hover {
+    background: #f1f5f9;
+    color: var(--text-secondary);
+  }
+
+  i {
+    font-size: 0.9rem;
+  }
+}

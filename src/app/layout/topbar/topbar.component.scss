@@ -1,0 +1,310 @@
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 60px;
+  padding: 0 1.5rem;
+  background: #ffffff;
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+  gap: 1rem;
+}
+
+.topbar-left { flex: 0 0 auto; }
+
+.clinic-selector {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  padding: 0.4rem 0.75rem;
+  border-radius: 8px;
+  transition: background 0.15s;
+  user-select: none;
+
+  &:hover, &.open { background: #f1f5f9; }
+
+  .clinic-name {
+    font-size: 0.925rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  i {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    transition: transform 0.2s;
+  }
+
+  &.open i.pi-chevron-down { transform: rotate(180deg); }
+}
+
+.clinic-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #84cc16;
+  flex-shrink: 0;
+}
+
+// ─── Dropdown de clínicas ─────────────────────────────────────────────────────
+.clinic-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 220px;
+  background: #fff;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  z-index: 1000;
+  overflow: hidden;
+  padding: 0.4rem 0;
+}
+
+.clinic-dropdown-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  padding: 0.5rem 1rem 0.25rem;
+}
+
+.clinic-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.6rem 1rem;
+  background: none;
+  border: none;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.15s;
+  font-family: inherit;
+  text-align: left;
+
+  &:hover { background: #f8fafc; }
+
+  &.active {
+    color: #4d7c0f;
+    font-weight: 600;
+  }
+
+  i.pi-check {
+    margin-left: auto;
+    font-size: 0.8rem;
+    color: #84cc16;
+  }
+}
+
+.clinic-item-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #cbd5e1;
+  flex-shrink: 0;
+
+  &.active { background: #84cc16; }
+}
+
+.topbar-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.date-picker {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.875rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.15s;
+  background: #fff;
+
+  &:hover { border-color: #84cc16; background: #f7fee7; }
+
+  i { color: var(--text-muted); font-size: 0.9rem; }
+  i:last-child { font-size: 0.7rem; }
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 0 0 auto;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.875rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  cursor: pointer;
+  background: #f8fafc;
+  transition: all 0.15s;
+  min-width: 160px;
+
+  &:hover { border-color: #94a3b8; background: #fff; }
+
+  i { color: var(--text-muted); font-size: 0.85rem; }
+
+  .search-text {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    flex: 1;
+  }
+
+  kbd {
+    font-size: 0.7rem;
+    padding: 1px 5px;
+    background: #e2e8f0;
+    border-radius: 4px;
+    color: var(--text-muted);
+    font-family: inherit;
+  }
+}
+
+.icon-btn {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover { background: #f1f5f9; }
+
+  i { font-size: 1rem; color: var(--text-secondary); }
+}
+
+.notif-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  border: 2px solid #fff;
+}
+
+.user-menu {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  cursor: pointer;
+  padding: 0.3rem 0.6rem;
+  border-radius: 8px;
+  transition: background 0.15s;
+  user-select: none;
+
+  &:hover, &.open { background: #f1f5f9; }
+
+  .user-name {
+    font-size: 0.825rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  i.pi-chevron-down {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    transition: transform 0.2s;
+  }
+
+  &.open i.pi-chevron-down { transform: rotate(180deg); }
+}
+
+// ─── Dropdown de usuário ──────────────────────────────────────────────────────
+.user-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 240px;
+  background: #fff;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.user-dropdown-header {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 1rem;
+}
+
+.user-dropdown-name {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.user-dropdown-email {
+  font-size: 0.775rem;
+  color: var(--text-muted);
+  margin-top: 1px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 150px;
+}
+
+.user-dropdown-divider {
+  height: 1px;
+  background: var(--border-color);
+  margin: 0;
+}
+
+.user-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: none;
+  border: none;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.15s;
+  font-family: inherit;
+
+  &:hover { background: #f8fafc; }
+
+  i { font-size: 0.9rem; }
+
+  &--danger {
+    &:hover { color: #ef4444; i { color: #ef4444; } }
+  }
+}

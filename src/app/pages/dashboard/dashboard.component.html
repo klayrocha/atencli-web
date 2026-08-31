@@ -1,0 +1,176 @@
+<div class="dashboard">
+
+  <!-- Header greeting -->
+  <div class="dashboard-header">
+    <div class="greeting-area">
+      <h1 class="greeting-title">Bom dia, {{ userName() }}! 👋</h1>
+      <p class="greeting-sub">Veja como está o atendimento da clínica hoje.</p>
+
+      <div class="status-badges">
+        <span class="badge-status badge-green">
+          <i class="pi pi-whatsapp"></i>
+          WhatsApp conectado
+          <span class="dot"></span>
+        </span>
+        <span class="badge-status badge-yellow">
+          <i class="pi pi-sparkles"></i>
+          IA atendendo normalmente
+          <span class="dot"></span>
+        </span>
+      </div>
+    </div>
+    <!-- Decorative wave background -->
+    <div class="header-bg-wave"></div>
+  </div>
+
+  <!-- Main grid -->
+  <div class="dashboard-grid">
+
+    <!-- LEFT COLUMN -->
+    <div class="col-left">
+
+      <!-- Pulso da Clínica -->
+      <div class="card pulso-card">
+        <h3 class="card-title">Pulso da clínica</h3>
+
+        <div class="pulso-content">
+          <!-- Donut chart -->
+          <div class="donut-wrapper">
+            <p-chart type="doughnut" [data]="chartData" [options]="chartOptions" height="170px"></p-chart>
+            <div class="donut-center">
+              <span class="donut-value">5</span>
+              <span class="donut-label">situações precisam<br>da sua atenção</span>
+            </div>
+          </div>
+
+          <!-- Stats grid -->
+          <div class="pulso-stats">
+            <div class="stat-item" *ngFor="let stat of pulsoStats">
+              <div class="stat-icon">
+                <i class="pi {{ stat.icon }}"></i>
+              </div>
+              <div class="stat-info">
+                <span class="stat-value">{{ stat.value }}</span>
+                <span class="stat-label">{{ stat.label }}</span>
+                <span class="stat-sub">{{ stat.sub }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button class="link-btn">
+          Ver todos os atendimentos <i class="pi pi-arrow-right"></i>
+        </button>
+      </div>
+
+      <!-- Jornada do atendimento -->
+      <div class="card jornada-card">
+        <div class="card-header-row">
+          <div>
+            <h3 class="card-title">Jornada do atendimento</h3>
+            <p class="card-sub">Acompanhe cada etapa até se tornar um paciente.</p>
+          </div>
+          <button class="link-btn">Ver detalhes <i class="pi pi-arrow-right"></i></button>
+        </div>
+
+        <div class="jornada-steps">
+          <ng-container *ngFor="let step of jornadaSteps; let last = last">
+            <div class="jornada-step">
+              <div class="step-icon-wrapper">
+                <i class="pi {{ step.icon }}"></i>
+              </div>
+              <div class="step-info">
+                <span class="step-value">{{ step.value }}</span>
+                <span class="step-label">{{ step.label }}</span>
+                <span class="step-pct">{{ step.pct }}</span>
+              </div>
+            </div>
+            <div class="step-arrow" *ngIf="!last">
+              <i class="pi pi-chevron-right"></i>
+            </div>
+          </ng-container>
+        </div>
+
+        <!-- Progress bar -->
+        <div class="jornada-progress">
+          <div class="progress-track">
+            <div class="progress-dot" style="left: 0%"></div>
+            <div class="progress-dot" style="left: 33%"></div>
+            <div class="progress-dot" style="left: 66%"></div>
+            <div class="progress-dot" style="left: 100%"></div>
+            <div class="progress-fill" style="width: 100%"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div class="col-right">
+
+      <!-- O que fazer agora -->
+      <div class="card acoes-card">
+        <div class="card-header-row">
+          <h3 class="card-title">O que fazer agora</h3>
+          <button class="link-btn">Ver todas <i class="pi pi-arrow-right"></i></button>
+        </div>
+
+        <div class="acoes-list">
+          <div class="acao-item" *ngFor="let acao of acoes">
+            <div class="acao-dot" [style.background]="getPrioridadeCor(acao.prioridade)"></div>
+            <div class="acao-icon-wrapper" [style.background]="getPrioridadeBg(acao.prioridade)">
+              <i class="pi {{ acao.icone }}" [style.color]="getPrioridadeCor(acao.prioridade)"></i>
+            </div>
+            <div class="acao-info">
+              <span class="acao-titulo">{{ acao.titulo }}</span>
+              <span class="acao-desc">{{ acao.descricao }}</span>
+            </div>
+            <button class="acao-btn">
+              {{ acao.botao }} <i class="pi pi-arrow-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Próximas consultas de hoje -->
+      <div class="card consultas-card">
+        <div class="card-header-row">
+          <h3 class="card-title">Próximas consultas de hoje</h3>
+          <button class="link-btn">Ver agenda <i class="pi pi-arrow-right"></i></button>
+        </div>
+
+        <div class="consultas-list">
+          <div class="consulta-item" *ngFor="let c of consultas">
+            <div class="consulta-hora">{{ c.hora }}</div>
+
+            <p-avatar
+              [label]="c.iniciais"
+              shape="circle"
+              size="normal"
+              [style]="{'background-color': c.cor, 'color': '#fff', 'font-weight': '600', 'font-size': '0.75rem'}">
+            </p-avatar>
+
+            <div class="consulta-info">
+              <span class="consulta-nome">{{ c.nome }}</span>
+              <span class="consulta-espec">{{ c.especialidade }}</span>
+              <span class="badge-status" [class]="getStatusClass(c.status)">{{ c.status }}</span>
+            </div>
+
+            <div class="consulta-actions">
+              <button class="icon-action" pTooltip="Mensagem" tooltipPosition="top">
+                <i class="pi pi-comment"></i>
+              </button>
+              <button class="icon-action" pTooltip="Reagendar" tooltipPosition="top">
+                <i class="pi pi-calendar"></i>
+              </button>
+              <button class="icon-action" pTooltip="Mais opções" tooltipPosition="top">
+                <i class="pi pi-ellipsis-v"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

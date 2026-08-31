@@ -1,0 +1,133 @@
+/* PrimeIcons */
+@import "primeicons/primeicons.css";
+
+/* PrimeFlex */
+@import "primeflex/primeflex.css";
+
+:root {
+  --primary-color: #84cc16;
+  --primary-dark: #65a30d;
+  --primary-light: #d9f99d;
+  --secondary-color: #f0fdf4;
+  --accent-yellow: #fef3c7;
+  --accent-orange: #fff7ed;
+  --surface-bg: #f8fafc;
+  --surface-card: #ffffff;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --text-muted: #94a3b8;
+  --border-color: #e2e8f0;
+  --sidebar-width: 240px;
+  --sidebar-collapsed-width: 70px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--surface-bg);
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+/* Garante que os host elements do Angular não quebrem o layout flex */
+app-root,
+app-layout {
+  display: block;
+  height: 100%;
+}
+
+app-sidebar {
+  display: contents;
+}
+
+app-topbar {
+  display: block;
+  height: auto;
+  flex-shrink: 0;
+}
+
+.layout-wrapper {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.layout-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.layout-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem 2rem;
+  background: var(--surface-bg);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Badge status global */
+.badge-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 500;
+
+  &.badge-green {
+    background: #f0fdf4;
+    color: #16a34a;
+    border: 1px solid #bbf7d0;
+  }
+
+  &.badge-yellow {
+    background: #fefce8;
+    color: #ca8a04;
+    border: 1px solid #fde68a;
+  }
+
+  &.badge-orange {
+    background: #fff7ed;
+    color: #ea580c;
+    border: 1px solid #fed7aa;
+  }
+
+  &.badge-blue {
+    background: #eff6ff;
+    color: #2563eb;
+    border: 1px solid #bfdbfe;
+  }
+
+  .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+  }
+}
