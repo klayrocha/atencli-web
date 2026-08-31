@@ -1,27 +1,51 @@
-# Atencli
+# atencli-web
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 18.2.21.
+Frontend da plataforma **Atenclin** — sistema de atendimento inteligente para clínicas, com integração de WhatsApp, agendamento e IA.
 
-## Development server
+## Stack
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+- Angular 18
+- TypeScript
+- PrimeNG · PrimeFlex
+- SCSS
 
-## Code scaffolding
+## Pré-requisitos
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+- Node.js 18+
+- Backend [`atencli-api`](https://github.com/klayrocha/atencli-api) rodando em `http://localhost:8080`
 
-## Build
+## Instalação
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+```bash
+npm install
+```
 
-## Running unit tests
+## Executar localmente
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+```bash
+npx ng serve
+```
 
-## Running end-to-end tests
+Acesse em `http://localhost:4200`.
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
+## Build de produção
 
-## Further help
+```bash
+npx ng build
+```
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+## Autenticação
+
+| Método | Endpoint |
+|---|---|
+| E-mail / senha | `POST /api/v1/auth` → JWT no header `Authorization` |
+| Google OAuth2 | `GET /oauth2/authorization/google` → callback em `/oauth2/callback?token=` |
+
+## Funcionalidades
+
+- Login com e-mail/senha e Google OAuth2
+- Recuperação de senha
+- Dashboard com saudação personalizada e indicadores da clínica
+- Sidebar colapsável e topbar com menu do usuário
+- Drawer "Minha conta" com alteração de senha (validação de força em tempo real)
+- Usuários Google não visualizam a opção de alterar senha
