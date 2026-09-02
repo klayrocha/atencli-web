@@ -23,23 +23,9 @@ interface Clinic {
 
       <!-- Left: clinic selector dropdown -->
       <div class="topbar-left">
-        <div class="clinic-selector" (click)="toggleClinicMenu(); $event.stopPropagation()" [class.open]="clinicMenuOpen">
+        <div class="clinic-selector">
           <div class="clinic-dot"></div>
           <span class="clinic-name">{{ selectedClinic.name }}</span>
-          <i class="pi pi-chevron-down"></i>
-
-          <div class="clinic-dropdown" *ngIf="clinicMenuOpen" (click)="$event.stopPropagation()">
-            <div class="clinic-dropdown-label">Estabelecimentos</div>
-            <button
-              *ngFor="let clinic of clinics"
-              class="clinic-dropdown-item"
-              [class.active]="clinic.id === selectedClinic.id"
-              (click)="selectClinic(clinic)">
-              <div class="clinic-item-dot" [class.active]="clinic.id === selectedClinic.id"></div>
-              <span>{{ clinic.name }}</span>
-              <i class="pi pi-check" *ngIf="clinic.id === selectedClinic.id"></i>
-            </button>
-          </div>
         </div>
       </div>
 

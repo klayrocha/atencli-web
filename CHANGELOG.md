@@ -4,7 +4,15 @@
 
 ### Adicionado
 
-#### Autenticação
+#### Autenticação e Cadastro
+- Nova landing page e tela de cadastro de usuário (`/register`):
+  - Formulário com nome completo, e-mail, telefone/WhatsApp, senha e confirmação de senha
+  - Integração com o endpoint `POST /api/v1/user`
+  - Painel lateral com apresentação das vantagens e diferenciais da Atenclin (WhatsApp integrado, IA 24/7, gestão de agenda, métricas em tempo real e conformidade LGPD)
+  - Validação de segurança de senha em tempo real com indicadores visuais (mínimo 8 caracteres, pelo menos 1 letra maiúscula e 1 número)
+  - Validação de correspondência de confirmação de senha
+  - Tela de confirmação pós-cadastro informando envio dos dados de acesso por e-mail
+- Link "Cadastre-se aqui" adicionado na tela de login (`/login`)
 - Login com e-mail e senha via `POST /api/v1/auth` com JWT no header `Authorization`
 - Login com Google via OAuth2 Authorization Code Flow (`/oauth2/authorization/google`)
 - Rota `/oauth2/callback` que captura o token JWT retornado pelo backend e inicia a sessão
@@ -13,7 +21,7 @@
 
 #### Layout e navegação
 - Sidebar colapsável com logo SVG e menu de navegação
-- Topbar com seletor de clínica, data atual e menu do usuário
+- Topbar com exibição da clínica atual, data e menu do usuário (dropdown de troca desabilitado)
 - Favicon SVG com identidade visual Atenclin (círculos concêntricos)
 
 #### Perfil e conta

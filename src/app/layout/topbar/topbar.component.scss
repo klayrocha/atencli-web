@@ -17,27 +17,15 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  cursor: pointer;
   padding: 0.4rem 0.75rem;
   border-radius: 8px;
-  transition: background 0.15s;
   user-select: none;
-
-  &:hover, &.open { background: #f1f5f9; }
 
   .clinic-name {
     font-size: 0.925rem;
     font-weight: 600;
     color: var(--text-primary);
   }
-
-  i {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    transition: transform 0.2s;
-  }
-
-  &.open i.pi-chevron-down { transform: rotate(180deg); }
 }
 
 .clinic-dot {

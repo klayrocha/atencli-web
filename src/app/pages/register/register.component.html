@@ -1,0 +1,301 @@
+<div class="register-shell">
+
+  <!-- Painel esquerdo: Vantagens e Apresentação da Atenclin -->
+  <div class="register-brand">
+    <div class="brand-content">
+      <div class="brand-logo">
+        <svg width="52" height="52" viewBox="0 0 52 52" fill="none">
+          <circle cx="26" cy="26" r="22" stroke="#84cc16" stroke-width="4" stroke-dasharray="95 25"/>
+          <circle cx="26" cy="26" r="13" stroke="#65a30d" stroke-width="3" stroke-dasharray="52 14"/>
+          <circle cx="26" cy="26" r="5" fill="#84cc16"/>
+        </svg>
+        <span class="brand-name">Atenclin</span>
+      </div>
+
+      <div class="brand-badge">
+        <i class="pi pi-check-circle"></i>
+        <span>Plataforma completa para sua clínica</span>
+      </div>
+
+      <h2 class="brand-headline">Transforme a gestão e o atendimento da sua clínica</h2>
+      <p class="brand-sub">
+        Junte-se a centenas de clínicas que automatizam agendamentos, centralizam canais de atendimento e aumentam a fidelização de pacientes com inteligência artificial.
+      </p>
+
+      <!-- Lista detalhada de vantagens -->
+      <div class="advantages-list">
+        <div class="advantage-card">
+          <div class="advantage-icon">
+            <i class="pi pi-whatsapp"></i>
+          </div>
+          <div class="advantage-info">
+            <h4>WhatsApp Integrado e Centralizado</h4>
+            <p>Atenda múltiplos pacientes ao mesmo tempo com uma única linha oficial e histórico unificado.</p>
+          </div>
+        </div>
+
+        <div class="advantage-card">
+          <div class="advantage-icon">
+            <i class="pi pi-sparkles"></i>
+          </div>
+          <div class="advantage-info">
+            <h4>Atendente Virtual com IA 24/7</h4>
+            <p>Responda dúvidas frequentes, confirme consultas e realize agendamentos automaticamente a qualquer hora.</p>
+          </div>
+        </div>
+
+        <div class="advantage-card">
+          <div class="advantage-icon">
+            <i class="pi pi-calendar-plus"></i>
+          </div>
+          <div class="advantage-info">
+            <h4>Gestão Ágil de Agenda e Fila</h4>
+            <p>Reduza faltas com lembretes automáticos e organize horários de médicos e especialistas sem conflitos.</p>
+          </div>
+        </div>
+
+        <div class="advantage-card">
+          <div class="advantage-icon">
+            <i class="pi pi-chart-pie"></i>
+          </div>
+          <div class="advantage-info">
+            <h4>Indicadores e Métricas em Tempo Real</h4>
+            <p>Acompanhe taxa de comparecimento, volume de atendimentos e desempenho da equipe em dashboards intuitivos.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="brand-stats">
+        <div class="stat-item">
+          <strong>+80%</strong>
+          <span>Redução em no-show</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <strong>24/7</strong>
+          <span>Atendimento contínuo</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <strong>100%</strong>
+          <span>Seguro & Conforme LGPD</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Decoração de fundo -->
+    <div class="brand-bg-circle brand-bg-circle--1"></div>
+    <div class="brand-bg-circle brand-bg-circle--2"></div>
+  </div>
+
+  <!-- Painel direito: Formulário de Cadastro -->
+  <div class="register-form-panel">
+    <div class="register-form-wrapper">
+
+      <!-- Logo mobile -->
+      <div class="mobile-logo">
+        <svg width="36" height="36" viewBox="0 0 52 52" fill="none">
+          <circle cx="26" cy="26" r="22" stroke="#84cc16" stroke-width="4" stroke-dasharray="95 25"/>
+          <circle cx="26" cy="26" r="13" stroke="#65a30d" stroke-width="3" stroke-dasharray="52 14"/>
+          <circle cx="26" cy="26" r="5" fill="#84cc16"/>
+        </svg>
+        <span>Atenclin</span>
+      </div>
+
+      <!-- Link voltar para login -->
+      <a routerLink="/login" class="back-link">
+        <i class="pi pi-arrow-left"></i>
+        <span>Voltar para o login</span>
+      </a>
+
+      <!-- ESTADO: SUCESSO APÓS CADASTRO -->
+      <div class="success-screen" *ngIf="registered()">
+        <div class="success-icon-wrapper">
+          <i class="pi pi-check"></i>
+        </div>
+        <h2 class="success-title">Cadastro realizado com sucesso!</h2>
+        <p class="success-desc">
+          Os dados de acesso e as instruções para ativação da sua conta foram enviados para o e-mail:
+        </p>
+        <div class="email-highlight">
+          <i class="pi pi-envelope"></i>
+          <span>{{ email }}</span>
+        </div>
+        <p class="success-hint">
+          Por favor, verifique sua caixa de entrada (e também a pasta de spam/lixo eletrônico).
+        </p>
+        <a routerLink="/login" class="submit-btn direct-link">
+          Ir para o login
+        </a>
+      </div>
+
+      <!-- ESTADO: FORMULÁRIO DE CADASTRO -->
+      <ng-container *ngIf="!registered()">
+        <div class="form-header">
+          <h1 class="form-title">Crie sua conta</h1>
+          <p class="form-sub">Experimente o poder da Atenclin na sua clínica</p>
+        </div>
+
+        <!-- Mensagem de erro -->
+        <div class="error-alert" *ngIf="error()">
+          <i class="pi pi-exclamation-circle"></i>
+          <span>{{ error() }}</span>
+          <button class="error-close" (click)="clearError()"><i class="pi pi-times"></i></button>
+        </div>
+
+        <form (ngSubmit)="onSubmit()" class="register-form">
+          <!-- Nome Completo -->
+          <div class="field">
+            <label for="fullName">Nome Completo</label>
+            <div class="input-wrapper">
+              <i class="pi pi-user input-icon"></i>
+              <input
+                id="fullName"
+                type="text"
+                pInputText
+                [(ngModel)]="fullName"
+                name="fullName"
+                placeholder="Ex: Klay Rocha"
+                autocomplete="name"
+                [disabled]="loading()"
+                required
+              />
+            </div>
+          </div>
+
+          <!-- E-mail -->
+          <div class="field">
+            <label for="email">E-mail Corporativo ou Pessoal</label>
+            <div class="input-wrapper">
+              <i class="pi pi-envelope input-icon"></i>
+              <input
+                id="email"
+                type="email"
+                pInputText
+                [(ngModel)]="email"
+                name="email"
+                placeholder="Ex: klay.rocha@atenclin.com"
+                autocomplete="email"
+                [disabled]="loading()"
+                required
+              />
+            </div>
+          </div>
+
+          <!-- Telefone / WhatsApp -->
+          <div class="field">
+            <label for="phoneNumber">Telefone / WhatsApp</label>
+            <div class="input-wrapper">
+              <i class="pi pi-phone input-icon"></i>
+              <input
+                id="phoneNumber"
+                type="tel"
+                pInputText
+                [(ngModel)]="phoneNumber"
+                name="phoneNumber"
+                placeholder="Ex: +5511999999999"
+                autocomplete="tel"
+                [disabled]="loading()"
+                required
+              />
+            </div>
+          </div>
+
+          <!-- Senha -->
+          <div class="field">
+            <label for="password">Senha de Acesso</label>
+            <div class="input-wrapper">
+              <i class="pi pi-lock input-icon"></i>
+              <input
+                id="password"
+                [type]="showPassword ? 'text' : 'password'"
+                pInputText
+                [(ngModel)]="password"
+                name="password"
+                placeholder="Crie uma senha forte"
+                autocomplete="new-password"
+                [disabled]="loading()"
+                required
+              />
+              <button
+                type="button"
+                class="toggle-password"
+                (click)="togglePassword()"
+                tabindex="-1"
+              >
+                <i [class]="showPassword ? 'pi pi-eye-slash' : 'pi pi-eye'"></i>
+              </button>
+            </div>
+
+            <!-- Requisitos de senha -->
+            <div class="password-requirements" *ngIf="password">
+              <div class="req-item" [class.valid]="hasMinLength">
+                <i [class]="hasMinLength ? 'pi pi-check' : 'pi pi-circle'"></i>
+                <span>Mínimo 8 caracteres</span>
+              </div>
+              <div class="req-item" [class.valid]="hasUppercase">
+                <i [class]="hasUppercase ? 'pi pi-check' : 'pi pi-circle'"></i>
+                <span>Pelo menos 1 letra maiúscula</span>
+              </div>
+              <div class="req-item" [class.valid]="hasNumber">
+                <i [class]="hasNumber ? 'pi pi-check' : 'pi pi-circle'"></i>
+                <span>Pelo menos 1 número</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Confirmação de Senha -->
+          <div class="field">
+            <label for="confirmPassword">Confirmar Senha</label>
+            <div class="input-wrapper">
+              <i class="pi pi-lock input-icon"></i>
+              <input
+                id="confirmPassword"
+                [type]="showConfirmPassword ? 'text' : 'password'"
+                pInputText
+                [(ngModel)]="confirmPassword"
+                name="confirmPassword"
+                placeholder="Repita sua senha"
+                autocomplete="new-password"
+                [disabled]="loading()"
+                required
+              />
+              <button
+                type="button"
+                class="toggle-password"
+                (click)="toggleConfirmPassword()"
+                tabindex="-1"
+              >
+                <i [class]="showConfirmPassword ? 'pi pi-eye-slash' : 'pi pi-eye'"></i>
+              </button>
+            </div>
+            <div class="password-match-error" *ngIf="confirmPassword && !passwordsMatch">
+              <i class="pi pi-times-circle"></i>
+              <span>As senhas não coincidem</span>
+            </div>
+          </div>
+
+          <!-- Botão submit -->
+          <button
+            type="submit"
+            class="submit-btn"
+            [disabled]="loading()"
+            [class.loading]="loading()"
+          >
+            <span *ngIf="!loading()">Criar conta agora</span>
+            <span *ngIf="loading()" class="loading-content">
+              <i class="pi pi-spin pi-spinner"></i>
+              Cadastrando...
+            </span>
+          </button>
+        </form>
+
+        <p class="signin-link">
+          Já tem uma conta? <a routerLink="/login">Faça login</a>
+        </p>
+      </ng-container>
+
+    </div>
+  </div>
+
+</div>

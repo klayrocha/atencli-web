@@ -11,6 +11,13 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface RegisterRequest {
+  fullName: string;
+  email: string;
+  password: string;
+  phoneNumber: string;
+}
+
 export interface User {
   id: string;
   name: string;
@@ -100,6 +107,14 @@ export class AuthService {
     } finally {
       this.loading.set(false);
     }
+  }
+
+  // ─── Cadastro de usuário → POST /api/v1/user ─────────────────────────────
+
+  async registerUser(data: RegisterRequest): Promise<void> {
+    await firstValueFrom(
+      this.http.post(`${environment.apiBaseUrl}/api/v1/user`, data)
+    );
   }
 
   // ─── Alterar senha ────────────────────────────────────────────────────────
