@@ -24,7 +24,7 @@ interface MenuItem {
             <circle cx="26" cy="26" r="5" fill="#84cc16"/>
           </svg>
         </div>
-        <span class="logo-text" *ngIf="!collapsed">atenclin</span>
+        <span class="logo-text" *ngIf="!collapsed">Atenclin</span>
       </div>
 
       <!-- Menu Items -->
