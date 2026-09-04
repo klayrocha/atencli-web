@@ -250,7 +250,31 @@ export class UserPanelComponent {
       await this.auth.changePassword(this.form.currentPassword, this.form.newPassword, this.form.confirmNewPassword);
       this.successMsg.set('Senha alterada com sucesso!');
     } catch (err: any) {
-      this.errorMsg.set(err?.message ?? 'Erro ao alterar senha. Tente novamente.');
+      let message = 'Erro ao alterar senha. Tente novamente.';
+      let backendMsg = '';
+
+      if (err?.error) {
+        if (typeof err.error === 'string') {
+          try {
+            const parsed = JSON.parse(err.error);
+            backendMsg = parsed?.message || '';
+          } catch {
+            backendMsg = err.error;
+          }
+        } else if (err.error?.message) {
+          backendMsg = err.error.message;
+        }
+      }
+
+      if (backendMsg.toLowerCase().includes('current password is invalid') || backendMsg.toLowerCase().includes('senha atual')) {
+        message = 'Senha atual incorreta. Digite sua senha atual para continuar.';
+      } else if (backendMsg.toLowerCase().includes('invalid') || err?.status === 400) {
+        message = 'Cadastre uma senha válida.';
+      } else if (backendMsg) {
+        message = backendMsg;
+      }
+
+      this.errorMsg.set(message);
     } finally {
       this.submitting.set(false);
     }

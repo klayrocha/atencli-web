@@ -33,6 +33,7 @@
   - Letra maiúscula e minúscula
   - Número
   - Caractere especial
+- Tratamento de mensagens amigáveis de erro no formulário de alteração de senha (senha atual inválida e requisitos da nova senha)
 - Token atualizado automaticamente após troca de senha bem-sucedida
 - Usuários autenticados via Google não visualizam a opção de alterar senha
 
