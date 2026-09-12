@@ -63,6 +63,16 @@
         </div>
         <div class="invite-form-row">
           <div class="invite-field invite-field--grow">
+            <label class="field-label">Nome completo</label>
+            <input
+              type="text"
+              class="field-input"
+              [(ngModel)]="inviteFullName"
+              placeholder="Nome do membro"
+              name="invite-full-name"
+            />
+          </div>
+          <div class="invite-field invite-field--grow">
             <label class="field-label">E-mail do membro</label>
             <input
               type="email"
@@ -81,9 +91,19 @@
               <i class="pi pi-chevron-down select-arrow"></i>
             </div>
           </div>
+          <div class="invite-field">
+            <label class="field-label">Autenticação</label>
+            <div class="select-wrap">
+              <select class="field-input" [(ngModel)]="inviteAuthProvider" name="invite-auth-provider">
+                <option value="LOCAL">E-mail e senha</option>
+                <option value="GOOGLE">Google</option>
+              </select>
+              <i class="pi pi-chevron-down select-arrow"></i>
+            </div>
+          </div>
           <div class="invite-field invite-field--btn">
             <label class="field-label">&nbsp;</label>
-            <button type="button" class="btn-send-invite" (click)="sendInvite()" [disabled]="!inviteEmail.trim()">
+            <button type="button" class="btn-send-invite" (click)="sendInvite()" [disabled]="!inviteFullName.trim() || !inviteEmail.trim() || saving()">
               <i class="pi pi-send"></i>
               <span>Enviar convite</span>
             </button>
@@ -137,10 +157,20 @@
                 </td>
                 <td class="col-actions">
                   <div class="action-btns">
-                    <button type="button" class="action-btn action-btn--edit" (click)="startEdit(member)" title="Editar">
+                    <button type="button" class="action-btn action-btn--edit" (click)="startEdit(member)" [disabled]="isProtectedAdministrator(member)" [title]="isProtectedAdministrator(member) ? 'O administrador logado não pode ser editado' : 'Editar'">
                       <i class="pi pi-pencil"></i>
                     </button>
-                    <button type="button" class="action-btn action-btn--delete" (click)="removeMember(member.id)" title="Remover">
+                    <button
+                      type="button"
+                      class="action-btn action-btn--save"
+                      *ngIf="!member.owner && member.statuses.includes('ACTIVE')"
+                      (click)="transferOwnership(member)"
+                      [disabled]="isProtectedAdministrator(member)"
+                      [title]="isProtectedAdministrator(member) ? 'O administrador logado não pode transferir a propriedade' : 'Transferir propriedade'"
+                    >
+                      <i class="pi pi-crown"></i>
+                    </button>
+                    <button type="button" class="action-btn action-btn--delete" (click)="removeMember(member.id)" [disabled]="isProtectedAdministrator(member)" [title]="isProtectedAdministrator(member) ? 'O administrador logado não pode ser desativado' : 'Remover'">
                       <i class="pi pi-trash"></i>
                     </button>
                   </div>
@@ -154,9 +184,9 @@
                     <div class="member-avatar" [style.background]="member.avatarColor">
                       <span>{{ member.initials }}</span>
                     </div>
-                    <div class="edit-fields">
-                      <input type="text"  class="inline-input" [(ngModel)]="editBuffer.name"  [name]="'name-'  + member.id" placeholder="Nome" />
-                      <input type="email" class="inline-input" [(ngModel)]="editBuffer.email" [name]="'email-' + member.id" placeholder="E-mail" />
+                      <div class="member-info">
+                        <span class="member-name">{{ member.name }}</span>
+                        <span class="member-email">{{ member.email }}</span>
                     </div>
                   </div>
                 </td>

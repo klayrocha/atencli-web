@@ -6,9 +6,17 @@ import { InputTextModule } from 'primeng/inputtext';
 import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { DropdownModule } from 'primeng/dropdown';
+import { MultiSelectModule } from 'primeng/multiselect';
 import { WizardStep, WIZARD_STEPS_DEFAULT } from '../wizard-shared/wizard.models';
 import { WizardSummaryComponent } from '../wizard-shared/wizard-summary/wizard-summary.component';
-import { WizardService, StateOption, ClientTypeOption } from '../wizard-shared/wizard.service';
+import {
+  WizardService,
+  StateOption,
+  ClientTypeOption,
+  HealthPlanOption,
+  AboutResponse,
+  ClientHealthPlansResponse,
+} from '../wizard-shared/wizard.service';
 
 const DRAFT_KEY = 'wizard_step1_draft';
 
@@ -21,6 +29,7 @@ interface Step1Draft {
   clinicPhone: string;
   clinicEmail: string;
   acceptsHealthPlan: boolean | null;
+  healthPlanIds: number[];
 }
 
 @Component({
@@ -33,6 +42,7 @@ interface Step1Draft {
     InputTextModule,
     ButtonModule,
     DropdownModule,
+    MultiSelectModule,
     WizardSummaryComponent,
   ],
   templateUrl: './wizard-step-1-about.component.html',
@@ -49,10 +59,12 @@ export class WizardStep1AboutComponent implements OnInit {
   clinicPhone = '';
   clinicEmail = '';
   acceptsHealthPlan: boolean | null = null;
+  healthPlanIds: number[] = [];
 
   // ─── Listas carregadas da API ──────────────────────────────────────────────
   clinicTypes: ClientTypeOption[] = [];
   states: StateOption[] = [];
+  healthPlans: HealthPlanOption[] = [];
 
   // ─── Estado de UI ──────────────────────────────────────────────────────────
   loadingLists = signal(true);
@@ -69,7 +81,8 @@ export class WizardStep1AboutComponent implements OnInit {
       this.state != null && this.state !== '' &&
       this.clinicPhone.trim() !== '' &&
       this.clinicEmail.trim() !== '' &&
-      this.acceptsHealthPlan !== null
+      this.acceptsHealthPlan !== null &&
+      (this.acceptsHealthPlan === false || this.healthPlanIds.length > 0)
     );
   }
 
@@ -85,15 +98,22 @@ export class WizardStep1AboutComponent implements OnInit {
   ) {}
 
   async ngOnInit(): Promise<void> {
-    this.restoreDraft();
+    const hasDraft = this.restoreDraft();
 
     try {
-      const [states, clientTypes] = await Promise.all([
+      const [states, clientTypes, healthPlans, about, clientHealthPlans] = await Promise.all([
         this.wizardService.getStates(),
         this.wizardService.getClientTypes(),
+        this.wizardService.getHealthPlans(),
+        this.wizardService.getAbout(),
+        this.wizardService.getClientHealthPlans(),
       ]);
       this.states = states;
       this.clinicTypes = clientTypes;
+      this.healthPlans = healthPlans;
+      if (!hasDraft) {
+        this.applySavedData(about, clientHealthPlans);
+      }
     } catch {
       // Em caso de falha na API, mantém as listas vazias sem bloquear a tela
     } finally {
@@ -113,14 +133,15 @@ export class WizardStep1AboutComponent implements OnInit {
       clinicPhone: this.clinicPhone,
       clinicEmail: this.clinicEmail,
       acceptsHealthPlan: this.acceptsHealthPlan,
+      healthPlanIds: this.healthPlanIds,
     };
     sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
   }
 
-  private restoreDraft(): void {
+  private restoreDraft(): boolean {
     try {
       const raw = sessionStorage.getItem(DRAFT_KEY);
-      if (!raw) return;
+      if (!raw) return false;
       const draft: Step1Draft = JSON.parse(raw);
       this.clinicName = draft.clinicName ?? '';
       this.clinicType = draft.clinicType ?? '';
@@ -130,16 +151,42 @@ export class WizardStep1AboutComponent implements OnInit {
       this.clinicPhone = draft.clinicPhone ?? '';
       this.clinicEmail = draft.clinicEmail ?? '';
       this.acceptsHealthPlan = draft.acceptsHealthPlan ?? null;
+      this.healthPlanIds = draft.healthPlanIds ?? [];
+      return true;
     } catch {
       // draft corrompido — ignora
+      return false;
     }
+  }
+
+  private applySavedData(about: AboutResponse, clientHealthPlans: ClientHealthPlansResponse): void {
+    this.clinicName = about.clientName ?? '';
+    this.clinicType = about.typeClientId != null ? String(about.typeClientId) : '';
+    this.shortDescription = about.description ?? '';
+    this.city = about.cityName ?? '';
+    this.state = about.stateId != null ? String(about.stateId) : '';
+    this.clinicPhone = this.formatPhoneNumber(about.phoneNumber ?? '');
+    this.clinicEmail = about.email ?? '';
+    this.acceptsHealthPlan = clientHealthPlans.acceptsHealthPlan ?? about.acceptsHealthPlan ?? null;
+    this.healthPlanIds = clientHealthPlans.healthPlans.map(plan => plan.id);
   }
 
   // ─── Handlers de campo ───────────────────────────────────────────────────
 
   onPhoneInput(event: Event): void {
     const input = event.target as HTMLInputElement;
-    let digits = input.value.replace(/\D/g, '').substring(0, 11);
+    const formatted = this.formatPhoneNumber(input.value);
+
+    this.clinicPhone = formatted;
+    input.value = formatted;
+  }
+
+  private formatPhoneNumber(value: string): string {
+    let digits = value.replace(/\D/g, '');
+    if (digits.startsWith('55') && (digits.length === 12 || digits.length === 13)) {
+      digits = digits.substring(2);
+    }
+    digits = digits.substring(0, 11);
 
     let formatted = '';
     if (digits.length === 0) {
@@ -154,12 +201,18 @@ export class WizardStep1AboutComponent implements OnInit {
       formatted = `(${digits.substring(0, 2)}) ${digits.substring(2, 7)}-${digits.substring(7, 11)}`;
     }
 
-    this.clinicPhone = formatted;
-    input.value = formatted;
+    return formatted;
   }
 
   selectHealthPlan(value: boolean): void {
     this.acceptsHealthPlan = value;
+    if (!value) {
+      this.healthPlanIds = [];
+    }
+    this.saveDraft();
+  }
+
+  onHealthPlansChange(): void {
     this.saveDraft();
   }
 
@@ -200,6 +253,8 @@ export class WizardStep1AboutComponent implements OnInit {
         phoneNumber: `+55${rawPhone}`,
         acceptsHealthPlan: this.acceptsHealthPlan!,
       });
+      const selectedHealthPlans = this.healthPlans.filter(plan => this.healthPlanIds.includes(plan.id));
+      await this.wizardService.saveHealthPlans(this.acceptsHealthPlan!, selectedHealthPlans);
       sessionStorage.removeItem(DRAFT_KEY);
       this.router.navigate(['/wizard-step-2-specialty']);
     } catch {

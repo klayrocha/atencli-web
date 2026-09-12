@@ -198,6 +198,33 @@
           <small class="field-error" *ngIf="submitAttempted() && acceptsHealthPlan === null">Campo obrigatório.</small>
         </div>
 
+        <!-- Planos de saúde atendidos -->
+        <div class="form-group health-plans-selection" *ngIf="acceptsHealthPlan === true">
+          <label for="healthPlans">Planos de saúde atendidos <span class="required">*</span></label>
+          <p-multiSelect
+            id="healthPlans"
+            [options]="healthPlans"
+            [(ngModel)]="healthPlanIds"
+            name="healthPlans"
+            optionLabel="name"
+            optionValue="id"
+            placeholder="{{ loadingLists() ? 'Carregando planos...' : 'Selecione um ou mais planos' }}"
+            selectedItemsLabel="{0} planos selecionados"
+            [maxSelectedLabels]="2"
+            [filter]="true"
+            filterPlaceholder="Buscar plano"
+            [disabled]="loadingLists()"
+            styleClass="w-full"
+            (ngModelChange)="onHealthPlansChange()"
+          ></p-multiSelect>
+          <small class="field-hint" *ngIf="!(submitAttempted() && healthPlanIds.length === 0)">
+            Selecione todos os planos aceitos pela clínica.
+          </small>
+          <small class="field-error" *ngIf="submitAttempted() && healthPlanIds.length === 0">
+            Selecione pelo menos um plano de saúde.
+          </small>
+        </div>
+
         <!-- Banner com sugestão por Inteligência Artificial -->
         <div class="ai-recommendation-box">
           <div class="ai-box-left">

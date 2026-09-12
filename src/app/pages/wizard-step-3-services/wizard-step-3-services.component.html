@@ -47,7 +47,12 @@
       </div>
 
       <!-- Tabela de Serviços -->
-      <div class="services-table-wrap">
+      <div class="services-loading" *ngIf="loadingServices()">
+        <i class="pi pi-spin pi-spinner"></i>
+        <span>Carregando serviços...</span>
+      </div>
+
+      <div class="services-table-wrap" *ngIf="!loadingServices()">
         <table class="services-table">
           <thead>
             <tr>
@@ -115,6 +120,7 @@
                     type="number"
                     class="price-input"
                     [(ngModel)]="service.practicePrice"
+                    (click)="copySuggestedPriceToPractice(service)"
                     [disabled]="!service.enabled"
                     placeholder="..."
                     min="0"
@@ -131,6 +137,7 @@
                     type="number"
                     class="price-input"
                     [(ngModel)]="service.insurancePrice"
+                    (click)="copyPracticePriceToInsurance(service)"
                     [disabled]="!service.enabled"
                     placeholder="..."
                     min="0"
@@ -238,9 +245,10 @@
         <span>Voltar (Passo 2)</span>
       </button>
 
-      <button type="button" class="btn-continuar" (click)="goNext()">
-        <span>Continuar para Horários</span>
-        <i class="pi pi-arrow-right"></i>
+      <button type="button" class="btn-continuar" (click)="goNext()" [disabled]="loadingServices() || saving() || !canSave">
+        <i class="pi pi-spin pi-spinner" *ngIf="saving()"></i>
+        <span>{{ saving() ? 'Salvando...' : 'Continuar para Horários' }}</span>
+        <i class="pi pi-arrow-right" *ngIf="!saving()"></i>
       </button>
     </div>
 

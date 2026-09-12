@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-09-12
+
+### Adicionado
+
+- Integração do onboarding com os catálogos e endpoints de persistência de clínica, planos de saúde, especialidades, serviços e disponibilidade.
+- Carregamento dos dados já cadastrados ao reabrir os passos do wizard, incluindo especialidades, serviços e horários.
+- Integração da tela de equipe com listagem de membros, convites, reenvio, cancelamento, edição de acesso e transferência de propriedade.
+- Proteção do administrador logado contra edição, desativação e transferência indevida.
+- Cópia de valores sugeridos para valor praticado e de valor praticado para valor de convênio no passo de serviços.
+- Layout compacto e responsivo para a lista de exceções de horário.
+
 ### Adicionado
 
 #### Wizard de Onboarding da Clínica

@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
@@ -7,17 +7,15 @@ import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
 import { WizardStep, WIZARD_STEPS_DEFAULT } from '../wizard-shared/wizard.models';
 import { WizardSummaryComponent } from '../wizard-shared/wizard-summary/wizard-summary.component';
+import { WizardService } from '../wizard-shared/wizard.service';
+
+const DRAFT_KEY = 'wizard_step2_specialties_draft';
 
 export interface SpecialtyItem {
   id: number;
   name: string;
   category?: string;
   icon?: string;
-}
-
-export interface ClientSpecialtiesConfig {
-  clientUuid: string;
-  specialties: SpecialtyItem[];
 }
 
 @Component({
@@ -35,35 +33,15 @@ export interface ClientSpecialtiesConfig {
   templateUrl: './wizard-step-2-specialty.component.html',
   styleUrls: ['./wizard-step-2-specialty.component.scss'],
 })
-export class WizardStep2SpecialtyComponent {
-  clientUuid = 'd1acd1ad-cff1-40d7-86d3-753933746f52';
+export class WizardStep2SpecialtyComponent implements OnInit {
   searchTerm = '';
+  saving = signal(false);
+  loadingSpecialties = signal(true);
 
-  // Lista de especialidades disponíveis (baseada no catálogo oficial da Atenclin)
-  availableSpecialties: SpecialtyItem[] = [
-    { id: 1,  name: 'Cirurgia e Traumatologia Buco-Maxilo-Faciais', category: 'Cirurgia' },
-    { id: 2,  name: 'Dentística', category: 'Estética & Restauração' },
-    { id: 3,  name: 'Implantodontia', category: 'Cirurgia & Reabilitação' },
-    { id: 4,  name: 'Endodontia', category: 'Tratamento de Canal' },
-    { id: 5,  name: 'Estomatologia', category: 'Diagnóstico' },
-    { id: 6,  name: 'Odontopediatria', category: 'Infantil' },
-    { id: 7,  name: 'Periodontia', category: 'Gengiva & Suporte' },
-    { id: 8,  name: 'Ortodontia', category: 'Alinhamento & Aparelhos' },
-    { id: 9,  name: 'Prótese Dentária', category: 'Reabilitação Oral' },
-    { id: 10, name: 'Harmonização Orofacial', category: 'Estética Facial' },
-    { id: 11, name: 'Disfunção Temporomandibular e Dor Orofacial', category: 'DTM & Dor' },
-    { id: 12, name: 'Radiologia Odontológica e Imaginologia', category: 'Exames' },
-    { id: 13, name: 'Odontogeriatria', category: 'Terceira Idade' },
-    { id: 14, name: 'Odontologia do Esporte', category: 'Atletas' },
-    { id: 15, name: 'Odontologia para Pacientes Especiais', category: 'Cuidados Especiais' },
-    { id: 16, name: 'Ortopedia Funcional dos Maxilares', category: 'Ortopedia' },
-  ];
+  // Lista carregada do catálogo oficial da API para o tipo da clínica.
+  availableSpecialties: SpecialtyItem[] = [];
 
-  // Especialidades selecionadas inicialmente (ex: Implantodontia #3 e Ortodontia #8)
-  selectedSpecialties: SpecialtyItem[] = [
-    { id: 3, name: 'Implantodontia' },
-    { id: 8, name: 'Ortodontia' },
-  ];
+  selectedSpecialties: SpecialtyItem[] = [];
 
   steps: WizardStep[] = WIZARD_STEPS_DEFAULT.map(s => ({
     ...s,
@@ -71,7 +49,40 @@ export class WizardStep2SpecialtyComponent {
     completed: s.id <= 2,
   }));
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private wizardService: WizardService,
+  ) {}
+
+  async ngOnInit(): Promise<void> {
+    const draftSpecialtyIds = this.restoreDraft();
+
+    try {
+      const about = await this.wizardService.getAbout();
+      if (about.typeClientId == null) {
+        return;
+      }
+
+      const [specialties, clientSpecialties] = await Promise.all([
+        this.wizardService.getSpecialtiesByTypeClient(about.typeClientId),
+        this.wizardService.getClientSpecialties(),
+      ]);
+
+      this.availableSpecialties = specialties.map(specialty => ({
+        id: Number(specialty.id),
+        name: specialty.name,
+      }));
+      const selectedIds = clientSpecialties.specialties.map(specialty => Number(specialty.id));
+      this.selectedSpecialties = this.availableSpecialties.filter(specialty => selectedIds.includes(specialty.id));
+    } catch {
+      if (draftSpecialtyIds !== null) {
+        this.selectedSpecialties = this.availableSpecialties.filter(specialty => draftSpecialtyIds.includes(specialty.id));
+      }
+      // Em caso de falha na API, usa o rascunho local como fallback
+    } finally {
+      this.loadingSpecialties.set(false);
+    }
+  }
 
   get filteredSpecialties(): SpecialtyItem[] {
     if (!this.searchTerm.trim()) {
@@ -94,10 +105,12 @@ export class WizardStep2SpecialtyComponent {
     } else {
       this.selectedSpecialties.push({ id: specialty.id, name: specialty.name });
     }
+    this.saveDraft();
   }
 
   removeSpecialty(specialty: SpecialtyItem): void {
     this.selectedSpecialties = this.selectedSpecialties.filter(s => s.id !== specialty.id);
+    this.saveDraft();
   }
 
   recommendByAi(): void {
@@ -105,29 +118,56 @@ export class WizardStep2SpecialtyComponent {
     const aiSuggestedIds = [2, 3, 7, 8, 10]; // Dentística, Implantodontia, Periodontia, Ortodontia, Harmonização
     const suggestions = this.availableSpecialties.filter(s => aiSuggestedIds.includes(s.id));
     this.selectedSpecialties = suggestions.map(s => ({ id: s.id, name: s.name }));
+    this.saveDraft();
   }
 
   selectAll(): void {
     this.selectedSpecialties = this.availableSpecialties.map(s => ({ id: s.id, name: s.name }));
+    this.saveDraft();
   }
 
   clearAll(): void {
     this.selectedSpecialties = [];
+    this.saveDraft();
   }
 
-  getPayload(): ClientSpecialtiesConfig {
-    return {
-      clientUuid: this.clientUuid,
-      specialties: this.selectedSpecialties,
-    };
+  private saveDraft(): void {
+    sessionStorage.setItem(
+      DRAFT_KEY,
+      JSON.stringify(this.selectedSpecialties.map(specialty => specialty.id))
+    );
+  }
+
+  private restoreDraft(): number[] | null {
+    try {
+      const raw = sessionStorage.getItem(DRAFT_KEY);
+      if (raw === null) {
+        return null;
+      }
+
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed.filter(id => Number.isInteger(id)) : null;
+    } catch {
+      return null;
+    }
   }
 
   goBack(): void {
     this.router.navigate(['/wizard-step-1-aboult']);
   }
 
-  goNext(): void {
-    this.router.navigate(['/wizard-step-3-services']);
+  async goNext(): Promise<void> {
+    this.saving.set(true);
+    try {
+      const specialtyIds = this.selectedSpecialties.map(specialty => specialty.id);
+      await this.wizardService.saveSpecialties(specialtyIds);
+      sessionStorage.removeItem(DRAFT_KEY);
+      this.router.navigate(['/wizard-step-3-services']);
+    } catch {
+      // Erro silenciado — pode adicionar toast aqui no futuro
+    } finally {
+      this.saving.set(false);
+    }
   }
 
   activateService(): void {

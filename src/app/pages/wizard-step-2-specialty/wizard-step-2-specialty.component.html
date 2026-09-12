@@ -66,9 +66,9 @@
         </div>
 
         <div class="quick-actions">
-          <button type="button" class="btn-text" (click)="selectAll()">Selecionar todas</button>
+          <button type="button" class="btn-text" (click)="selectAll()" [disabled]="loadingSpecialties()">Selecionar todas</button>
           <span class="action-divider">|</span>
-          <button type="button" class="btn-text" (click)="clearAll()">Limpar seleção</button>
+          <button type="button" class="btn-text" (click)="clearAll()" [disabled]="loadingSpecialties()">Limpar seleção</button>
         </div>
       </div>
 
@@ -93,8 +93,13 @@
         </div>
       </div>
 
+      <div class="specialties-loading" *ngIf="loadingSpecialties()">
+        <i class="pi pi-spin pi-spinner"></i>
+        <span>Carregando especialidades...</span>
+      </div>
+
       <!-- Grid de Seleção de Especialidades -->
-      <div class="specialties-grid">
+      <div class="specialties-grid" *ngIf="!loadingSpecialties()">
         <div
           *ngFor="let specialty of filteredSpecialties"
           class="specialty-card"
@@ -113,7 +118,7 @@
       </div>
 
       <!-- Mensagem quando busca não encontra nada -->
-      <div class="empty-search" *ngIf="filteredSpecialties.length === 0">
+      <div class="empty-search" *ngIf="!loadingSpecialties() && filteredSpecialties.length === 0">
         <i class="pi pi-search-minus"></i>
         <p>Nenhuma especialidade encontrada para "<strong>{{ searchTerm }}</strong>".</p>
         <button type="button" class="btn-reset-search" (click)="searchTerm = ''">Limpar busca</button>
@@ -130,7 +135,7 @@
             <p>Com base em clínicas do mesmo segmento, selecionamos as principais especialidades de alta demanda.</p>
           </div>
         </div>
-        <button type="button" class="ai-action-btn" (click)="recommendByAi()">
+        <button type="button" class="ai-action-btn" (click)="recommendByAi()" [disabled]="loadingSpecialties()">
           <i class="pi pi-sparkles"></i>
           <span>Sugerir especialidades populares</span>
         </button>
@@ -145,9 +150,10 @@
         <span>Voltar (Passo 1)</span>
       </button>
 
-      <button type="button" class="btn-continuar" (click)="goNext()">
-        <span>Continuar para Serviços</span>
-        <i class="pi pi-arrow-right"></i>
+      <button type="button" class="btn-continuar" (click)="goNext()" [disabled]="saving() || loadingSpecialties()">
+        <i class="pi pi-spin pi-spinner" *ngIf="saving()"></i>
+        <span>{{ saving() ? 'Salvando...' : 'Continuar para Serviços' }}</span>
+        <i class="pi pi-arrow-right" *ngIf="!saving()"></i>
       </button>
     </div>
 

@@ -1,4 +1,4 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
@@ -6,6 +6,7 @@ import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
 import { WizardStep, WIZARD_STEPS_DEFAULT } from '../wizard-shared/wizard.models';
 import { WizardSummaryComponent } from '../wizard-shared/wizard-summary/wizard-summary.component';
+import { WizardService } from '../wizard-shared/wizard.service';
 
 export interface ServiceItem {
   id: number;
@@ -38,7 +39,10 @@ export interface DurationOption {
   templateUrl: './wizard-step-3-services.component.html',
   styleUrls: ['./wizard-step-3-services.component.scss'],
 })
-export class WizardStep3ServicesComponent {
+export class WizardStep3ServicesComponent implements OnInit {
+
+  loadingServices = signal(true);
+  saving = signal(false);
 
   steps: WizardStep[] = WIZARD_STEPS_DEFAULT.map(s => ({
     ...s,
@@ -56,39 +60,7 @@ export class WizardStep3ServicesComponent {
     { label: '120 min', value: 120 },
   ];
 
-  // Catálogo completo de serviços
-  allServices: ServiceItem[] = [
-    { id: 1,  name: 'Consulta Clínica Geral',          icon: 'pi-user-plus',      category: 'Consulta',          suggestedPrice: 250,  practicePrice: 250,  insurancePrice: 250,  duration: 30,  enabled: true  },
-    { id: 2,  name: 'Limpeza e Profilaxia',              icon: 'pi-eraser',         category: 'Prevenção',         suggestedPrice: 300,  practicePrice: 300,  insurancePrice: 400,  duration: 45,  enabled: true  },
-    { id: 3,  name: 'Restauração em Resina (Classe I)',  icon: 'pi-cog',            category: 'Restauração',       suggestedPrice: 450,  practicePrice: 400,  insurancePrice: null, duration: 60,  enabled: true  },
-    { id: 4,  name: 'Jateamento Dental Caseiro (Arcada)',icon: 'pi-sparkles',       category: 'Estética',          suggestedPrice: 800,  practicePrice: null, insurancePrice: null, duration: 60,  enabled: false },
-    { id: 5,  name: 'Ortodontia – Manutenção Mensal',   icon: 'pi-sync',           category: 'Ortodontia',        suggestedPrice: 200,  practicePrice: 200,  insurancePrice: null, duration: 20,  enabled: false },
-    { id: 6,  name: 'Aplicação de Flúor',               icon: 'pi-shield',         category: 'Prevenção',         suggestedPrice: 100,  practicePrice: 99,   insurancePrice: null, duration: 15,  enabled: false },
-    { id: 7,  name: 'Cirurgia de Extração Simples',      icon: 'pi-bolt',           category: 'Cirurgia',          suggestedPrice: 600,  practicePrice: null, insurancePrice: null, duration: 90,  enabled: false },
-    { id: 8,  name: 'Implante Dentário (por unidade)',   icon: 'pi-plus-circle',    category: 'Implantodontia',    suggestedPrice: 3500, practicePrice: null, insurancePrice: null, duration: 120, enabled: false },
-    { id: 9,  name: 'Tratamento de Canal (Unirradicular)',icon: 'pi-minus-circle',  category: 'Endodontia',        suggestedPrice: 900,  practicePrice: null, insurancePrice: null, duration: 90,  enabled: false },
-    { id: 10, name: 'Clareamento a Laser (Sessão)',      icon: 'pi-sun',            category: 'Estética',          suggestedPrice: 700,  practicePrice: null, insurancePrice: null, duration: 60,  enabled: false },
-    { id: 11, name: 'Radiografia Periapical',            icon: 'pi-eye',            category: 'Exames',            suggestedPrice: 80,   practicePrice: null, insurancePrice: null, duration: 15,  enabled: false },
-    { id: 12, name: 'Moldagem para Placa Bruxismo',      icon: 'pi-clone',          category: 'DTM & Dor',         suggestedPrice: 400,  practicePrice: null, insurancePrice: null, duration: 30,  enabled: false },
-    { id: 13, name: 'Consulta Odontopediátrica',         icon: 'pi-heart',          category: 'Infantil',          suggestedPrice: 200,  practicePrice: null, insurancePrice: null, duration: 30,  enabled: false },
-    { id: 14, name: 'Faceta de Porcelana (por dente)',   icon: 'pi-star',           category: 'Estética',          suggestedPrice: 2000, practicePrice: null, insurancePrice: null, duration: 120, enabled: false },
-    { id: 15, name: 'Periodontia – Raspagem (por sext)',  icon: 'pi-align-left',    category: 'Periodontia',       suggestedPrice: 350,  practicePrice: null, insurancePrice: null, duration: 45,  enabled: false },
-    { id: 16, name: 'Prótese Parcial Removível',         icon: 'pi-box',            category: 'Prótese',           suggestedPrice: 1800, practicePrice: null, insurancePrice: null, duration: 60,  enabled: false },
-    { id: 17, name: 'Avaliação Ortodôntica',             icon: 'pi-desktop',        category: 'Ortodontia',        suggestedPrice: 150,  practicePrice: null, insurancePrice: null, duration: 30,  enabled: false },
-    { id: 18, name: 'Gengivoplastia a Laser',            icon: 'pi-bolt',           category: 'Estética',          suggestedPrice: 1200, practicePrice: null, insurancePrice: null, duration: 60,  enabled: false },
-    { id: 19, name: 'Botox Terapêutico (Bruxismo)',      icon: 'pi-verified',       category: 'Harmonização',      suggestedPrice: 900,  practicePrice: null, insurancePrice: null, duration: 45,  enabled: false },
-    { id: 20, name: 'Retainer/Contenção Pós-Ortodontia',icon: 'pi-link',            category: 'Ortodontia',        suggestedPrice: 400,  practicePrice: null, insurancePrice: null, duration: 30,  enabled: false },
-    { id: 21, name: 'Consulta Periodontal',              icon: 'pi-user',           category: 'Periodontia',       suggestedPrice: 220,  practicePrice: null, insurancePrice: null, duration: 30,  enabled: false },
-    { id: 22, name: 'Exodontia de Siso',                 icon: 'pi-exclamation-circle', category: 'Cirurgia',     suggestedPrice: 1200, practicePrice: null, insurancePrice: null, duration: 90,  enabled: false },
-    { id: 23, name: 'Aparelho Fixo (Instalação)',        icon: 'pi-prime',          category: 'Ortodontia',        suggestedPrice: 2800, practicePrice: null, insurancePrice: null, duration: 90,  enabled: false },
-    { id: 24, name: 'Alinhador Transparente (Plano)',    icon: 'pi-palette',        category: 'Ortodontia',        suggestedPrice: 4500, practicePrice: null, insurancePrice: null, duration: 30,  enabled: false },
-    { id: 25, name: 'Retratamento de Canal',             icon: 'pi-refresh',        category: 'Endodontia',        suggestedPrice: 1200, practicePrice: null, insurancePrice: null, duration: 120, enabled: false },
-    { id: 26, name: 'Cirurgia Periodontal Ressectiva',   icon: 'pi-cut',            category: 'Periodontia',       suggestedPrice: 1500, practicePrice: null, insurancePrice: null, duration: 90,  enabled: false },
-    { id: 27, name: 'Tomografia Odontológica (CBCT)',    icon: 'pi-chart-scatter',  category: 'Exames',            suggestedPrice: 350,  practicePrice: null, insurancePrice: null, duration: 15,  enabled: false },
-    { id: 28, name: 'Cerâmica Inlay/Onlay',              icon: 'pi-objects-column', category: 'Restauração',       suggestedPrice: 1500, practicePrice: null, insurancePrice: null, duration: 90,  enabled: false },
-    { id: 29, name: 'Higienização Profissional Completa',icon: 'pi-check-circle',   category: 'Prevenção',         suggestedPrice: 320,  practicePrice: null, insurancePrice: null, duration: 60,  enabled: false },
-    { id: 30, name: 'Prótese Fixa sobre Implante',       icon: 'pi-crown',          category: 'Implantodontia',    suggestedPrice: 2500, practicePrice: null, insurancePrice: null, duration: 60,  enabled: false },
-  ];
+  allServices: ServiceItem[] = [];
 
   // Paginação
   pageSize = 10;
@@ -109,6 +81,14 @@ export class WizardStep3ServicesComponent {
   // Seleção
   get selectedServices(): ServiceItem[] {
     return this.allServices.filter(s => s.enabled);
+  }
+
+  get canSave(): boolean {
+    return this.selectedServices.every(service =>
+      service.practicePrice !== null &&
+      service.insurancePrice !== null &&
+      service.duration !== null
+    );
   }
 
   get allPageSelected(): boolean {
@@ -143,6 +123,18 @@ export class WizardStep3ServicesComponent {
     });
   }
 
+  copyPracticePriceToInsurance(service: ServiceItem): void {
+    if (service.enabled && service.practicePrice !== null) {
+      service.insurancePrice = service.practicePrice;
+    }
+  }
+
+  copySuggestedPriceToPractice(service: ServiceItem): void {
+    if (service.enabled && service.suggestedPrice !== null) {
+      service.practicePrice = service.suggestedPrice;
+    }
+  }
+
   getDurationLabel(value: number | null): string {
     if (!value) return '–';
     const opt = this.durationOptions.find(d => d.value === value);
@@ -154,14 +146,68 @@ export class WizardStep3ServicesComponent {
     return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   }
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private wizardService: WizardService,
+  ) {}
+
+  async ngOnInit(): Promise<void> {
+    try {
+      const about = await this.wizardService.getAbout();
+      if (about.typeClientId == null) {
+        return;
+      }
+
+      const [catalog, configured] = await Promise.all([
+        this.wizardService.getServicesByTypeClient(about.typeClientId),
+        this.wizardService.getClientServices(),
+      ]);
+      const configuredById = new Map(configured.services.map(service => [service.id, service]));
+
+      this.allServices = catalog.map(service => {
+        const configuredService = configuredById.get(Number(service.id));
+        return {
+          id: Number(service.id),
+          name: service.name,
+          icon: 'pi-briefcase',
+          category: 'Serviço',
+          suggestedPrice: service.valor ?? configuredService?.defaultValue ?? null,
+          practicePrice: configuredService?.price ?? null,
+          insurancePrice: configuredService?.planPrice ?? null,
+          duration: configuredService?.durationMinutes ?? null,
+          enabled: configuredService != null,
+        };
+      });
+    } catch {
+      // Em caso de falha na API, mantém a lista vazia sem bloquear a tela
+    } finally {
+      this.loadingServices.set(false);
+    }
+  }
 
   goBack(): void {
     this.router.navigate(['/wizard-step-2-specialty']);
   }
 
-  goNext(): void {
-    this.router.navigate(['/wizard-step-4-schedule']);
+  async goNext(): Promise<void> {
+    if (!this.canSave) {
+      return;
+    }
+
+    this.saving.set(true);
+    try {
+      await this.wizardService.saveServices(this.selectedServices.map(service => ({
+        serviceId: service.id,
+        price: service.practicePrice!,
+        planPrice: service.insurancePrice!,
+        durationMinutes: service.duration!,
+      })));
+      this.router.navigate(['/wizard-step-4-schedule']);
+    } catch {
+      // Erro silenciado — pode adicionar toast aqui no futuro
+    } finally {
+      this.saving.set(false);
+    }
   }
 
   activateService(): void {}

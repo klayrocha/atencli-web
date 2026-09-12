@@ -419,6 +419,28 @@
   }
 }
 
+.health-plans-selection {
+  :host ::ng-deep .p-multiselect {
+    width: 100%;
+    min-height: 42px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #f8fafc;
+    font-size: 0.875rem;
+
+    .p-multiselect-label {
+      padding: 0.65rem 0.875rem;
+      color: #1e293b;
+    }
+
+    &:not(.p-disabled).p-focus {
+      border-color: #84cc16;
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(132, 204, 22, 0.12);
+    }
+  }
+}
+
 // ─── Validação de campos ──────────────────────────────────────────────────────
 .required {
   color: #ef4444;

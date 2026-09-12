@@ -328,9 +328,10 @@
         <span>Voltar (Passo 3)</span>
       </button>
 
-      <button type="button" class="btn-continuar" (click)="goNext()">
-        <span>Continuar para Equipe</span>
-        <i class="pi pi-arrow-right"></i>
+      <button type="button" class="btn-continuar" (click)="goNext()" [disabled]="loading() || saving()">
+        <i class="pi pi-spin pi-spinner" *ngIf="saving()"></i>
+        <span>{{ saving() ? 'Salvando...' : 'Continuar para Equipe' }}</span>
+        <i class="pi pi-arrow-right" *ngIf="!saving()"></i>
       </button>
     </div>
 
@@ -345,23 +346,11 @@
   <!-- ==================== RESUMO LATERAL ==================== -->
   <div class="sidebar-area">
 
-    <!-- WizardSummary -->
     <app-wizard-summary
       [steps]="steps"
       [currentStepId]="4"
       (activate)="activateService()"
     ></app-wizard-summary>
-
-    <!-- Card de Exemplo de API -->
-    <div class="api-example-card">
-      <div class="api-example-header">
-        <span class="api-example-title">API Example</span>
-        <button type="button" class="api-copy-btn" title="Copiar payload">
-          <i class="pi pi-copy"></i>
-        </button>
-      </div>
-      <pre class="api-code" [textContent]="apiPayloadPreview"></pre>
-    </div>
 
   </div>
 
