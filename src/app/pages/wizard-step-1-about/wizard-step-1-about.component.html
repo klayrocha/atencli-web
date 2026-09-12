@@ -43,7 +43,7 @@
         <!-- Linha: Nome da clínica & Tipo de clínica -->
         <div class="form-row">
           <div class="form-group">
-            <label for="clinicName">Nome da clínica</label>
+            <label for="clinicName">Nome da clínica <span class="required">*</span></label>
             <input
               id="clinicName"
               type="text"
@@ -51,27 +51,32 @@
               [(ngModel)]="clinicName"
               name="clinicName"
               placeholder="Ex.: Clínica Harmonia"
+              [class.ng-invalid]="submitAttempted() && !clinicName.trim()"
             />
+            <small class="field-error" *ngIf="submitAttempted() && !clinicName.trim()">Campo obrigatório.</small>
           </div>
 
           <div class="form-group">
-            <label for="clinicType">Tipo de clínica</label>
+            <label for="clinicType">Tipo de clínica <span class="required">*</span></label>
             <p-dropdown
               id="clinicType"
               [options]="clinicTypes"
               [(ngModel)]="clinicType"
               name="clinicType"
-              placeholder="Selecione o tipo de clínica"
+              placeholder="{{ loadingLists() ? 'Carregando...' : 'Selecione o tipo de clínica' }}"
               optionLabel="label"
               optionValue="value"
               styleClass="w-full"
+              [disabled]="loadingLists()"
+              [class.ng-invalid]="submitAttempted() && !clinicType"
             ></p-dropdown>
+            <small class="field-error" *ngIf="submitAttempted() && !clinicType">Campo obrigatório.</small>
           </div>
         </div>
 
         <!-- Linha: Descrição curta -->
         <div class="form-group">
-          <label for="shortDescription">Descrição curta</label>
+          <label for="shortDescription">Descrição curta <span class="required">*</span></label>
           <input
             id="shortDescription"
             type="text"
@@ -79,14 +84,18 @@
             [(ngModel)]="shortDescription"
             name="shortDescription"
             placeholder="Ex.: Clínica odontológica focada em implantes, estética e ortodontia."
+            [class.ng-invalid]="submitAttempted() && !shortDescription.trim()"
           />
-          <small class="field-hint">Essa descrição será usada nas mensagens automáticas e no seu atendimento.</small>
+          <small class="field-hint" *ngIf="!(submitAttempted() && !shortDescription.trim())">
+            Essa descrição será usada nas mensagens automáticas e no seu atendimento.
+          </small>
+          <small class="field-error" *ngIf="submitAttempted() && !shortDescription.trim()">Campo obrigatório.</small>
         </div>
 
         <!-- Linha: Cidade & Estado -->
         <div class="form-row">
           <div class="form-group">
-            <label for="city">Cidade</label>
+            <label for="city">Cidade <span class="required">*</span></label>
             <input
               id="city"
               type="text"
@@ -94,28 +103,33 @@
               [(ngModel)]="city"
               name="city"
               placeholder="Ex.: São Paulo"
+              [class.ng-invalid]="submitAttempted() && !city.trim()"
             />
+            <small class="field-error" *ngIf="submitAttempted() && !city.trim()">Campo obrigatório.</small>
           </div>
 
           <div class="form-group">
-            <label for="state">Estado</label>
+            <label for="state">Estado <span class="required">*</span></label>
             <p-dropdown
               id="state"
               [options]="states"
               [(ngModel)]="state"
               name="state"
-              placeholder="Selecione o estado"
+              placeholder="{{ loadingLists() ? 'Carregando...' : 'Selecione o estado' }}"
               optionLabel="label"
               optionValue="value"
               styleClass="w-full"
+              [disabled]="loadingLists()"
+              [class.ng-invalid]="submitAttempted() && !state"
             ></p-dropdown>
+            <small class="field-error" *ngIf="submitAttempted() && !state">Campo obrigatório.</small>
           </div>
         </div>
 
         <!-- Linha: Telefone da clínica & E-mail da clínica -->
         <div class="form-row">
           <div class="form-group">
-            <label for="clinicPhone">Telefone da clínica</label>
+            <label for="clinicPhone">Telefone da clínica <span class="required">*</span></label>
             <input
               id="clinicPhone"
               type="tel"
@@ -125,33 +139,41 @@
               name="clinicPhone"
               placeholder="(11) 99999-9999"
               maxlength="15"
+              [class.ng-invalid]="submitAttempted() && !clinicPhone.trim()"
             />
-            <small class="field-hint">Usado para contato e confirmação de consultas.</small>
+            <small class="field-hint" *ngIf="!(submitAttempted() && !clinicPhone.trim())">
+              Usado para contato e confirmação de consultas.
+            </small>
+            <small class="field-error" *ngIf="submitAttempted() && !clinicPhone.trim()">Campo obrigatório.</small>
           </div>
 
           <div class="form-group">
-            <label for="clinicEmail">E-mail da clínica</label>
+            <label for="clinicEmail">E-mail da clínica <span class="required">*</span></label>
             <input
               id="clinicEmail"
               type="email"
               pInputText
               [(ngModel)]="clinicEmail"
               name="clinicEmail"
-              placeholder="contato@clinicaharmonia.com.br"
+              placeholder="contato&#64;clinicaharmonia.com.br"
+              [class.ng-invalid]="submitAttempted() && !clinicEmail.trim()"
             />
-            <small class="field-hint">Usado para envio de relatórios e notificações.</small>
+            <small class="field-hint" *ngIf="!(submitAttempted() && !clinicEmail.trim())">
+              Usado para envio de relatórios e notificações.
+            </small>
+            <small class="field-error" *ngIf="submitAttempted() && !clinicEmail.trim()">Campo obrigatório.</small>
           </div>
         </div>
 
         <!-- Linha: Aceita plano de saúde? -->
         <div class="form-group">
-          <label>Aceita plano de saúde?</label>
+          <label>Aceita plano de saúde? <span class="required">*</span></label>
           <div class="health-plan-options">
             <button
               type="button"
               class="plan-option-btn"
               [class.selected]="acceptsHealthPlan === true"
-              (click)="acceptsHealthPlan = true"
+              (click)="selectHealthPlan(true)"
             >
               <i class="pi pi-check-circle"></i>
               <span>Sim</span>
@@ -160,12 +182,13 @@
               type="button"
               class="plan-option-btn"
               [class.selected]="acceptsHealthPlan === false"
-              (click)="acceptsHealthPlan = false"
+              (click)="selectHealthPlan(false)"
             >
               <i class="pi pi-times-circle"></i>
               <span>Não</span>
             </button>
           </div>
+          <small class="field-error" *ngIf="submitAttempted() && acceptsHealthPlan === null">Campo obrigatório.</small>
         </div>
 
         <!-- Banner com sugestão por Inteligência Artificial -->
@@ -195,9 +218,16 @@
         <span>Voltar</span>
       </button>
 
-      <button type="button" class="btn-continuar" (click)="goNext()">
-        <span>Continuar</span>
-        <i class="pi pi-arrow-right"></i>
+      <button
+        type="button"
+        class="btn-continuar"
+        (click)="goNext()"
+        [disabled]="saving()"
+        [class.btn-saving]="saving()"
+      >
+        <i class="pi pi-spin pi-spinner" *ngIf="saving()"></i>
+        <span>{{ saving() ? 'Salvando...' : 'Continuar' }}</span>
+        <i class="pi pi-arrow-right" *ngIf="!saving()"></i>
       </button>
     </div>
 

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -8,11 +8,7 @@ import { ButtonModule } from 'primeng/button';
 import { DropdownModule } from 'primeng/dropdown';
 import { WizardStep, WIZARD_STEPS_DEFAULT } from '../wizard-shared/wizard.models';
 import { WizardSummaryComponent } from '../wizard-shared/wizard-summary/wizard-summary.component';
-
-interface OptionItem {
-  label: string;
-  value: string;
-}
+import { WizardService, StateOption, ClientTypeOption } from '../wizard-shared/wizard.service';
 
 @Component({
   selector: 'app-wizard-step-1-about',
@@ -29,57 +25,40 @@ interface OptionItem {
   templateUrl: './wizard-step-1-about.component.html',
   styleUrls: ['./wizard-step-1-about.component.scss'],
 })
-export class WizardStep1AboutComponent {
-  // Formulário Step 1
-  clinicName = 'Clínica Harmonia';
+export class WizardStep1AboutComponent implements OnInit {
+
+  // ─── Campos do formulário ──────────────────────────────────────────────────
+  clinicName = '';
   clinicType = '';
   shortDescription = '';
   city = '';
   state = '';
   clinicPhone = '';
-  clinicEmail = 'contato@clinicaharmonia.com.br';
+  clinicEmail = '';
   acceptsHealthPlan: boolean | null = null;
 
-  clinicTypes: OptionItem[] = [
-    { label: 'Clínica Odontológica / Consultório', value: 'odontologia' },
-    { label: 'Clínica Médica / Policlínica', value: 'medica' },
-    { label: 'Clínica de Estética & Dermatologia', value: 'estetica' },
-    { label: 'Clínica de Psicologia & Saúde Mental', value: 'psicologia' },
-    { label: 'Clínica de Fisioterapia & Reabilitação', value: 'fisioterapia' },
-    { label: 'Clínica Veterinária / Pet Care', value: 'veterinaria' },
-    { label: 'Laboratório & Diagnósticos', value: 'laboratorio' },
-    { label: 'Outro segmento de saúde', value: 'outro' },
-  ];
+  // ─── Listas carregadas da API ──────────────────────────────────────────────
+  clinicTypes: ClientTypeOption[] = [];
+  states: StateOption[] = [];
 
-  states: OptionItem[] = [
-    { label: 'Acre (AC)', value: 'AC' },
-    { label: 'Alagoas (AL)', value: 'AL' },
-    { label: 'Amapá (AP)', value: 'AP' },
-    { label: 'Amazonas (AM)', value: 'AM' },
-    { label: 'Bahia (BA)', value: 'BA' },
-    { label: 'Ceará (CE)', value: 'CE' },
-    { label: 'Distrito Federal (DF)', value: 'DF' },
-    { label: 'Espírito Santo (ES)', value: 'ES' },
-    { label: 'Goiás (GO)', value: 'GO' },
-    { label: 'Maranhão (MA)', value: 'MA' },
-    { label: 'Mato Grosso (MT)', value: 'MT' },
-    { label: 'Mato Grosso do Sul (MS)', value: 'MS' },
-    { label: 'Minas Gerais (MG)', value: 'MG' },
-    { label: 'Pará (PA)', value: 'PA' },
-    { label: 'Paraíba (PB)', value: 'PB' },
-    { label: 'Paraná (PR)', value: 'PR' },
-    { label: 'Pernambuco (PE)', value: 'PE' },
-    { label: 'Piauí (PI)', value: 'PI' },
-    { label: 'Rio de Janeiro (RJ)', value: 'RJ' },
-    { label: 'Rio Grande do Norte (RN)', value: 'RN' },
-    { label: 'Rio Grande do Sul (RS)', value: 'RS' },
-    { label: 'Rondônia (RO)', value: 'RO' },
-    { label: 'Roraima (RR)', value: 'RR' },
-    { label: 'Santa Catarina (SC)', value: 'SC' },
-    { label: 'São Paulo (SP)', value: 'SP' },
-    { label: 'Sergipe (SE)', value: 'SE' },
-    { label: 'Tocantins (TO)', value: 'TO' },
-  ];
+  // ─── Estado de UI ──────────────────────────────────────────────────────────
+  loadingLists = signal(true);
+  saving = signal(false);
+  submitAttempted = signal(false);
+
+  // ─── Validação ─────────────────────────────────────────────────────────────
+  get isFormValid(): boolean {
+    return (
+      this.clinicName.trim() !== '' &&
+      this.clinicType !== '' &&
+      this.shortDescription.trim() !== '' &&
+      this.city.trim() !== '' &&
+      this.state !== '' &&
+      this.clinicPhone.trim() !== '' &&
+      this.clinicEmail.trim() !== '' &&
+      this.acceptsHealthPlan !== null
+    );
+  }
 
   steps: WizardStep[] = WIZARD_STEPS_DEFAULT.map(s => ({
     ...s,
@@ -87,7 +66,25 @@ export class WizardStep1AboutComponent {
     completed: s.id === 1,
   }));
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private wizardService: WizardService,
+  ) {}
+
+  async ngOnInit(): Promise<void> {
+    try {
+      const [states, clientTypes] = await Promise.all([
+        this.wizardService.getStates(),
+        this.wizardService.getClientTypes(),
+      ]);
+      this.states = states;
+      this.clinicTypes = clientTypes;
+    } catch {
+      // Em caso de falha na API, mantém as listas vazias sem bloquear a tela
+    } finally {
+      this.loadingLists.set(false);
+    }
+  }
 
   onPhoneInput(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -110,8 +107,12 @@ export class WizardStep1AboutComponent {
     input.value = formatted;
   }
 
+  selectHealthPlan(value: boolean): void {
+    this.acceptsHealthPlan = value;
+  }
+
   recommendByAi(): void {
-    this.clinicType = 'odontologia';
+    this.clinicType = this.clinicTypes.length > 0 ? this.clinicTypes[0].value : '';
     this.shortDescription = 'Clínica odontológica moderna focada em implantes, estética e ortodontia de alta performance.';
     this.city = 'São Paulo';
     this.state = 'SP';
@@ -124,8 +125,32 @@ export class WizardStep1AboutComponent {
     this.router.navigate(['/']);
   }
 
-  goNext(): void {
-    this.router.navigate(['/wizard-step-2-specialty']);
+  async goNext(): Promise<void> {
+    this.submitAttempted.set(true);
+
+    if (!this.isFormValid) {
+      return;
+    }
+
+    this.saving.set(true);
+    try {
+      const rawPhone = this.clinicPhone.replace(/\D/g, '');
+      await this.wizardService.saveAbout({
+        name: this.clinicName.trim(),
+        clientType: this.clinicType,
+        description: this.shortDescription.trim(),
+        city: this.city.trim(),
+        state: this.state,
+        phone: `+55${rawPhone}`,
+        email: this.clinicEmail.trim(),
+        acceptsHealthPlan: this.acceptsHealthPlan!,
+      });
+      this.router.navigate(['/wizard-step-2-specialty']);
+    } catch {
+      // Erro silenciado — pode adicionar toast aqui no futuro
+    } finally {
+      this.saving.set(false);
+    }
   }
 
   activateService(): void {

@@ -418,3 +418,24 @@
     }
   }
 }
+
+// ─── Validação de campos ──────────────────────────────────────────────────────
+.required {
+  color: #ef4444;
+  margin-left: 2px;
+}
+
+.field-error {
+  display: block;
+  color: #ef4444;
+  font-size: 0.78rem;
+  margin-top: 0.25rem;
+}
+
+.btn-continuar {
+  &.btn-saving,
+  &:disabled {
+    opacity: 0.75;
+    cursor: not-allowed;
+  }
+}
