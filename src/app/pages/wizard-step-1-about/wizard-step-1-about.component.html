@@ -52,6 +52,7 @@
               name="clinicName"
               placeholder="Ex.: Clínica Harmonia"
               [class.ng-invalid]="submitAttempted() && !clinicName.trim()"
+              (blur)="saveDraft()"
             />
             <small class="field-error" *ngIf="submitAttempted() && !clinicName.trim()">Campo obrigatório.</small>
           </div>
@@ -69,6 +70,7 @@
               styleClass="w-full"
               [disabled]="loadingLists()"
               [class.ng-invalid]="submitAttempted() && !clinicType"
+              (ngModelChange)="saveDraft()"
             ></p-dropdown>
             <small class="field-error" *ngIf="submitAttempted() && !clinicType">Campo obrigatório.</small>
           </div>
@@ -85,6 +87,7 @@
             name="shortDescription"
             placeholder="Ex.: Clínica odontológica focada em implantes, estética e ortodontia."
             [class.ng-invalid]="submitAttempted() && !shortDescription.trim()"
+            (blur)="saveDraft()"
           />
           <small class="field-hint" *ngIf="!(submitAttempted() && !shortDescription.trim())">
             Essa descrição será usada nas mensagens automáticas e no seu atendimento.
@@ -104,6 +107,7 @@
               name="city"
               placeholder="Ex.: São Paulo"
               [class.ng-invalid]="submitAttempted() && !city.trim()"
+              (blur)="saveDraft()"
             />
             <small class="field-error" *ngIf="submitAttempted() && !city.trim()">Campo obrigatório.</small>
           </div>
@@ -121,6 +125,7 @@
               styleClass="w-full"
               [disabled]="loadingLists()"
               [class.ng-invalid]="submitAttempted() && !state"
+              (ngModelChange)="saveDraft()"
             ></p-dropdown>
             <small class="field-error" *ngIf="submitAttempted() && !state">Campo obrigatório.</small>
           </div>
@@ -140,6 +145,7 @@
               placeholder="(11) 99999-9999"
               maxlength="15"
               [class.ng-invalid]="submitAttempted() && !clinicPhone.trim()"
+              (blur)="saveDraft()"
             />
             <small class="field-hint" *ngIf="!(submitAttempted() && !clinicPhone.trim())">
               Usado para contato e confirmação de consultas.
@@ -157,6 +163,7 @@
               name="clinicEmail"
               placeholder="contato&#64;clinicaharmonia.com.br"
               [class.ng-invalid]="submitAttempted() && !clinicEmail.trim()"
+              (blur)="saveDraft()"
             />
             <small class="field-hint" *ngIf="!(submitAttempted() && !clinicEmail.trim())">
               Usado para envio de relatórios e notificações.

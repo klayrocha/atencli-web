@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -9,6 +9,19 @@ import { DropdownModule } from 'primeng/dropdown';
 import { WizardStep, WIZARD_STEPS_DEFAULT } from '../wizard-shared/wizard.models';
 import { WizardSummaryComponent } from '../wizard-shared/wizard-summary/wizard-summary.component';
 import { WizardService, StateOption, ClientTypeOption } from '../wizard-shared/wizard.service';
+
+const DRAFT_KEY = 'wizard_step1_draft';
+
+interface Step1Draft {
+  clinicName: string;
+  clinicType: string;
+  shortDescription: string;
+  city: string;
+  state: string;
+  clinicPhone: string;
+  clinicEmail: string;
+  acceptsHealthPlan: boolean | null;
+}
 
 @Component({
   selector: 'app-wizard-step-1-about',
@@ -72,6 +85,8 @@ export class WizardStep1AboutComponent implements OnInit {
   ) {}
 
   async ngOnInit(): Promise<void> {
+    this.restoreDraft();
+
     try {
       const [states, clientTypes] = await Promise.all([
         this.wizardService.getStates(),
@@ -85,6 +100,42 @@ export class WizardStep1AboutComponent implements OnInit {
       this.loadingLists.set(false);
     }
   }
+
+  // ─── Draft / sessionStorage ───────────────────────────────────────────────
+
+  saveDraft(): void {
+    const draft: Step1Draft = {
+      clinicName: this.clinicName,
+      clinicType: this.clinicType,
+      shortDescription: this.shortDescription,
+      city: this.city,
+      state: this.state,
+      clinicPhone: this.clinicPhone,
+      clinicEmail: this.clinicEmail,
+      acceptsHealthPlan: this.acceptsHealthPlan,
+    };
+    sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+  }
+
+  private restoreDraft(): void {
+    try {
+      const raw = sessionStorage.getItem(DRAFT_KEY);
+      if (!raw) return;
+      const draft: Step1Draft = JSON.parse(raw);
+      this.clinicName = draft.clinicName ?? '';
+      this.clinicType = draft.clinicType ?? '';
+      this.shortDescription = draft.shortDescription ?? '';
+      this.city = draft.city ?? '';
+      this.state = draft.state ?? '';
+      this.clinicPhone = draft.clinicPhone ?? '';
+      this.clinicEmail = draft.clinicEmail ?? '';
+      this.acceptsHealthPlan = draft.acceptsHealthPlan ?? null;
+    } catch {
+      // draft corrompido — ignora
+    }
+  }
+
+  // ─── Handlers de campo ───────────────────────────────────────────────────
 
   onPhoneInput(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -109,6 +160,7 @@ export class WizardStep1AboutComponent implements OnInit {
 
   selectHealthPlan(value: boolean): void {
     this.acceptsHealthPlan = value;
+    this.saveDraft();
   }
 
   recommendByAi(): void {
@@ -119,7 +171,10 @@ export class WizardStep1AboutComponent implements OnInit {
     if (!this.clinicPhone) {
       this.clinicPhone = '(11) 99999-9999';
     }
+    this.saveDraft();
   }
+
+  // ─── Navegação ───────────────────────────────────────────────────────────
 
   goBack(): void {
     this.router.navigate(['/']);
@@ -136,15 +191,16 @@ export class WizardStep1AboutComponent implements OnInit {
     try {
       const rawPhone = this.clinicPhone.replace(/\D/g, '');
       await this.wizardService.saveAbout({
-        name: this.clinicName.trim(),
-        clientType: this.clinicType,
-        description: this.shortDescription.trim(),
-        city: this.city.trim(),
-        state: this.state,
-        phone: `+55${rawPhone}`,
+        clientName: this.clinicName.trim(),
         email: this.clinicEmail.trim(),
+        typeClientId: Number(this.clinicType),
+        description: this.shortDescription.trim(),
+        cityName: this.city.trim(),
+        stateId: Number(this.state),
+        phoneNumber: `+55${rawPhone}`,
         acceptsHealthPlan: this.acceptsHealthPlan!,
       });
+      sessionStorage.removeItem(DRAFT_KEY);
       this.router.navigate(['/wizard-step-2-specialty']);
     } catch {
       // Erro silenciado — pode adicionar toast aqui no futuro

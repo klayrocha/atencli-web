@@ -19,14 +19,14 @@ export interface ClientTypeOption {
 // ─── Modelo do formulário Passo 1 ─────────────────────────────────────────────
 
 export interface AboutPayload {
-  clientUuid: string;
-  name: string;
-  clientType: string;
-  description: string;
-  city: string;
-  state: string;
-  phone: string;
+  uuid: string;
+  clientName: string;
   email: string;
+  typeClientId: number;
+  description: string;
+  cityName: string;
+  stateId: number;
+  phoneNumber: string;
   acceptsHealthPlan: boolean;
 }
 
@@ -69,10 +69,10 @@ export class WizardService {
 
   // ─── Passo 1 — About ──────────────────────────────────────────────────────
 
-  async saveAbout(data: Omit<AboutPayload, 'clientUuid'>): Promise<void> {
-    const payload: AboutPayload = { clientUuid: this.clientUuid, ...data };
+  async saveAbout(data: Omit<AboutPayload, 'uuid'>): Promise<void> {
+    const payload: AboutPayload = { uuid: this.clientUuid, ...data };
     await firstValueFrom(
-      this.http.post(
+      this.http.put(
         `${environment.apiBaseUrl}/api/v1/about`,
         payload,
         { headers: this.headers }
