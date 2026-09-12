@@ -49,6 +49,121 @@
   flex-wrap: wrap;
 }
 
+/* ===== Banner de Destaque: Configuração da Clínica ===== */
+.setup-clinic-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  padding: 1.25rem 1.75rem;
+  background: linear-gradient(135deg, #1a2e05 0%, #2d5016 55%, #1e3a0a 100%);
+  border-radius: 16px;
+  border: 1px solid rgba(132, 204, 22, 0.3);
+  box-shadow: 0 4px 20px rgba(26, 46, 5, 0.12);
+  gap: 1.5rem;
+
+  @media (max-width: 860px) {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .banner-left {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+  }
+
+  .banner-icon-wrap {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: rgba(132, 204, 22, 0.2);
+    border: 1px solid rgba(132, 204, 22, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    i {
+      color: #a3e635;
+      font-size: 1.35rem;
+    }
+  }
+
+  .banner-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.2rem 0.6rem;
+    background: rgba(132, 204, 22, 0.18);
+    border: 1px solid rgba(132, 204, 22, 0.35);
+    border-radius: 999px;
+    color: #bef264;
+    font-size: 0.725rem;
+    font-weight: 700;
+    margin-bottom: 0.35rem;
+
+    i {
+      font-size: 0.7rem;
+    }
+  }
+
+  .banner-title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #ffffff;
+    margin: 0 0 0.25rem;
+    letter-spacing: -0.3px;
+  }
+
+  .banner-desc {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.75);
+    margin: 0;
+    line-height: 1.45;
+    max-width: 600px;
+  }
+
+  .banner-actions {
+    flex-shrink: 0;
+  }
+
+  .banner-start-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(135deg, #84cc16 0%, #65a30d 100%);
+    border-radius: 10px;
+    color: #ffffff;
+    font-size: 0.9rem;
+    font-weight: 800;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 14px rgba(101, 163, 13, 0.4);
+    white-space: nowrap;
+
+    i {
+      font-size: 0.85rem;
+      transition: transform 0.15s;
+    }
+
+    &:hover {
+      background: linear-gradient(135deg, #7abd12 0%, #568a0b 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(101, 163, 13, 0.5);
+
+      i {
+        transform: translateX(3px);
+      }
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
+}
+
 /* ===== Grid ===== */
 .dashboard-grid {
   display: grid;

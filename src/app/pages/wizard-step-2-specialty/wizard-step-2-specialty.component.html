@@ -1,0 +1,169 @@
+<div class="wizard-container">
+
+  <!-- ==================== ÁREA PRINCIPAL (ESQUERDA) ==================== -->
+  <div class="wizard-main">
+
+    <!-- Header com gradiente sutil de fundo -->
+    <div class="wizard-header">
+      <div class="header-text">
+        <h1 class="header-title">
+          Quais especialidades sua clínica atende? <span class="wave-hand">🩺</span>
+        </h1>
+        <p class="header-subtitle">
+          Configure as áreas de atuação para que a IA e a equipe direcionem pacientes e organizem a agenda com precisão.
+        </p>
+      </div>
+    </div>
+
+    <!-- Stepper horizontal numerado (1 a 8) -->
+    <div class="horizontal-stepper">
+      <div
+        *ngFor="let step of steps; let i = index; let last = last"
+        class="step-item"
+        [class.active]="step.id === 2"
+        [class.completed]="step.id < 2"
+      >
+        <div class="step-circle">
+          <i class="pi pi-check" *ngIf="step.id < 2"></i>
+          <span *ngIf="step.id >= 2">{{ step.id }}</span>
+        </div>
+        <span class="step-label">{{ step.label }}</span>
+        <div class="step-line" *ngIf="!last" [class.completed]="step.id < 2"></div>
+      </div>
+    </div>
+
+    <!-- Card de Conteúdo do Passo 2: Especialidades -->
+    <div class="step-card">
+      <div class="step-card-header">
+        <div class="header-info">
+          <h2 class="step-title">2. Especialidades</h2>
+          <p class="step-desc">Selecione uma ou mais especialidades oferecidas na sua clínica.</p>
+        </div>
+        <div class="selected-counter">
+          <i class="pi pi-check-circle"></i>
+          <span><strong>{{ selectedSpecialties.length }}</strong> selecionada{{ selectedSpecialties.length === 1 ? '' : 's' }}</span>
+        </div>
+      </div>
+
+      <!-- Barra de Pesquisa e Ações Rápidas -->
+      <div class="specialties-toolbar">
+        <div class="search-box">
+          <i class="pi pi-search"></i>
+          <input
+            type="text"
+            pInputText
+            [(ngModel)]="searchTerm"
+            placeholder="Buscar especialidade (ex: Ortodontia, Implante...)"
+          />
+          <button
+            type="button"
+            class="clear-search"
+            *ngIf="searchTerm"
+            (click)="searchTerm = ''"
+          >
+            <i class="pi pi-times"></i>
+          </button>
+        </div>
+
+        <div class="quick-actions">
+          <button type="button" class="btn-text" (click)="selectAll()">Selecionar todas</button>
+          <span class="action-divider">|</span>
+          <button type="button" class="btn-text" (click)="clearAll()">Limpar seleção</button>
+        </div>
+      </div>
+
+      <!-- Chips das Especialidades Selecionadas -->
+      <div class="selected-chips-wrap" *ngIf="selectedSpecialties.length > 0">
+        <div class="chips-label">Especialidades ativas:</div>
+        <div class="chips-list">
+          <div
+            *ngFor="let s of selectedSpecialties"
+            class="specialty-chip"
+          >
+            <span>{{ s.name }}</span>
+            <button
+              type="button"
+              class="chip-remove"
+              (click)="removeSpecialty(s)"
+              title="Remover"
+            >
+              <i class="pi pi-times"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grid de Seleção de Especialidades -->
+      <div class="specialties-grid">
+        <div
+          *ngFor="let specialty of filteredSpecialties"
+          class="specialty-card"
+          [class.selected]="isSelected(specialty)"
+          (click)="toggleSpecialty(specialty)"
+        >
+          <div class="checkbox-custom">
+            <i class="pi pi-check" *ngIf="isSelected(specialty)"></i>
+          </div>
+
+          <div class="specialty-details">
+            <h4 class="specialty-name">{{ specialty.name }}</h4>
+            <span class="specialty-category" *ngIf="specialty.category">{{ specialty.category }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mensagem quando busca não encontra nada -->
+      <div class="empty-search" *ngIf="filteredSpecialties.length === 0">
+        <i class="pi pi-search-minus"></i>
+        <p>Nenhuma especialidade encontrada para "<strong>{{ searchTerm }}</strong>".</p>
+        <button type="button" class="btn-reset-search" (click)="searchTerm = ''">Limpar busca</button>
+      </div>
+
+      <!-- Banner de Recomendação IA -->
+      <div class="ai-recommendation-box">
+        <div class="ai-box-left">
+          <div class="ai-icon">
+            <i class="pi pi-sparkles"></i>
+          </div>
+          <div class="ai-text">
+            <strong>Deseja que a IA sugira as especialidades mais procuradas?</strong>
+            <p>Com base em clínicas do mesmo segmento, selecionamos as principais especialidades de alta demanda.</p>
+          </div>
+        </div>
+        <button type="button" class="ai-action-btn" (click)="recommendByAi()">
+          <i class="pi pi-sparkles"></i>
+          <span>Sugerir especialidades populares</span>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Ações no rodapé do Wizard -->
+    <div class="wizard-footer-actions">
+      <button type="button" class="btn-voltar" (click)="goBack()">
+        <i class="pi pi-chevron-left"></i>
+        <span>Voltar (Passo 1)</span>
+      </button>
+
+      <button type="button" class="btn-continuar" (click)="goNext()">
+        <span>Continuar para Serviços</span>
+        <i class="pi pi-arrow-right"></i>
+      </button>
+    </div>
+
+    <!-- Disclaimer de segurança -->
+    <div class="security-disclaimer">
+      <i class="pi pi-lock"></i>
+      <span>Seus dados estão seguros e nunca serão compartilhados.</span>
+    </div>
+
+  </div>
+
+  <!-- ==================== RESUMO LATERAL (COMPONENTE COMPARTILHADO) ==================== -->
+  <app-wizard-summary
+    [steps]="steps"
+    [currentStepId]="2"
+    (activate)="activateService()"
+  ></app-wizard-summary>
+
+</div>

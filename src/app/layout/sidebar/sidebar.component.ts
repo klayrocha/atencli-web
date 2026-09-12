@@ -18,11 +18,7 @@ interface MenuItem {
       <!-- Logo atenclin -->
       <div class="sidebar-logo">
         <div class="logo-icon">
-          <svg width="32" height="32" viewBox="0 0 52 52" fill="none">
-            <circle cx="26" cy="26" r="22" stroke="#84cc16" stroke-width="4" stroke-dasharray="95 25"/>
-            <circle cx="26" cy="26" r="13" stroke="#65a30d" stroke-width="3" stroke-dasharray="52 14"/>
-            <circle cx="26" cy="26" r="5" fill="#84cc16"/>
-          </svg>
+          <img src="logo.png" alt="Atenclin" class="sidebar-logo-img" />
         </div>
         <span class="logo-text" *ngIf="!collapsed">Atenclin</span>
       </div>

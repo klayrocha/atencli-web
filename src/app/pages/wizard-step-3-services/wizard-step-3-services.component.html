@@ -1,0 +1,262 @@
+<div class="wizard-container">
+
+  <!-- ==================== ÁREA PRINCIPAL (ESQUERDA) ==================== -->
+  <div class="wizard-main">
+
+    <!-- Header -->
+    <div class="wizard-header">
+      <div class="header-text">
+        <h1 class="header-title">
+          Quais serviços sua clínica oferece? <span class="wave-hand">💼</span>
+        </h1>
+        <p class="header-subtitle">
+          Cadastre e configure os seus serviços e preços. Sugerimos valores baseados no seu segmento.
+        </p>
+      </div>
+    </div>
+
+    <!-- Stepper horizontal numerado (1 a 8) -->
+    <div class="horizontal-stepper">
+      <div
+        *ngFor="let step of steps; let last = last"
+        class="step-item"
+        [class.active]="step.id === 3"
+        [class.completed]="step.id < 3"
+      >
+        <div class="step-circle">
+          <i class="pi pi-check" *ngIf="step.id < 3"></i>
+          <span *ngIf="step.id >= 3">{{ step.id }}</span>
+        </div>
+        <span class="step-label">{{ step.label }}</span>
+        <div class="step-line" *ngIf="!last" [class.completed]="step.id < 3"></div>
+      </div>
+    </div>
+
+    <!-- Card de Conteúdo do Passo 3: Serviços -->
+    <div class="step-card">
+
+      <div class="step-card-header">
+        <div class="header-info">
+          <h2 class="step-title">3. Serviços</h2>
+          <p class="step-desc">Habilite os serviços e ajuste os valores praticados e de convênio.</p>
+        </div>
+        <div class="selected-counter">
+          <i class="pi pi-check-circle"></i>
+          <span><strong>{{ selectedServices.length }}</strong> serviço{{ selectedServices.length === 1 ? '' : 's' }} habilitado{{ selectedServices.length === 1 ? '' : 's' }}</span>
+        </div>
+      </div>
+
+      <!-- Tabela de Serviços -->
+      <div class="services-table-wrap">
+        <table class="services-table">
+          <thead>
+            <tr>
+              <th class="col-check">
+                <div
+                  class="checkbox-custom"
+                  [class.checked]="allPageSelected"
+                  (click)="togglePageSelection()"
+                  title="Selecionar/desselecionar todos nesta página"
+                >
+                  <i class="pi pi-check" *ngIf="allPageSelected"></i>
+                  <i class="pi pi-minus" *ngIf="somePageSelected"></i>
+                </div>
+              </th>
+              <th class="col-name">Serviço</th>
+              <th class="col-suggested">Sugestão</th>
+              <th class="col-practice">Valor Praticado</th>
+              <th class="col-insurance">Valor Convênio</th>
+              <th class="col-duration">Duração</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              *ngFor="let service of pagedServices"
+              class="service-row"
+              [class.enabled]="service.enabled"
+            >
+              <!-- Checkbox -->
+              <td class="col-check">
+                <div
+                  class="checkbox-custom"
+                  [class.checked]="service.enabled"
+                  (click)="toggleService(service)"
+                >
+                  <i class="pi pi-check" *ngIf="service.enabled"></i>
+                </div>
+              </td>
+
+              <!-- Nome do serviço -->
+              <td class="col-name">
+                <div class="service-name-cell">
+                  <div class="service-icon">
+                    <i class="pi {{ service.icon }}"></i>
+                  </div>
+                  <div class="service-info">
+                    <span class="service-name">{{ service.name }}</span>
+                    <span class="service-category">{{ service.category }}</span>
+                  </div>
+                </div>
+              </td>
+
+              <!-- Sugestão (read-only) -->
+              <td class="col-suggested">
+                <span class="suggested-value" *ngIf="service.suggestedPrice !== null">
+                  {{ formatCurrency(service.suggestedPrice) }}
+                </span>
+                <span class="no-value" *ngIf="service.suggestedPrice === null">–</span>
+              </td>
+
+              <!-- Valor Praticado (editável) -->
+              <td class="col-practice">
+                <div class="price-input-wrap" [class.disabled]="!service.enabled">
+                  <span class="currency-prefix">R$</span>
+                  <input
+                    type="number"
+                    class="price-input"
+                    [(ngModel)]="service.practicePrice"
+                    [disabled]="!service.enabled"
+                    placeholder="..."
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+              </td>
+
+              <!-- Valor Convênio (editável) -->
+              <td class="col-insurance">
+                <div class="price-input-wrap" [class.disabled]="!service.enabled">
+                  <span class="currency-prefix">R$</span>
+                  <input
+                    type="number"
+                    class="price-input"
+                    [(ngModel)]="service.insurancePrice"
+                    [disabled]="!service.enabled"
+                    placeholder="..."
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+              </td>
+
+              <!-- Duração (select) -->
+              <td class="col-duration">
+                <div class="duration-select-wrap" [class.disabled]="!service.enabled">
+                  <select
+                    class="duration-select"
+                    [(ngModel)]="service.duration"
+                    [disabled]="!service.enabled"
+                  >
+                    <option [ngValue]="null" disabled>–</option>
+                    <option *ngFor="let opt of durationOptions" [ngValue]="opt.value">
+                      {{ opt.label }}
+                    </option>
+                  </select>
+                  <i class="pi pi-chevron-down select-arrow"></i>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Rodapé da tabela: Bulk Actions + Paginação -->
+      <div class="table-footer">
+        <div class="bulk-actions">
+          <span class="bulk-label">Bulk Action</span>
+          <button
+            type="button"
+            class="bulk-btn"
+            (click)="applyDefaultDuration()"
+            title="Define 30 min para todos os serviços selecionados sem duração"
+          >
+            <i class="pi pi-clock"></i>
+            <span>Aplicar Duração Padrão</span>
+          </button>
+          <button
+            type="button"
+            class="bulk-btn bulk-btn--primary"
+            (click)="acceptSuggestions()"
+            title="Copia o valor sugerido para o valor praticado em todos os serviços selecionados"
+          >
+            <i class="pi pi-check"></i>
+            <span>Aceitar Sugestões</span>
+          </button>
+        </div>
+
+        <div class="pagination-area">
+          <button class="page-btn" [disabled]="currentPage() === 1" (click)="currentPage.set(1)">
+            <i class="pi pi-angle-double-left"></i>
+          </button>
+          <button class="page-btn" [disabled]="currentPage() === 1" (click)="currentPage.set(currentPage() - 1)">
+            <i class="pi pi-angle-left"></i>
+          </button>
+
+          <button
+            *ngFor="let p of pagesArray"
+            class="page-btn"
+            [class.active]="p === currentPage()"
+            (click)="currentPage.set(p)"
+          >{{ p }}</button>
+
+          <button class="page-btn" [disabled]="currentPage() === totalPages()" (click)="currentPage.set(currentPage() + 1)">
+            <i class="pi pi-angle-right"></i>
+          </button>
+          <button class="page-btn" [disabled]="currentPage() === totalPages()" (click)="currentPage.set(totalPages())">
+            <i class="pi pi-angle-double-right"></i>
+          </button>
+
+          <span class="pagination-info">
+            Mostrando {{ (currentPage() - 1) * pageSize + 1 }}–{{ Math.min(currentPage() * pageSize, allServices.length) }} de {{ allServices.length }} serviços
+          </span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Banner de IA -->
+    <div class="ai-recommendation-box">
+      <div class="ai-box-left">
+        <div class="ai-icon">
+          <i class="pi pi-sparkles"></i>
+        </div>
+        <div class="ai-text">
+          <strong>Deseja que a IA habilite e preencha os serviços mais comuns do seu segmento?</strong>
+          <p>Com base em clínicas odontológicas similares, selecionamos os serviços de maior demanda e sugerimos preços de mercado.</p>
+        </div>
+      </div>
+      <button type="button" class="ai-action-btn">
+        <i class="pi pi-sparkles"></i>
+        <span>Preencher com IA</span>
+      </button>
+    </div>
+
+    <!-- Ações rodapé -->
+    <div class="wizard-footer-actions">
+      <button type="button" class="btn-voltar" (click)="goBack()">
+        <i class="pi pi-chevron-left"></i>
+        <span>Voltar (Passo 2)</span>
+      </button>
+
+      <button type="button" class="btn-continuar" (click)="goNext()">
+        <span>Continuar para Horários</span>
+        <i class="pi pi-arrow-right"></i>
+      </button>
+    </div>
+
+    <!-- Disclaimer de segurança -->
+    <div class="security-disclaimer">
+      <i class="pi pi-lock"></i>
+      <span>Seus dados estão seguros e nunca serão compartilhados.</span>
+    </div>
+
+  </div>
+
+  <!-- ==================== RESUMO LATERAL (COMPONENTE COMPARTILHADO) ==================== -->
+  <app-wizard-summary
+    [steps]="steps"
+    [currentStepId]="3"
+    (activate)="activateService()"
+  ></app-wizard-summary>
+
+</div>

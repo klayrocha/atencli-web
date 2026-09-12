@@ -1,0 +1,420 @@
+.wizard-container {
+  display: flex;
+  gap: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  align-items: flex-start;
+
+  @media (max-width: 1100px) {
+    flex-direction: column;
+  }
+}
+
+// ─── Área Principal ─────────────────────────────────────────────────────────
+.wizard-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.wizard-header {
+  position: relative;
+  margin-bottom: 2rem;
+  padding: 1.5rem 2rem;
+  background: linear-gradient(135deg, #f0fdf4 0%, #fefce8 45%, #f0f9ff 100%);
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid #e8f5e9;
+
+  .header-title {
+    font-size: 1.875rem;
+    font-weight: 800;
+    color: #1e293b;
+    margin: 0 0 0.35rem;
+    letter-spacing: -0.5px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    .wave-hand {
+      font-size: 1.75rem;
+    }
+  }
+
+  .header-subtitle {
+    font-size: 0.95rem;
+    color: #64748b;
+    margin: 0;
+  }
+}
+
+// ─── Stepper Horizontal ─────────────────────────────────────────────────────
+.horizontal-stepper {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  padding: 0.5rem 0.75rem;
+  position: relative;
+  overflow-x: auto;
+}
+
+.step-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  flex: 1;
+  text-align: center;
+
+  .step-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #f1f5f9;
+    color: #64748b;
+    font-size: 0.9rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.5rem;
+    z-index: 2;
+    transition: all 0.2s;
+  }
+
+  .step-label {
+    font-size: 0.775rem;
+    font-weight: 600;
+    color: #64748b;
+    white-space: nowrap;
+  }
+
+  .step-line {
+    position: absolute;
+    top: 18px;
+    left: 50%;
+    width: 100%;
+    height: 1.5px;
+    background: #e2e8f0;
+    z-index: 1;
+  }
+
+  // Estado ativo / atual
+  &.active {
+    .step-circle {
+      background: #d9f99d;
+      color: #3f6212;
+      border: 2px solid #bef264;
+      box-shadow: 0 0 0 3px rgba(132, 204, 22, 0.15);
+    }
+
+    .step-label {
+      color: #1e293b;
+      font-weight: 700;
+    }
+  }
+
+  // Estado completado
+  &.completed {
+    .step-circle {
+      background: #84cc16;
+      color: #fff;
+    }
+
+    .step-line {
+      background: #84cc16;
+    }
+  }
+}
+
+// ─── Card do Passo ──────────────────────────────────────────────────────────
+.step-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.step-card-header {
+  margin-bottom: 1.75rem;
+
+  .step-title {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #1e293b;
+    margin: 0 0 0.35rem;
+    letter-spacing: -0.3px;
+  }
+
+  .step-desc {
+    font-size: 0.875rem;
+    color: #64748b;
+    margin: 0;
+  }
+}
+
+// ─── Formulário ─────────────────────────────────────────────────────────────
+.step-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+
+  label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #334155;
+  }
+
+  input[pInputText] {
+    width: 100%;
+    padding: 0.65rem 0.875rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 0.875rem;
+    color: #1e293b;
+    background: #f8fafc;
+    transition: all 0.15s;
+
+    &::placeholder {
+      color: #94a3b8;
+    }
+
+    &:focus {
+      border-color: #84cc16;
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(132, 204, 22, 0.12);
+      outline: none;
+    }
+  }
+
+  :host ::ng-deep .p-dropdown {
+    width: 100%;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #f8fafc;
+    font-size: 0.875rem;
+
+    .p-dropdown-label {
+      padding: 0.65rem 0.875rem;
+      color: #1e293b;
+    }
+
+    &:not(.p-disabled).p-focus {
+      border-color: #84cc16;
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(132, 204, 22, 0.12);
+    }
+  }
+
+  .field-hint {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    margin-top: 0.15rem;
+  }
+}
+
+// ─── Box de Recomendação de IA ──────────────────────────────────────────────
+.ai-recommendation-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.15rem 1.25rem;
+  background: #f7fee7;
+  border: 1px dashed #bef264;
+  border-radius: 12px;
+  margin-top: 0.5rem;
+  gap: 1rem;
+
+  @media (max-width: 800px) {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .ai-box-left {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+  }
+
+  .ai-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: #ecfccb;
+    color: #65a30d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+
+  .ai-text {
+    strong {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 0.15rem;
+    }
+
+    p {
+      margin: 0;
+      font-size: 0.8rem;
+      color: #64748b;
+    }
+  }
+
+  .ai-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1rem;
+    background: #ffffff;
+    border: 1px solid #d9f99d;
+    border-radius: 8px;
+    color: #4d7c0f;
+    font-size: 0.825rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+
+    i {
+      color: #eab308;
+      font-size: 0.85rem;
+    }
+
+    &:hover {
+      background: #f0fdf4;
+      border-color: #84cc16;
+      box-shadow: 0 2px 6px rgba(101, 163, 13, 0.12);
+    }
+  }
+}
+
+// ─── Ações Rodapé ───────────────────────────────────────────────────────────
+.wizard-footer-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 2rem;
+
+  .btn-voltar {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.25rem;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    color: #475569;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+
+    &:hover {
+      background: #f8fafc;
+      border-color: #cbd5e1;
+      color: #1e293b;
+    }
+  }
+
+  .btn-continuar {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.75rem;
+    background: #84cc16;
+    border: none;
+    border-radius: 10px;
+    color: #1a2e05;
+    font-size: 0.925rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.15s;
+
+    &:hover {
+      background: #7abd12;
+      box-shadow: 0 4px 12px rgba(132, 204, 22, 0.35);
+      transform: translateY(-1px);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
+}
+
+.security-disclaimer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  margin-top: 2.5rem;
+  font-size: 0.775rem;
+  color: #94a3b8;
+
+  i {
+    font-size: 0.75rem;
+  }
+}
+
+// ─── Aceita plano de saúde ───────────────────────────────────────────────────
+.health-plan-options {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+
+  .plan-option-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.5rem;
+    border: 2px solid var(--border-color, #e2e8f0);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--text-secondary, #64748b);
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s, background 0.2s;
+
+    i {
+      font-size: 1rem;
+    }
+
+    &:hover {
+      border-color: #84cc16;
+      color: #65a30d;
+    }
+
+    &.selected {
+      border-color: #84cc16;
+      background: #f0fdf4;
+      color: #65a30d;
+
+      i {
+        color: #84cc16;
+      }
+    }
+  }
+}

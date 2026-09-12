@@ -1,0 +1,368 @@
+<div class="wizard-container">
+
+  <!-- ==================== ÁREA PRINCIPAL ==================== -->
+  <div class="wizard-main">
+
+    <!-- Header -->
+    <div class="wizard-header">
+      <div class="header-text">
+        <h1 class="header-title">
+          Defina os horários da sua clínica <span class="wave-hand">🕐</span>
+        </h1>
+        <p class="header-subtitle">
+          Defina o horário de atendimento e regras de exceção para a clínica e profissionais.
+        </p>
+      </div>
+    </div>
+
+    <!-- Stepper horizontal numerado (1 a 8) -->
+    <div class="horizontal-stepper">
+      <div
+        *ngFor="let step of steps; let last = last"
+        class="step-item"
+        [class.active]="step.id === 4"
+        [class.completed]="step.id < 4"
+      >
+        <div class="step-circle">
+          <i class="pi pi-check" *ngIf="step.id < 4"></i>
+          <span *ngIf="step.id >= 4">{{ step.id }}</span>
+        </div>
+        <span class="step-label">{{ step.label }}</span>
+        <div class="step-line" *ngIf="!last" [class.completed]="step.id < 4"></div>
+      </div>
+    </div>
+
+    <!-- ═══ SEÇÃO 1: Horários Padrão ═══════════════════════════════════════ -->
+    <div class="section-card">
+
+      <div class="section-header" (click)="showExceptionPanel.set(true)">
+        <div class="section-header-left">
+          <div class="section-icon">
+            <i class="pi pi-clock"></i>
+          </div>
+          <div>
+            <h2 class="section-title">Horários de Funcionamento Padrão <span class="badge-tag">WORKING_HOURS</span></h2>
+            <p class="section-desc">Ative os dias e confirme as configurações padrão clicando nas caixas de seleção de cada dia.</p>
+          </div>
+        </div>
+        <div class="active-days-badge">
+          <i class="pi pi-calendar-clock"></i>
+          <span>{{ activeDaysCount }} dia{{ activeDaysCount === 1 ? '' : 's' }} ativo{{ activeDaysCount === 1 ? '' : 's' }}</span>
+        </div>
+      </div>
+
+      <!-- Grid de dias da semana -->
+      <div class="days-grid">
+        <div
+          *ngFor="let day of days"
+          class="day-card"
+          [class.day-active]="day.active"
+        >
+          <!-- Cabeçalho do dia -->
+          <div class="day-card-header">
+            <span class="day-label">{{ day.label }}</span>
+            <div
+              class="day-checkbox"
+              [class.checked]="day.active"
+              (click)="toggleDay(day)"
+              [title]="day.active ? 'Desabilitar ' + day.label : 'Habilitar ' + day.label"
+            >
+              <i class="pi pi-check" *ngIf="day.active"></i>
+            </div>
+          </div>
+
+          <!-- Tag WORKING_HOURS -->
+          <div class="working-tag" *ngIf="day.active">
+            <span>WORKING_HOURS</span>
+          </div>
+          <div class="closed-tag" *ngIf="!day.active">
+            <i class="pi pi-ban"></i>
+            <span>CLOSED</span>
+          </div>
+
+          <!-- Horários (visíveis só quando ativo) -->
+          <ng-container *ngIf="day.active">
+            <div class="time-field">
+              <label class="time-label">Horário de Início</label>
+              <div class="time-input-wrap">
+                <input
+                  type="time"
+                  class="time-input"
+                  [(ngModel)]="day.start"
+                  [name]="'start-' + day.key"
+                />
+                <button type="button" class="time-clear" (click)="day.start = '08:00'" title="Redefinir">
+                  <i class="pi pi-times"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="time-field">
+              <label class="time-label">Horário de Fim</label>
+              <div class="time-input-wrap">
+                <input
+                  type="time"
+                  class="time-input"
+                  [(ngModel)]="day.end"
+                  [name]="'end-' + day.key"
+                />
+                <button type="button" class="time-clear" (click)="day.end = '18:00'" title="Redefinir">
+                  <i class="pi pi-times"></i>
+                </button>
+              </div>
+            </div>
+          </ng-container>
+
+          <!-- Overlay quando fechado -->
+          <div class="day-closed-overlay" *ngIf="!day.active">
+            <span>Clique no ✓ para ativar</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ═══ SEÇÃO 2: Exceções ═══════════════════════════════════════════════ -->
+    <div class="section-card">
+
+      <div class="section-header accordion-trigger" (click)="toggleExceptionPanel()">
+        <div class="section-header-left">
+          <div class="section-icon section-icon--orange">
+            <i class="pi pi-calendar-plus"></i>
+          </div>
+          <div>
+            <h2 class="section-title">Adicionar Exceção de Horário <span class="badge-tag badge-tag--orange">SPECIFIC_DATE</span></h2>
+            <p class="section-desc">Configure datas especiais com horários diferentes ou marque como fechado.</p>
+          </div>
+        </div>
+        <div class="accordion-toggle">
+          <i class="pi" [class.pi-chevron-up]="showExceptionPanel()" [class.pi-chevron-down]="!showExceptionPanel()"></i>
+        </div>
+      </div>
+
+      <!-- Formulário de nova exceção -->
+      <div class="exception-form" *ngIf="showExceptionPanel()">
+
+        <div class="form-row">
+
+          <!-- Data -->
+          <div class="form-field">
+            <label class="field-label">Data</label>
+            <div class="date-input-wrap">
+              <input
+                type="date"
+                class="field-input"
+                [(ngModel)]="newException.date"
+                name="exc-date"
+              />
+              <i class="pi pi-calendar field-icon-right"></i>
+            </div>
+          </div>
+
+          <!-- Tipo -->
+          <div class="form-field form-field--wide">
+            <label class="field-label">Tipo (WORKING_HOURS / CLOSED)</label>
+            <div class="select-wrap">
+              <select class="field-input" [(ngModel)]="newException.type" name="exc-type">
+                <option *ngFor="let opt of exceptionTypeOptions" [value]="opt.value">{{ opt.label }}</option>
+              </select>
+              <i class="pi pi-chevron-down select-arrow"></i>
+            </div>
+          </div>
+
+          <!-- Início -->
+          <div class="form-field form-field--sm" [class.field-disabled]="newException.type === 'CLOSED'">
+            <label class="field-label">Início</label>
+            <div class="time-input-wrap-flat">
+              <input
+                type="time"
+                class="field-input"
+                [(ngModel)]="newException.start"
+                name="exc-start"
+                [disabled]="newException.type === 'CLOSED'"
+              />
+              <button
+                type="button"
+                class="time-clear"
+                *ngIf="newException.type !== 'CLOSED'"
+                (click)="newException.start = '08:00'"
+              >
+                <i class="pi pi-times"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Fim -->
+          <div class="form-field form-field--sm" [class.field-disabled]="newException.type === 'CLOSED'">
+            <label class="field-label">Fim</label>
+            <div class="time-input-wrap-flat">
+              <input
+                type="time"
+                class="field-input"
+                [(ngModel)]="newException.end"
+                name="exc-end"
+                [disabled]="newException.type === 'CLOSED'"
+              />
+              <button
+                type="button"
+                class="time-clear"
+                *ngIf="newException.type !== 'CLOSED'"
+                (click)="newException.end = '19:00'"
+              >
+                <i class="pi pi-times"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Descrição -->
+          <div class="form-field form-field--grow">
+            <label class="field-label">Descrição</label>
+            <input
+              type="text"
+              class="field-input"
+              [(ngModel)]="newException.description"
+              name="exc-desc"
+              placeholder="Ex: Feriado Nacional, Recesso..."
+            />
+          </div>
+
+          <!-- Botão Adicionar -->
+          <div class="form-field form-field--btn">
+            <label class="field-label">&nbsp;</label>
+            <button type="button" class="btn-add-exception" (click)="addException()">
+              <i class="pi pi-plus"></i>
+              <span>Adicionar</span>
+            </button>
+          </div>
+
+        </div>
+
+        <!-- Lista de exceções já adicionadas -->
+        <div class="exceptions-list" *ngIf="exceptions.length > 0">
+          <div class="exceptions-list-header">
+            <span class="exceptions-list-title">Exceções cadastradas ({{ exceptions.length }})</span>
+          </div>
+          <div class="exception-item" *ngFor="let exc of exceptions">
+            <div class="exc-date">
+              <i class="pi pi-calendar"></i>
+              <span>{{ formatDateBr(exc.date) }}</span>
+            </div>
+            <div class="exc-type" [class.exc-type--closed]="exc.type === 'CLOSED'">
+              <i class="pi" [class.pi-ban]="exc.type === 'CLOSED'" [class.pi-clock]="exc.type === 'WORKING_HOURS'"></i>
+              <span>{{ exc.type === 'CLOSED' ? 'Fechado' : 'Horário Especial' }}</span>
+            </div>
+            <div class="exc-times" *ngIf="exc.type === 'WORKING_HOURS'">
+              <span>{{ exc.start }} – {{ exc.end }}</span>
+            </div>
+            <div class="exc-desc" *ngIf="exc.description">
+              <span>{{ exc.description }}</span>
+            </div>
+            <button type="button" class="exc-remove" (click)="removeException(exc.id)" title="Remover">
+              <i class="pi pi-trash"></i>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ═══ SEÇÃO 3: Preview do Calendário ════════════════════════════════ -->
+    <div class="section-card section-card--accordion">
+
+      <div class="section-header accordion-trigger" (click)="togglePreview()">
+        <div class="section-header-left">
+          <div class="section-icon section-icon--purple">
+            <i class="pi pi-calendar"></i>
+          </div>
+          <div>
+            <h2 class="section-title">Visualização prévia do calendário clínica</h2>
+            <p class="section-desc" *ngIf="!previewOpen()">Clique para expandir e visualizar como ficará a agenda semanal.</p>
+          </div>
+        </div>
+        <div class="accordion-toggle">
+          <i class="pi" [class.pi-chevron-up]="previewOpen()" [class.pi-chevron-down]="!previewOpen()"></i>
+        </div>
+      </div>
+
+      <div class="calendar-preview" *ngIf="previewOpen()">
+        <div class="calendar-grid">
+          <div class="cal-time-col">
+            <div class="cal-time-cell"></div>
+            <div class="cal-time-cell" *ngFor="let h of [8,9,10,11,12,13,14,15,16,17,18]">
+              {{ h }}:00
+            </div>
+          </div>
+          <div
+            *ngFor="let day of days"
+            class="cal-day-col"
+            [class.cal-day-inactive]="!day.active"
+          >
+            <div class="cal-day-header">
+              <span>{{ day.shortLabel }}</span>
+            </div>
+            <ng-container *ngIf="day.active">
+              <div class="cal-time-cell" *ngFor="let h of [8,9,10,11,12,13,14,15,16,17,18]">
+                <div
+                  class="cal-slot"
+                  [class.cal-slot--working]="isWorkingHour(day, h)"
+                ></div>
+              </div>
+            </ng-container>
+            <ng-container *ngIf="!day.active">
+              <div class="cal-closed-col">
+                <i class="pi pi-ban"></i>
+                <span>Fechado</span>
+              </div>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Ações rodapé -->
+    <div class="wizard-footer-actions">
+      <button type="button" class="btn-voltar" (click)="goBack()">
+        <i class="pi pi-chevron-left"></i>
+        <span>Voltar (Passo 3)</span>
+      </button>
+
+      <button type="button" class="btn-continuar" (click)="goNext()">
+        <span>Continuar para Equipe</span>
+        <i class="pi pi-arrow-right"></i>
+      </button>
+    </div>
+
+    <!-- Disclaimer -->
+    <div class="security-disclaimer">
+      <i class="pi pi-lock"></i>
+      <span>Seus dados estão seguros e nunca serão compartilhados.</span>
+    </div>
+
+  </div>
+
+  <!-- ==================== RESUMO LATERAL ==================== -->
+  <div class="sidebar-area">
+
+    <!-- WizardSummary -->
+    <app-wizard-summary
+      [steps]="steps"
+      [currentStepId]="4"
+      (activate)="activateService()"
+    ></app-wizard-summary>
+
+    <!-- Card de Exemplo de API -->
+    <div class="api-example-card">
+      <div class="api-example-header">
+        <span class="api-example-title">API Example</span>
+        <button type="button" class="api-copy-btn" title="Copiar payload">
+          <i class="pi pi-copy"></i>
+        </button>
+      </div>
+      <pre class="api-code" [textContent]="apiPayloadPreview"></pre>
+    </div>
+
+  </div>
+
+</div>

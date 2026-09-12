@@ -1,0 +1,217 @@
+.wizard-summary {
+  width: 360px;
+  flex-shrink: 0;
+
+  @media (max-width: 1100px) {
+    width: 100%;
+  }
+}
+
+.summary-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.summary-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #1e293b;
+  margin: 0 0 1.25rem;
+  letter-spacing: -0.2px;
+}
+
+// Progresso Circular
+.progress-section {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid #f1f5f9;
+  margin-bottom: 1rem;
+}
+
+.progress-circle-wrap {
+  position: relative;
+  width: 68px;
+  height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .progress-ring {
+    transform: rotate(-90deg);
+  }
+
+  .progress-ring__bar {
+    transition: stroke-dashoffset 0.4s ease;
+  }
+
+  .progress-percent {
+    position: absolute;
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #1e293b;
+  }
+}
+
+.progress-text {
+  display: flex;
+  flex-direction: column;
+
+  strong {
+    font-size: 0.925rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 0.15rem;
+  }
+
+  span {
+    font-size: 0.775rem;
+    color: #64748b;
+  }
+}
+
+// Lista detalhada de etapas
+.steps-detail-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.step-detail-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 10px;
+  transition: all 0.15s;
+
+  .detail-icon-wrap {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: #f1f5f9;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+  }
+
+  .detail-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+
+    .detail-name {
+      font-size: 0.825rem;
+      font-weight: 700;
+      color: #334155;
+    }
+
+    .detail-sub {
+      font-size: 0.725rem;
+      color: #94a3b8;
+    }
+  }
+
+  .detail-status {
+    .check-bubble {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #84cc16;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+    }
+  }
+
+  // Concluído (anterior)
+  &.done {
+    .detail-icon-wrap {
+      background: #f0fdf4;
+      color: #16a34a;
+    }
+  }
+
+  // Ativo no momento
+  &.active {
+    background: #f7fee7;
+
+    .detail-icon-wrap {
+      background: #ecfccb;
+      color: #4d7c0f;
+    }
+
+    .detail-info .detail-name {
+      color: #365314;
+    }
+  }
+}
+
+// Card de Ativação
+.activation-card {
+  background: linear-gradient(135deg, #f0fdf4 0%, #fefce8 100%);
+  border: 1px solid #d9f99d;
+  border-radius: 12px;
+  padding: 1rem;
+
+  .activation-header {
+    strong {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 800;
+      color: #1e293b;
+      margin-bottom: 0.25rem;
+    }
+
+    p {
+      margin: 0 0 0.85rem;
+      font-size: 0.775rem;
+      color: #64748b;
+      line-height: 1.4;
+    }
+  }
+
+  .btn-activate {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1rem;
+    background: #84cc16;
+    border: none;
+    border-radius: 8px;
+    color: #1a2e05;
+    font-size: 0.85rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.15s;
+
+    i {
+      font-size: 0.85rem;
+    }
+
+    &:hover:not(:disabled) {
+      background: #7abd12;
+      box-shadow: 0 3px 8px rgba(132, 204, 22, 0.3);
+    }
+
+    &:disabled {
+      background: #e2e8f0;
+      color: #94a3b8;
+      cursor: not-allowed;
+      box-shadow: none;
+      opacity: 0.75;
+    }
+  }
+}

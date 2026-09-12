@@ -71,9 +71,47 @@ export class RegisterComponent {
     this.error.set(null);
   }
 
+  onPhoneInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    let digits = input.value.replace(/\D/g, '');
+
+    // Se o usuário colou com 55 no início e tem 12 ou 13 dígitos
+    if (digits.startsWith('55') && digits.length > 11) {
+      digits = digits.substring(2);
+    }
+
+    // Limita a 11 dígitos (DDD + 9 dígitos)
+    digits = digits.substring(0, 11);
+
+    let formatted = '';
+    if (digits.length === 0) {
+      formatted = '';
+    } else if (digits.length <= 2) {
+      formatted = `(${digits}`;
+    } else if (digits.length <= 6) {
+      formatted = `(${digits.substring(0, 2)}) ${digits.substring(2)}`;
+    } else if (digits.length <= 10) {
+      // Formato fixo: (XX) XXXX-XXXX
+      formatted = `(${digits.substring(0, 2)}) ${digits.substring(2, 6)}-${digits.substring(6)}`;
+    } else {
+      // Formato celular: (XX) XXXXX-XXXX
+      formatted = `(${digits.substring(0, 2)}) ${digits.substring(2, 7)}-${digits.substring(7, 11)}`;
+    }
+
+    this.phoneNumber = formatted;
+    input.value = formatted;
+  }
+
   async onSubmit(): Promise<void> {
+    const rawPhoneDigits = this.phoneNumber.replace(/\D/g, '');
+
     if (!this.fullName.trim() || !this.email.trim() || !this.password || !this.confirmPassword || !this.phoneNumber.trim()) {
       this.error.set('Por favor, preencha todos os campos obrigatórios.');
+      return;
+    }
+
+    if (rawPhoneDigits.length < 10 || rawPhoneDigits.length > 11) {
+      this.error.set('Por favor, informe um número de telefone válido com DDD (ex: (11) 99999-9999).');
       return;
     }
 
@@ -94,7 +132,7 @@ export class RegisterComponent {
       fullName: this.fullName.trim(),
       email: this.email.trim(),
       password: this.password,
-      phoneNumber: this.phoneNumber.trim(),
+      phoneNumber: `+55${rawPhoneDigits}`,
     };
 
     try {

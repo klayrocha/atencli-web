@@ -1,0 +1,81 @@
+<aside class="wizard-summary">
+  <div class="summary-card">
+    <h3 class="summary-title">Resumo da configuração</h3>
+
+    <!-- Gauge / Barra de Progresso Circular -->
+    <div class="progress-section">
+      <div class="progress-circle-wrap">
+        <svg class="progress-ring" width="68" height="68" viewBox="0 0 68 68">
+          <circle
+            class="progress-ring__bg"
+            stroke="#e2e8f0"
+            stroke-width="5"
+            fill="transparent"
+            r="28"
+            cx="34"
+            cy="34"
+          />
+          <circle
+            class="progress-ring__bar"
+            stroke="#84cc16"
+            stroke-width="5"
+            stroke-linecap="round"
+            fill="transparent"
+            r="28"
+            cx="34"
+            cy="34"
+            stroke-dasharray="175.93"
+            [attr.stroke-dashoffset]="strokeDashOffset"
+          />
+        </svg>
+        <span class="progress-percent">{{ progressPercent }}%</span>
+      </div>
+
+      <div class="progress-text">
+        <strong>Progresso geral</strong>
+        <span>{{ completedCount }} de {{ totalCount }} etapas concluídas</span>
+      </div>
+    </div>
+
+    <!-- Lista vertical de etapas detalhadas -->
+    <div class="steps-detail-list">
+      <div
+        *ngFor="let step of steps"
+        class="step-detail-item"
+        [class.active]="step.id === currentStepId"
+        [class.done]="step.completed && step.id !== currentStepId"
+      >
+        <div class="detail-icon-wrap">
+          <i [class]="step.icon"></i>
+        </div>
+        <div class="detail-info">
+          <span class="detail-name">{{ step.label }}</span>
+          <span class="detail-sub">{{ step.sublabel }}</span>
+        </div>
+        <div class="detail-status" *ngIf="step.completed">
+          <div class="check-bubble">
+            <i class="pi pi-check"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card "Quase lá!" / Ativação -->
+    <div class="activation-card">
+      <div class="activation-header">
+        <strong>Quase lá! 🎉</strong>
+        <p>Finalize a configuração e comece a atender pacientes com mais organização.</p>
+      </div>
+      <button
+        type="button"
+        class="btn-activate"
+        [disabled]="!allStepsCompleted"
+        (click)="onActivate()"
+      >
+        <span>Ativar atendimento</span>
+        <i class="pi pi-bolt"></i>
+      </button>
+    </div>
+
+  </div>
+</aside>

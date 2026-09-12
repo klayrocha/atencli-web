@@ -1,0 +1,219 @@
+<div class="wizard-container">
+
+  <!-- ==================== ÁREA PRINCIPAL (ESQUERDA) ==================== -->
+  <div class="wizard-main">
+
+    <!-- Header com gradiente sutil de fundo -->
+    <div class="wizard-header">
+      <div class="header-text">
+        <h1 class="header-title">
+          Vamos configurar sua clínica <span class="wave-hand">👋</span>
+        </h1>
+        <p class="header-subtitle">
+          Siga os passos para ativar seu CRM e começar a atender melhor.
+        </p>
+      </div>
+    </div>
+
+    <!-- Stepper horizontal numerado (1 a 8) -->
+    <div class="horizontal-stepper">
+      <div
+        *ngFor="let step of steps; let i = index; let last = last"
+        class="step-item"
+        [class.active]="step.current"
+        [class.completed]="step.completed && !step.current"
+      >
+        <div class="step-circle">
+          {{ step.id }}
+        </div>
+        <span class="step-label">{{ step.label }}</span>
+        <div class="step-line" *ngIf="!last"></div>
+      </div>
+    </div>
+
+    <!-- Card de Conteúdo do Passo 1 -->
+    <div class="step-card">
+      <div class="step-card-header">
+        <h2 class="step-title">1. Sobre a clínica</h2>
+        <p class="step-desc">Conte um pouco sobre sua clínica para personalizarmos sua experiência.</p>
+      </div>
+
+      <form class="step-form">
+
+        <!-- Linha: Nome da clínica & Tipo de clínica -->
+        <div class="form-row">
+          <div class="form-group">
+            <label for="clinicName">Nome da clínica</label>
+            <input
+              id="clinicName"
+              type="text"
+              pInputText
+              [(ngModel)]="clinicName"
+              name="clinicName"
+              placeholder="Ex.: Clínica Harmonia"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="clinicType">Tipo de clínica</label>
+            <p-dropdown
+              id="clinicType"
+              [options]="clinicTypes"
+              [(ngModel)]="clinicType"
+              name="clinicType"
+              placeholder="Selecione o tipo de clínica"
+              optionLabel="label"
+              optionValue="value"
+              styleClass="w-full"
+            ></p-dropdown>
+          </div>
+        </div>
+
+        <!-- Linha: Descrição curta -->
+        <div class="form-group">
+          <label for="shortDescription">Descrição curta</label>
+          <input
+            id="shortDescription"
+            type="text"
+            pInputText
+            [(ngModel)]="shortDescription"
+            name="shortDescription"
+            placeholder="Ex.: Clínica odontológica focada em implantes, estética e ortodontia."
+          />
+          <small class="field-hint">Essa descrição será usada nas mensagens automáticas e no seu atendimento.</small>
+        </div>
+
+        <!-- Linha: Cidade & Estado -->
+        <div class="form-row">
+          <div class="form-group">
+            <label for="city">Cidade</label>
+            <input
+              id="city"
+              type="text"
+              pInputText
+              [(ngModel)]="city"
+              name="city"
+              placeholder="Ex.: São Paulo"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="state">Estado</label>
+            <p-dropdown
+              id="state"
+              [options]="states"
+              [(ngModel)]="state"
+              name="state"
+              placeholder="Selecione o estado"
+              optionLabel="label"
+              optionValue="value"
+              styleClass="w-full"
+            ></p-dropdown>
+          </div>
+        </div>
+
+        <!-- Linha: Telefone da clínica & E-mail da clínica -->
+        <div class="form-row">
+          <div class="form-group">
+            <label for="clinicPhone">Telefone da clínica</label>
+            <input
+              id="clinicPhone"
+              type="tel"
+              pInputText
+              [ngModel]="clinicPhone"
+              (input)="onPhoneInput($event)"
+              name="clinicPhone"
+              placeholder="(11) 99999-9999"
+              maxlength="15"
+            />
+            <small class="field-hint">Usado para contato e confirmação de consultas.</small>
+          </div>
+
+          <div class="form-group">
+            <label for="clinicEmail">E-mail da clínica</label>
+            <input
+              id="clinicEmail"
+              type="email"
+              pInputText
+              [(ngModel)]="clinicEmail"
+              name="clinicEmail"
+              placeholder="contato@clinicaharmonia.com.br"
+            />
+            <small class="field-hint">Usado para envio de relatórios e notificações.</small>
+          </div>
+        </div>
+
+        <!-- Linha: Aceita plano de saúde? -->
+        <div class="form-group">
+          <label>Aceita plano de saúde?</label>
+          <div class="health-plan-options">
+            <button
+              type="button"
+              class="plan-option-btn"
+              [class.selected]="acceptsHealthPlan === true"
+              (click)="acceptsHealthPlan = true"
+            >
+              <i class="pi pi-check-circle"></i>
+              <span>Sim</span>
+            </button>
+            <button
+              type="button"
+              class="plan-option-btn"
+              [class.selected]="acceptsHealthPlan === false"
+              (click)="acceptsHealthPlan = false"
+            >
+              <i class="pi pi-times-circle"></i>
+              <span>Não</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Banner com sugestão por Inteligência Artificial -->
+        <div class="ai-recommendation-box">
+          <div class="ai-box-left">
+            <div class="ai-icon">
+              <i class="pi pi-sparkles"></i>
+            </div>
+            <div class="ai-text">
+              <strong>Não tem certeza por onde começar?</strong>
+              <p>Nossa IA pode preencher essas informações com base no seu segmento.</p>
+            </div>
+          </div>
+          <button type="button" class="ai-action-btn" (click)="recommendByAi()">
+            <i class="pi pi-sparkles"></i>
+            <span>Não sei, recomende para mim</span>
+          </button>
+        </div>
+
+      </form>
+    </div>
+
+    <!-- Ações no rodapé do Wizard -->
+    <div class="wizard-footer-actions">
+      <button type="button" class="btn-voltar" (click)="goBack()">
+        <i class="pi pi-chevron-left"></i>
+        <span>Voltar</span>
+      </button>
+
+      <button type="button" class="btn-continuar" (click)="goNext()">
+        <span>Continuar</span>
+        <i class="pi pi-arrow-right"></i>
+      </button>
+    </div>
+
+    <!-- Disclaimer de segurança -->
+    <div class="security-disclaimer">
+      <i class="pi pi-lock"></i>
+      <span>Seus dados estão seguros e nunca serão compartilhados.</span>
+    </div>
+
+  </div>
+
+  <!-- ==================== RESUMO LATERAL (DIREITA) ==================== -->
+  <app-wizard-summary
+    [steps]="steps"
+    [currentStepId]="1"
+    (activate)="activateService()"
+  ></app-wizard-summary>
+
+</div>

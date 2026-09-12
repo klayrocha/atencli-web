@@ -3,6 +3,11 @@ import { LayoutComponent } from './layout/layout.component';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { LoginComponent } from './pages/login/login.component';
 import { RegisterComponent } from './pages/register/register.component';
+import { WizardStep1AboutComponent } from './pages/wizard-step-1-about/wizard-step-1-about.component';
+import { WizardStep2SpecialtyComponent } from './pages/wizard-step-2-specialty/wizard-step-2-specialty.component';
+import { WizardStep3ServicesComponent } from './pages/wizard-step-3-services/wizard-step-3-services.component';
+import { WizardStep4ScheduleComponent } from './pages/wizard-step-4-schedule/wizard-step-4-schedule.component';
+import { WizardStep5TeamComponent } from './pages/wizard-step-5-team/wizard-step-5-team.component';
 import { OAuth2CallbackComponent } from './pages/oauth2-callback/oauth2-callback.component';
 import { authGuard, guestGuard } from './guards/auth.guard';
 
@@ -27,6 +32,11 @@ export const routes: Routes = [
     canActivate: [authGuard],
     children: [
       { path: '', component: DashboardComponent },
+      { path: 'wizard-step-1-aboult', component: WizardStep1AboutComponent },
+      { path: 'wizard-step-2-specialty', component: WizardStep2SpecialtyComponent },
+      { path: 'wizard-step-3-services', component: WizardStep3ServicesComponent },
+      { path: 'wizard-step-4-schedule', component: WizardStep4ScheduleComponent },
+      { path: 'wizard-step-5-team', component: WizardStep5TeamComponent },
       { path: 'conversas', component: DashboardComponent },
       { path: 'contatos', component: DashboardComponent },
       { path: 'etapas', component: DashboardComponent },

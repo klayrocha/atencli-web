@@ -1,0 +1,327 @@
+<div class="wizard-container">
+
+  <!-- ==================== ÁREA PRINCIPAL ==================== -->
+  <div class="wizard-main">
+
+    <!-- Header -->
+    <div class="wizard-header">
+      <div class="header-text">
+        <h1 class="header-title">
+          Gerencie a equipe e acessos da sua clínica <span class="wave-hand">👥</span>
+        </h1>
+        <p class="header-subtitle">
+          Gerencie os membros da equipe e seus perfis de acesso.
+        </p>
+      </div>
+    </div>
+
+    <!-- Stepper horizontal -->
+    <div class="horizontal-stepper">
+      <div
+        *ngFor="let step of steps; let last = last"
+        class="step-item"
+        [class.active]="step.id === 5"
+        [class.completed]="step.id < 5"
+      >
+        <div class="step-circle">
+          <i class="pi pi-check" *ngIf="step.id < 5"></i>
+          <span *ngIf="step.id >= 5">{{ step.id }}</span>
+        </div>
+        <span class="step-label">{{ step.label }}</span>
+        <div class="step-line" *ngIf="!last" [class.completed]="step.id < 5"></div>
+      </div>
+    </div>
+
+    <!-- ═══ SEÇÃO 1: Membros da Equipe ══════════════════════════════════════ -->
+    <div class="section-card">
+
+      <!-- Cabeçalho da seção -->
+      <div class="section-top-bar">
+        <div class="section-header-left">
+          <div class="section-icon">
+            <i class="pi pi-users"></i>
+          </div>
+          <div>
+            <h2 class="section-title">Membros da Equipe</h2>
+            <p class="section-desc">
+              <strong>{{ activeCount }}</strong> membro{{ activeCount === 1 ? '' : 's' }} ativo{{ activeCount === 1 ? '' : 's' }} · {{ members.length }} no total
+            </p>
+          </div>
+        </div>
+
+        <button type="button" class="btn-invite" (click)="toggleInviteForm()">
+          <i class="pi" [class.pi-plus]="!showInviteForm()" [class.pi-times]="showInviteForm()"></i>
+          <span>{{ showInviteForm() ? 'Cancelar' : 'Convidar Novo Membro' }}</span>
+        </button>
+      </div>
+
+      <!-- Formulário de convite inline -->
+      <div class="invite-form-panel" *ngIf="showInviteForm()">
+        <div class="invite-form-title">
+          <i class="pi pi-envelope"></i>
+          <span>Enviar convite por e-mail</span>
+        </div>
+        <div class="invite-form-row">
+          <div class="invite-field invite-field--grow">
+            <label class="field-label">E-mail do membro</label>
+            <input
+              type="email"
+              class="field-input"
+              [(ngModel)]="inviteEmail"
+              placeholder="nome@exemplo.com"
+              name="invite-email"
+            />
+          </div>
+          <div class="invite-field">
+            <label class="field-label">Perfil de acesso</label>
+            <div class="select-wrap">
+              <select class="field-input" [(ngModel)]="inviteProfile" name="invite-profile">
+                <option *ngFor="let p of profileOptions" [value]="p">{{ p }}</option>
+              </select>
+              <i class="pi pi-chevron-down select-arrow"></i>
+            </div>
+          </div>
+          <div class="invite-field invite-field--btn">
+            <label class="field-label">&nbsp;</label>
+            <button type="button" class="btn-send-invite" (click)="sendInvite()" [disabled]="!inviteEmail.trim()">
+              <i class="pi pi-send"></i>
+              <span>Enviar convite</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabela de membros -->
+      <div class="members-table-wrap">
+        <table class="members-table">
+          <thead>
+            <tr>
+              <th class="col-member">Membro</th>
+              <th class="col-status">Status</th>
+              <th class="col-profile">Perfil</th>
+              <th class="col-actions">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <ng-container *ngFor="let member of members">
+
+              <!-- Linha normal -->
+              <tr class="member-row" *ngIf="!member.editing">
+                <td class="col-member">
+                  <div class="member-cell">
+                    <div class="member-avatar" [style.background]="member.avatarColor">
+                      <img *ngIf="member.avatarUrl" [src]="member.avatarUrl" [alt]="member.name" />
+                      <span *ngIf="!member.avatarUrl">{{ member.initials }}</span>
+                    </div>
+                    <div class="member-info">
+                      <span class="member-name">{{ member.name }}</span>
+                      <span class="member-email">{{ member.email }}</span>
+                    </div>
+                  </div>
+                </td>
+                <td class="col-status">
+                  <div class="status-badges">
+                    <span
+                      *ngFor="let s of member.statuses"
+                      class="status-badge"
+                      [class.badge--active]="s === 'ACTIVE'"
+                      [class.badge--inactive]="s === 'INACTIVE'"
+                      [class.badge--pending]="s === 'INVITATION_PENDING'"
+                      [class.badge--expired]="s === 'EXPIRY60H_EXPIRED'"
+                      [class.badge--cancelled]="s === 'CANCATION_CANCELLED'"
+                    >{{ statusLabel(s) }}</span>
+                  </div>
+                </td>
+                <td class="col-profile">
+                  <span class="profile-text">{{ member.profile }}</span>
+                </td>
+                <td class="col-actions">
+                  <div class="action-btns">
+                    <button type="button" class="action-btn action-btn--edit" (click)="startEdit(member)" title="Editar">
+                      <i class="pi pi-pencil"></i>
+                    </button>
+                    <button type="button" class="action-btn action-btn--delete" (click)="removeMember(member.id)" title="Remover">
+                      <i class="pi pi-trash"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Linha de edição inline -->
+              <tr class="member-row member-row--editing" *ngIf="member.editing">
+                <td class="col-member">
+                  <div class="member-cell">
+                    <div class="member-avatar" [style.background]="member.avatarColor">
+                      <span>{{ member.initials }}</span>
+                    </div>
+                    <div class="edit-fields">
+                      <input type="text"  class="inline-input" [(ngModel)]="editBuffer.name"  [name]="'name-'  + member.id" placeholder="Nome" />
+                      <input type="email" class="inline-input" [(ngModel)]="editBuffer.email" [name]="'email-' + member.id" placeholder="E-mail" />
+                    </div>
+                  </div>
+                </td>
+                <td class="col-status">
+                  <div class="status-badges">
+                    <span
+                      *ngFor="let s of member.statuses"
+                      class="status-badge"
+                      [class.badge--active]="s === 'ACTIVE'"
+                      [class.badge--inactive]="s === 'INACTIVE'"
+                      [class.badge--pending]="s === 'INVITATION_PENDING'"
+                      [class.badge--expired]="s === 'EXPIRY60H_EXPIRED'"
+                      [class.badge--cancelled]="s === 'CANCATION_CANCELLED'"
+                    >{{ statusLabel(s) }}</span>
+                  </div>
+                </td>
+                <td class="col-profile">
+                  <div class="select-wrap select-wrap--inline">
+                    <select class="inline-select" [(ngModel)]="editBuffer.profile" [name]="'profile-' + member.id">
+                      <option *ngFor="let p of profileOptions" [value]="p">{{ p }}</option>
+                    </select>
+                    <i class="pi pi-chevron-down select-arrow"></i>
+                  </div>
+                </td>
+                <td class="col-actions">
+                  <div class="action-btns">
+                    <button type="button" class="action-btn action-btn--save" (click)="saveEdit(member)" title="Salvar">
+                      <i class="pi pi-check"></i>
+                    </button>
+                    <button type="button" class="action-btn action-btn--cancel" (click)="cancelEdit(member)" title="Cancelar">
+                      <i class="pi pi-times"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+
+            </ng-container>
+
+            <!-- Estado vazio -->
+            <tr *ngIf="members.length === 0">
+              <td colspan="4" class="empty-state">
+                <i class="pi pi-users"></i>
+                <p>Nenhum membro cadastrado ainda.</p>
+                <button type="button" class="btn-invite btn-invite--sm" (click)="toggleInviteForm()">
+                  <i class="pi pi-plus"></i>
+                  <span>Convidar primeiro membro</span>
+                </button>
+              </td>
+            </tr>
+
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+
+    <!-- ═══ SEÇÃO 2: Convites Pendentes (accordion) ═══════════════════════ -->
+    <div class="section-card">
+
+      <div class="section-header accordion-trigger" (click)="togglePendingOpen()">
+        <div class="section-header-left">
+          <div class="section-icon section-icon--orange">
+            <i class="pi pi-envelope"></i>
+          </div>
+          <div>
+            <h2 class="section-title">
+              Gerenciamento de Convites Pendentes
+              <span class="badge-tag badge-tag--orange">INVITATION_STATUS</span>
+              <span class="pending-count-badge" *ngIf="pendingCount > 0">{{ pendingCount }}</span>
+            </h2>
+            <p class="section-desc">Acompanhe e gerencie os convites enviados para novos membros.</p>
+          </div>
+        </div>
+        <div class="accordion-toggle">
+          <i class="pi" [class.pi-chevron-up]="pendingOpen()" [class.pi-chevron-down]="!pendingOpen()"></i>
+        </div>
+      </div>
+
+      <div class="pending-table-wrap" *ngIf="pendingOpen()">
+        <table class="members-table" *ngIf="pendingInvites.length > 0">
+          <thead>
+            <tr>
+              <th class="col-member">E-mail convidado</th>
+              <th class="col-profile">Perfil</th>
+              <th class="col-status">Status do convite</th>
+              <th class="col-date">Enviado em</th>
+              <th class="col-actions">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="member-row" *ngFor="let inv of pendingInvites">
+              <td class="col-member">
+                <div class="member-cell">
+                  <div class="invite-avatar">
+                    <i class="pi pi-envelope"></i>
+                  </div>
+                  <span class="member-name">{{ inv.email }}</span>
+                </div>
+              </td>
+              <td class="col-profile">
+                <span class="profile-text">{{ inv.profile }}</span>
+              </td>
+              <td class="col-status">
+                <span
+                  class="status-badge"
+                  [class.badge--pending]="inv.status === 'INVITATION_PENDING'"
+                  [class.badge--expired]="inv.status === 'EXPIRY60H_EXPIRED'"
+                  [class.badge--cancelled]="inv.status === 'CANCATION_CANCELLED'"
+                >{{ statusLabel(inv.status) }}</span>
+              </td>
+              <td class="col-date">
+                <span class="date-text">{{ formatDateBr(inv.sentAt) }}</span>
+              </td>
+              <td class="col-actions">
+                <div class="action-btns">
+                  <button
+                    type="button"
+                    class="action-btn action-btn--resend"
+                    (click)="resendInvite(inv)"
+                    title="Reenviar convite"
+                    *ngIf="inv.status !== 'INVITATION_PENDING'"
+                  >
+                    <i class="pi pi-refresh"></i>
+                  </button>
+                  <button type="button" class="action-btn action-btn--delete" (click)="cancelInvite(inv.id)" title="Cancelar convite">
+                    <i class="pi pi-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="empty-invites" *ngIf="pendingInvites.length === 0">
+          <i class="pi pi-check-circle"></i>
+          <p>Nenhum convite pendente no momento.</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Ações rodapé -->
+    <div class="wizard-footer-actions">
+      <button type="button" class="btn-voltar" (click)="goBack()">
+        <i class="pi pi-chevron-left"></i>
+        <span>Voltar (Passo 4)</span>
+      </button>
+      <button type="button" class="btn-continuar" (click)="goNext()">
+        <span>Continuar para WhatsApp</span>
+        <i class="pi pi-arrow-right"></i>
+      </button>
+    </div>
+
+    <div class="security-disclaimer">
+      <i class="pi pi-lock"></i>
+      <span>Seus dados estão seguros e nunca serão compartilhados.</span>
+    </div>
+
+  </div>
+
+  <!-- ==================== RESUMO LATERAL ==================== -->
+  <app-wizard-summary
+    [steps]="steps"
+    [currentStepId]="5"
+    (activate)="activateService()"
+  ></app-wizard-summary>
+
+</div>
