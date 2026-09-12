@@ -7,13 +7,13 @@ import { AuthService } from '../../auth/auth.service';
 // ─── Modelos de lista ─────────────────────────────────────────────────────────
 
 export interface StateOption {
-  label: string;
-  value: string;
+  id: string;
+  name: string;
 }
 
 export interface ClientTypeOption {
-  label: string;
-  value: string;
+  id: string;
+  name: string;
 }
 
 // ─── Modelo do formulário Passo 1 ─────────────────────────────────────────────

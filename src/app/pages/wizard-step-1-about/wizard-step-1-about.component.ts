@@ -50,10 +50,10 @@ export class WizardStep1AboutComponent implements OnInit {
   get isFormValid(): boolean {
     return (
       this.clinicName.trim() !== '' &&
-      this.clinicType !== '' &&
+      this.clinicType != null && this.clinicType !== '' &&
       this.shortDescription.trim() !== '' &&
       this.city.trim() !== '' &&
-      this.state !== '' &&
+      this.state != null && this.state !== '' &&
       this.clinicPhone.trim() !== '' &&
       this.clinicEmail.trim() !== '' &&
       this.acceptsHealthPlan !== null
@@ -112,7 +112,7 @@ export class WizardStep1AboutComponent implements OnInit {
   }
 
   recommendByAi(): void {
-    this.clinicType = this.clinicTypes.length > 0 ? this.clinicTypes[0].value : '';
+    this.clinicType = this.clinicTypes.length > 0 ? this.clinicTypes[0].id : '';
     this.shortDescription = 'Clínica odontológica moderna focada em implantes, estética e ortodontia de alta performance.';
     this.city = 'São Paulo';
     this.state = 'SP';
