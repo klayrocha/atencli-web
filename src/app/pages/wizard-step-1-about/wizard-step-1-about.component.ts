@@ -253,8 +253,7 @@ export class WizardStep1AboutComponent implements OnInit {
         phoneNumber: `+55${rawPhone}`,
         acceptsHealthPlan: this.acceptsHealthPlan!,
       });
-      const selectedHealthPlans = this.healthPlans.filter(plan => this.healthPlanIds.includes(plan.id));
-      await this.wizardService.saveHealthPlans(this.acceptsHealthPlan!, selectedHealthPlans);
+      await this.wizardService.saveHealthPlans(this.healthPlanIds);
       sessionStorage.removeItem(DRAFT_KEY);
       this.router.navigate(['/wizard-step-2-specialty']);
     } catch {

@@ -390,15 +390,11 @@ export class WizardService {
     window.location.href = `${environment.apiBaseUrl}/api/v1/invitations/${token}/google/start`;
   }
 
-  async saveHealthPlans(acceptsHealthPlan: boolean, healthPlans: HealthPlanOption[]): Promise<void> {
+  async saveHealthPlans(healthPlanIds: number[]): Promise<void> {
     await firstValueFrom(
       this.http.put(
         `${environment.apiBaseUrl}/api/v1/client/health-plans`,
-        {
-          clientUuid: this.clientUuid,
-          acceptsHealthPlan,
-          healthPlans,
-        },
+        { healthPlanIds },
         { headers: this.headers }
       )
     );
