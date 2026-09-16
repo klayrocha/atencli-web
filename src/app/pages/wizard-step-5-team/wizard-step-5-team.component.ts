@@ -24,9 +24,7 @@ export type MemberStatus =
 export type MemberProfile =
   | 'Administrador'
   | 'Gestor'
-  | 'Atendente/Recepcionista'
-  | 'Dentista'
-  | 'Auxiliar';
+  | 'Atendente/Recepcionista';
 
 export interface TeamMember {
   id: string;
@@ -73,9 +71,7 @@ export class WizardStep5TeamComponent implements OnInit {
   profileOptions: MemberProfile[] = [
     'Administrador',
     'Gestor',
-    'Dentista',
     'Atendente/Recepcionista',
-    'Auxiliar',
   ];
 
   members: TeamMember[] = [];
@@ -226,7 +222,7 @@ export class WizardStep5TeamComponent implements OnInit {
     const map: Record<MemberStatus, string> = {
       ACTIVE:               'Ativo',
       INACTIVE:             'Inativo',
-      INVITATION_PENDING:   'INVITATION_PENDING',
+      INVITATION_PENDING:   'Pendente',
       EXPIRY60H_EXPIRED:    'Expiry60H_EXPIRED',
       CANCATION_CANCELLED:  'CANCATION_CANCELLED',
     };

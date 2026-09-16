@@ -64,8 +64,8 @@ export class WizardStep4ScheduleComponent implements OnInit {
   ];
 
   exceptionTypeOptions: ExceptionTypeOption[] = [
-    { label: 'Horário Especial (WORKING_HOURS)', value: 'WORKING_HOURS' },
-    { label: 'Fechado (CLOSED)',                 value: 'CLOSED' },
+    { label: 'Horário Especial', value: 'WORKING_HOURS' },
+    { label: 'Fechado',          value: 'CLOSED' },
   ];
 
   exceptions: ScheduleException[] = [];

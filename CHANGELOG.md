@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-09-16
+
+### Adicionado
+
+- Renovação automática do token de sessão a partir do header `Authorization` retornado pela API a cada requisição autenticada.
+- Redirecionamento automático para o login quando uma chamada autenticada retorna 401.
+- Validação visível no passo de Serviços: destaque dos campos pendentes, mensagem de erro e navegação automática até o primeiro serviço incompleto.
+
+### Alterado
+
+- Payload de planos de saúde revertido para o formato simplificado `{ healthPlanIds }`.
+- Combo de cargos da equipe restrito a Administrador, Gestor e Atendente/Recepcionista.
+- Remoção de termos em inglês exibidos nos passos de Serviços, Horários e Equipe ("BULK ACTION", "WORKING_HOURS", "CLOSED", "SPECIFIC_DATE", "INVITATION_STATUS", "INVITATION_PENDING").
+
 ## [0.1.2] - 2026-09-12
 
 ### Adicionado

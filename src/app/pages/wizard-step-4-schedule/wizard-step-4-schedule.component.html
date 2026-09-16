@@ -41,7 +41,7 @@
             <i class="pi pi-clock"></i>
           </div>
           <div>
-            <h2 class="section-title">Horários de Funcionamento Padrão <span class="badge-tag">WORKING_HOURS</span></h2>
+            <h2 class="section-title">Horários de Funcionamento Padrão <span class="badge-tag">Horário Padrão</span></h2>
             <p class="section-desc">Ative os dias e confirme as configurações padrão clicando nas caixas de seleção de cada dia.</p>
           </div>
         </div>
@@ -71,13 +71,13 @@
             </div>
           </div>
 
-          <!-- Tag WORKING_HOURS -->
+          <!-- Tag de dia em funcionamento -->
           <div class="working-tag" *ngIf="day.active">
-            <span>WORKING_HOURS</span>
+            <span>Em funcionamento</span>
           </div>
           <div class="closed-tag" *ngIf="!day.active">
             <i class="pi pi-ban"></i>
-            <span>CLOSED</span>
+            <span>Fechado</span>
           </div>
 
           <!-- Horários (visíveis só quando ativo) -->
@@ -131,7 +131,7 @@
             <i class="pi pi-calendar-plus"></i>
           </div>
           <div>
-            <h2 class="section-title">Adicionar Exceção de Horário <span class="badge-tag badge-tag--orange">SPECIFIC_DATE</span></h2>
+            <h2 class="section-title">Adicionar Exceção de Horário <span class="badge-tag badge-tag--orange">Data Específica</span></h2>
             <p class="section-desc">Configure datas especiais com horários diferentes ou marque como fechado.</p>
           </div>
         </div>
@@ -161,7 +161,7 @@
 
           <!-- Tipo -->
           <div class="form-field form-field--wide">
-            <label class="field-label">Tipo (WORKING_HOURS / CLOSED)</label>
+            <label class="field-label">Tipo (Horário Especial / Fechado)</label>
             <div class="select-wrap">
               <select class="field-input" [(ngModel)]="newException.type" name="exc-type">
                 <option *ngFor="let opt of exceptionTypeOptions" [value]="opt.value">{{ opt.label }}</option>

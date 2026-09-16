@@ -79,6 +79,7 @@
               *ngFor="let service of pagedServices"
               class="service-row"
               [class.enabled]="service.enabled"
+              [class.row-invalid]="submitAttempted() && isServiceInvalid(service)"
             >
               <!-- Checkbox -->
               <td class="col-check">
@@ -114,7 +115,7 @@
 
               <!-- Valor Praticado (editável) -->
               <td class="col-practice">
-                <div class="price-input-wrap" [class.disabled]="!service.enabled">
+                <div class="price-input-wrap" [class.disabled]="!service.enabled" [class.input-error]="submitAttempted() && service.enabled && service.practicePrice === null">
                   <span class="currency-prefix">R$</span>
                   <input
                     type="number"
@@ -131,7 +132,7 @@
 
               <!-- Valor Convênio (editável) -->
               <td class="col-insurance">
-                <div class="price-input-wrap" [class.disabled]="!service.enabled">
+                <div class="price-input-wrap" [class.disabled]="!service.enabled" [class.input-error]="submitAttempted() && service.enabled && service.insurancePrice === null">
                   <span class="currency-prefix">R$</span>
                   <input
                     type="number"
@@ -148,7 +149,7 @@
 
               <!-- Duração (select) -->
               <td class="col-duration">
-                <div class="duration-select-wrap" [class.disabled]="!service.enabled">
+                <div class="duration-select-wrap" [class.disabled]="!service.enabled" [class.input-error]="submitAttempted() && service.enabled && service.duration === null">
                   <select
                     class="duration-select"
                     [(ngModel)]="service.duration"
@@ -167,10 +168,10 @@
         </table>
       </div>
 
-      <!-- Rodapé da tabela: Bulk Actions + Paginação -->
+      <!-- Rodapé da tabela: Ações em Lote + Paginação -->
       <div class="table-footer">
         <div class="bulk-actions">
-          <span class="bulk-label">Bulk Action</span>
+          <span class="bulk-label">Ações em Lote</span>
           <button
             type="button"
             class="bulk-btn"
@@ -219,6 +220,15 @@
         </div>
       </div>
 
+      <!-- Mensagem de validação -->
+      <div class="validation-banner" *ngIf="submitAttempted() && invalidServices.length > 0">
+        <i class="pi pi-exclamation-triangle"></i>
+        <span>
+          {{ invalidServices.length }} serviço{{ invalidServices.length === 1 ? '' : 's' }} habilitado{{ invalidServices.length === 1 ? '' : 's' }}
+          com valor praticado, valor convênio ou duração pendente. Campo obrigatório.
+        </span>
+      </div>
+
     </div>
 
     <!-- Banner de IA -->
@@ -245,7 +255,7 @@
         <span>Voltar (Passo 2)</span>
       </button>
 
-      <button type="button" class="btn-continuar" (click)="goNext()" [disabled]="loadingServices() || saving() || !canSave">
+      <button type="button" class="btn-continuar" (click)="goNext()" [disabled]="loadingServices() || saving()">
         <i class="pi pi-spin pi-spinner" *ngIf="saving()"></i>
         <span>{{ saving() ? 'Salvando...' : 'Continuar para Horários' }}</span>
         <i class="pi pi-arrow-right" *ngIf="!saving()"></i>

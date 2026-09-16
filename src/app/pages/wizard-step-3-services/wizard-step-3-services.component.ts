@@ -43,6 +43,7 @@ export class WizardStep3ServicesComponent implements OnInit {
 
   loadingServices = signal(true);
   saving = signal(false);
+  submitAttempted = signal(false);
 
   steps: WizardStep[] = WIZARD_STEPS_DEFAULT.map(s => ({
     ...s,
@@ -88,6 +89,22 @@ export class WizardStep3ServicesComponent implements OnInit {
       service.practicePrice !== null &&
       service.insurancePrice !== null &&
       service.duration !== null
+    );
+  }
+
+  get invalidServices(): ServiceItem[] {
+    return this.selectedServices.filter(service =>
+      service.practicePrice === null ||
+      service.insurancePrice === null ||
+      service.duration === null
+    );
+  }
+
+  isServiceInvalid(service: ServiceItem): boolean {
+    return service.enabled && (
+      service.practicePrice === null ||
+      service.insurancePrice === null ||
+      service.duration === null
     );
   }
 
@@ -190,7 +207,10 @@ export class WizardStep3ServicesComponent implements OnInit {
   }
 
   async goNext(): Promise<void> {
+    this.submitAttempted.set(true);
+
     if (!this.canSave) {
+      this.goToFirstInvalidService();
       return;
     }
 
@@ -208,6 +228,15 @@ export class WizardStep3ServicesComponent implements OnInit {
     } finally {
       this.saving.set(false);
     }
+  }
+
+  private goToFirstInvalidService(): void {
+    const firstInvalid = this.invalidServices[0];
+    if (!firstInvalid) return;
+
+    const index = this.allServices.indexOf(firstInvalid);
+    const page = Math.floor(index / this.pageSize) + 1;
+    this.currentPage.set(page);
   }
 
   activateService(): void {}

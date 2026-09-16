@@ -210,6 +210,11 @@ export class AuthService {
     }
   }
 
+  /** Renova o token da sessão com o valor retornado no header Authorization da API */
+  updateToken(token: string): void {
+    sessionStorage.setItem(this.TOKEN_KEY, token);
+  }
+
   private setSession(user: User, token: string): void {
     this.currentUser.set(user);
     sessionStorage.setItem(this.STORAGE_KEY, JSON.stringify(user));
