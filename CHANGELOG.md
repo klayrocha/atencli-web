@@ -2,6 +2,22 @@
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-09-16
+
+### Adicionado
+
+- Passo 6 do onboarding para configuração do WhatsApp Business.
+- Rotas `/wizard-step-6-whatsapp` e `/configuracoes/whatsapp`.
+- Painel de status da integração com nome verificado, número conectado, tipo de conexão e sincronização.
+- Controle visual de acesso para administradores e gestores.
+- Simulação local do fluxo de conexão com estado de carregamento e resultado bem-sucedido.
+- Ações simuladas para pausar, ativar e desconectar a integração.
+
+### Segurança
+
+- A tela não solicita nem armazena access token, App Secret ou chave de criptografia da Meta.
+- Nenhuma integração HTTP ou carregamento do SDK da Meta foi incluído nesta versão.
+
 ## [0.1.3] - 2026-09-16
 
 ### Adicionado

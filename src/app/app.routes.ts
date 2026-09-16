@@ -8,6 +8,7 @@ import { WizardStep2SpecialtyComponent } from './pages/wizard-step-2-specialty/w
 import { WizardStep3ServicesComponent } from './pages/wizard-step-3-services/wizard-step-3-services.component';
 import { WizardStep4ScheduleComponent } from './pages/wizard-step-4-schedule/wizard-step-4-schedule.component';
 import { WizardStep5TeamComponent } from './pages/wizard-step-5-team/wizard-step-5-team.component';
+import { WizardStep6WhatsappComponent } from './pages/wizard-step-6-whatsapp/wizard-step-6-whatsapp.component';
 import { OAuth2CallbackComponent } from './pages/oauth2-callback/oauth2-callback.component';
 import { authGuard, guestGuard } from './guards/auth.guard';
 
@@ -37,6 +38,8 @@ export const routes: Routes = [
       { path: 'wizard-step-3-services', component: WizardStep3ServicesComponent },
       { path: 'wizard-step-4-schedule', component: WizardStep4ScheduleComponent },
       { path: 'wizard-step-5-team', component: WizardStep5TeamComponent },
+      { path: 'wizard-step-6-whatsapp', component: WizardStep6WhatsappComponent },
+      { path: 'configuracoes/whatsapp', component: WizardStep6WhatsappComponent },
       { path: 'conversas', component: DashboardComponent },
       { path: 'contatos', component: DashboardComponent },
       { path: 'etapas', component: DashboardComponent },

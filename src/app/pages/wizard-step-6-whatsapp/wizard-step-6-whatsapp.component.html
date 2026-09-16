@@ -1,0 +1,149 @@
+<div class="wizard-container">
+  <main class="wizard-main">
+    <header class="wizard-header">
+      <div class="header-icon"><i class="pi pi-whatsapp"></i></div>
+      <div>
+        <h1 class="header-title">Conecte o WhatsApp Business</h1>
+        <p class="header-subtitle">Centralize conversas, contatos e atendimentos da clínica com a conexão oficial da Meta.</p>
+      </div>
+    </header>
+
+    <div class="horizontal-stepper">
+      <div
+        *ngFor="let step of steps; let last = last"
+        class="step-item"
+        [class.active]="step.id === 6"
+        [class.completed]="step.id < 6"
+      >
+        <div class="step-circle">
+          <i class="pi pi-check" *ngIf="step.id < 6"></i>
+          <span *ngIf="step.id >= 6">{{ step.id }}</span>
+        </div>
+        <span class="step-label">{{ step.label }}</span>
+        <div class="step-line" *ngIf="!last" [class.completed]="step.id < 6"></div>
+      </div>
+    </div>
+
+    <section class="integration-card">
+      <div class="integration-heading">
+        <div class="heading-copy">
+          <span class="eyebrow">Integração oficial</span>
+          <h2>Status do WhatsApp Business</h2>
+          <p>A conexão será feita em uma janela segura da Meta, sem solicitar credenciais técnicas.</p>
+        </div>
+        <div class="status-pill" [class.status-pill--connected]="connectionStatus === 'CONNECTED'" [class.status-pill--paused]="connectionStatus === 'PAUSED'">
+          <span class="status-dot"></span>
+          {{ statusLabel }}
+        </div>
+      </div>
+
+      <div class="connection-grid">
+        <div class="connection-summary">
+          <div class="whatsapp-mark"><i class="pi pi-whatsapp"></i></div>
+          <div class="summary-copy">
+            <strong>{{ connectionStatus === 'NOT_CONFIGURED' ? 'Nenhuma conta conectada' : verifiedName }}</strong>
+            <span *ngIf="connectionStatus === 'NOT_CONFIGURED'">Conecte o número oficial da clínica para iniciar a configuração.</span>
+            <span *ngIf="connectionStatus !== 'NOT_CONFIGURED'">{{ displayPhoneNumber }}</span>
+          </div>
+          <button
+            *ngIf="connectionStatus === 'NOT_CONFIGURED'"
+            type="button"
+            class="btn-connect"
+            (click)="beginConnection()"
+            [disabled]="!canManageIntegration || connecting()"
+          >
+            <i class="pi" [class.pi-spin]="connecting()" [class.pi-spinner]="connecting()" [class.pi-external-link]="!connecting()"></i>
+            <span>{{ connecting() ? 'Conectando com a Meta...' : 'Conectar WhatsApp Business' }}</span>
+          </button>
+          <div class="connection-actions" *ngIf="connectionStatus !== 'NOT_CONFIGURED'">
+            <button type="button" class="btn-manage" (click)="toggleIntegration()" [disabled]="!canManageIntegration">
+              <i class="pi" [class.pi-pause]="connectionStatus === 'CONNECTED'" [class.pi-play]="connectionStatus === 'PAUSED'"></i>
+              <span>{{ connectionStatus === 'PAUSED' ? 'Ativar integração' : 'Pausar integração' }}</span>
+            </button>
+            <button type="button" class="btn-disconnect" (click)="disconnect()" [disabled]="!canManageIntegration">
+              <i class="pi pi-unlink"></i>
+              <span>Desconectar</span>
+            </button>
+          </div>
+        </div>
+
+        <dl class="connection-details">
+          <div>
+            <dt>Nome verificado</dt>
+            <dd>{{ verifiedName || 'Aguardando conexão' }}</dd>
+          </div>
+          <div>
+            <dt>Número conectado</dt>
+            <dd>{{ displayPhoneNumber || 'Aguardando conexão' }}</dd>
+          </div>
+          <div>
+            <dt>Tipo de conexão</dt>
+            <dd>{{ connectionMode === 'COEXISTENCE' ? 'Coexistência' : connectionMode === 'CLOUD_API' ? 'API na nuvem' : 'Definido após a conexão' }}</dd>
+          </div>
+          <div>
+            <dt>Sincronização</dt>
+            <dd>{{ contactsSynchronized ? 'Contatos sincronizados' : 'Não iniciada' }}</dd>
+          </div>
+        </dl>
+      </div>
+
+      <div class="connection-notice" *ngIf="connectionNotice()">
+        <i class="pi pi-info-circle"></i>
+        <div>
+          <strong>WhatsApp Business conectado com sucesso</strong>
+          <p>O número da Clínica Harmonia está ativo e os contatos foram sincronizados.</p>
+        </div>
+        <button type="button" class="notice-close" (click)="dismissNotice()" title="Fechar">
+          <i class="pi pi-times"></i>
+        </button>
+      </div>
+    </section>
+
+    <section class="benefits-section">
+      <div class="benefits-heading">
+        <h2>O que acontece ao conectar?</h2>
+        <p>A Atenclin prepara o canal para atendimento sem expor dados sensíveis da conta.</p>
+      </div>
+      <div class="benefits-grid">
+        <article>
+          <div class="benefit-icon"><i class="pi pi-comments"></i></div>
+          <strong>Conversas centralizadas</strong>
+          <p>A equipe acompanha os atendimentos em um único lugar.</p>
+        </article>
+        <article>
+          <div class="benefit-icon"><i class="pi pi-address-book"></i></div>
+          <strong>Contatos organizados</strong>
+          <p>Os pacientes ficam vinculados ao histórico da clínica.</p>
+        </article>
+        <article>
+          <div class="benefit-icon"><i class="pi pi-shield"></i></div>
+          <strong>Conexão protegida</strong>
+          <p>Tokens e chaves da Meta permanecem exclusivamente no backend.</p>
+        </article>
+      </div>
+    </section>
+
+    <div class="permission-note" [class.permission-note--blocked]="!canManageIntegration">
+      <i class="pi" [class.pi-lock]="!canManageIntegration" [class.pi-info-circle]="canManageIntegration"></i>
+      <span *ngIf="canManageIntegration">Somente administradores e gestores podem alterar esta conexão.</span>
+      <span *ngIf="!canManageIntegration">Seu perfil pode consultar o status, mas não pode alterar esta conexão.</span>
+    </div>
+
+    <div class="wizard-footer-actions">
+      <button type="button" class="btn-back" (click)="goBack()">
+        <i class="pi pi-chevron-left"></i>
+        <span>Voltar para Equipe</span>
+      </button>
+      <button type="button" class="btn-next" (click)="goNext()">
+        <span>Continuar para IA</span>
+        <i class="pi pi-arrow-right"></i>
+      </button>
+    </div>
+  </main>
+
+  <app-wizard-summary
+    [steps]="steps"
+    [currentStepId]="6"
+    (activate)="activateService()"
+  ></app-wizard-summary>
+</div>
