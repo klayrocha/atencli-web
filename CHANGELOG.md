@@ -2,6 +2,27 @@
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-09-22
+
+### Adicionado
+
+- Integração do WhatsApp Business com a API e o Embedded Signup da Meta, com consulta de status e ativação ou pausa da integração.
+- Tratamento de carregamento, cancelamento, erros e validação do PIN na conexão do WhatsApp.
+- Passo 7 do onboarding para configuração da IA em `/ia`, com modo de atendimento, tom de voz, tamanho das respostas, horários, mensagens, assuntos permitidos e regras de transferência para atendimento humano.
+- Persistência das configurações e controle de ativação da IA pela API, com acesso para administradores e gestores.
+- Passo 8 com conclusão do onboarding, acesso aos atendimentos e revisão das configurações com busca por assunto.
+- Testes para conexão com a Meta, configuração do WhatsApp, regras da IA e busca das etapas de revisão.
+
+### Alterado
+
+- Substituição da simulação local do WhatsApp pela integração com o backend e remoção da ação simulada de desconexão.
+- Layout responsivo da conexão do WhatsApp e destaque do botão de início do atendimento ao concluir o onboarding.
+
+### Segurança
+
+- Remoção das credenciais de demonstração exibidas na tela de login.
+- Validação da origem das mensagens da Meta e tratamento de erros sem exibir detalhes internos retornados pela API.
+
 ## [0.2.0] - 2026-09-16
 
 ### Adicionado

@@ -1,0 +1,65 @@
+<div class="wizard-container">
+  <main class="wizard-main">
+    <header class="wizard-header">
+      <div class="header-icon"><i class="pi pi-sparkles" aria-hidden="true"></i></div>
+      <div><h1 class="header-title">Configure a inteligência artificial</h1><p class="header-subtitle">Defina como a IA conversa, quando atende e quando chama sua equipe.</p></div>
+    </header>
+    <div class="horizontal-stepper" aria-label="Etapas da configuração">
+      <div *ngFor="let step of steps; let last = last" class="step-item" [class.active]="step.id === 7" [class.completed]="step.completed" [attr.aria-current]="step.id === 7 ? 'step' : null">
+        <div class="step-circle"><i class="pi pi-check" *ngIf="step.completed && step.id !== 7"></i><span *ngIf="!step.completed || step.id === 7">{{ step.id }}</span></div>
+        <span class="step-label">{{ step.label }}</span><div class="step-line" *ngIf="!last" [class.completed]="step.completed"></div>
+      </div>
+    </div>
+    <div class="notice" *ngIf="!canManage" role="status"><i class="pi pi-lock"></i>Somente administradores e gestores podem acessar a configuração da IA.</div>
+    <div class="notice" *ngIf="loading" role="status">Carregando configuração da IA...</div>
+    <div class="notice error" *ngIf="error" role="alert">{{ error }} <button *ngIf="!loaded && canManage" type="button" (click)="load()" [disabled]="busy">Tentar novamente</button></div>
+    <form *ngIf="loaded && canManage" #configurationForm="ngForm" (ngSubmit)="save()" (ngModelChange)="changed()" (change)="changed()" (input)="changed()">
+      <fieldset [disabled]="busy" class="configuration-fields">
+        <section class="ai-card" aria-labelledby="behavior-title">
+          <div class="card-heading"><div class="section-icon"><i class="pi pi-comments"></i></div><div><h2 id="behavior-title">Como a IA atende</h2><p>Escolha o nível de autonomia e o estilo das respostas.</p></div></div>
+          <div class="options-grid">
+            <label class="option"><input type="radio" name="mode" value="ASSISTANT" [(ngModel)]="model.mode"><span><strong>Modo assistente</strong><small>Gera uma sugestão para aprovação humana.</small></span></label>
+            <label class="option"><input type="radio" name="mode" value="LIMITED_AUTOMATIC" [(ngModel)]="model.mode"><span><strong>Automático limitado</strong><small>Responde somente assuntos autorizados.</small></span></label>
+          </div>
+          <div class="fields-grid">
+            <label class="field">Tom de voz<input type="text" name="tone" [(ngModel)]="model.tone" maxlength="80" required placeholder="Acolhedor e profissional"></label>
+            <label class="field">Tamanho das respostas<select name="responseLength" [(ngModel)]="model.responseLength"><option value="SHORT">Curto</option><option value="MEDIUM">Médio</option><option value="DETAILED">Detalhado</option></select></label>
+          </div>
+          <label class="field message-field">Mensagem de apresentação<textarea name="introductionMessage" [(ngModel)]="model.introductionMessage" maxlength="500" rows="3" placeholder="Olá, sou a assistente virtual da clínica."></textarea><small class="counter">{{ model.introductionMessage?.length || 0 }}/500</small></label>
+          <label class="field">Mensagem fora do horário<textarea name="outsideHoursMessage" [(ngModel)]="model.outsideHoursMessage" maxlength="500" rows="3" placeholder="A equipe responderá assim que possível."></textarea><small class="counter">{{ model.outsideHoursMessage?.length || 0 }}/500</small></label>
+        </section>
+        <section class="ai-card" aria-labelledby="schedule-title">
+          <div class="card-heading"><div class="section-icon"><i class="pi pi-clock"></i></div><div><h2 id="schedule-title">Quando a IA atende</h2><p>Use os horários da clínica ou defina uma disponibilidade própria.</p></div></div>
+          <div class="options-stack">
+            <label class="option"><input type="radio" name="schedulePolicy" value="FOLLOW_CLINIC_HOURS" [(ngModel)]="model.schedulePolicy"><span><strong>Seguir os horários da clínica</strong><small>Respeita o expediente, os intervalos e os dias sem atendimento cadastrados.</small></span></label>
+            <label class="option"><input type="radio" name="schedulePolicy" value="CUSTOM_SCHEDULE" [(ngModel)]="model.schedulePolicy"><span><strong>Usar horário próprio da IA</strong><small>Escolha dias e horários diferentes do atendimento da clínica.</small></span></label>
+            <label class="option"><input type="radio" name="schedulePolicy" value="ALWAYS" [(ngModel)]="model.schedulePolicy"><span><strong>Atender sempre</strong><small>Disponível todos os dias, em qualquer horário.</small></span></label>
+          </div>
+          <div class="custom-schedule" *ngIf="model.schedulePolicy === 'CUSTOM_SCHEDULE'">
+            <div class="fields-grid"><label class="field">Começa às<input type="time" name="serviceStartTime" [(ngModel)]="model.serviceStartTime" required></label><label class="field">Termina às<input type="time" name="serviceEndTime" [(ngModel)]="model.serviceEndTime" required></label></div>
+            <fieldset class="days-field"><legend>Dias de atuação da IA</legend><div class="days"><label *ngFor="let day of days; let index = index" class="day"><input type="checkbox" [checked]="model.activeDays.includes(index + 1)" (change)="toggleDay(index + 1, $any($event.target).checked)"><span>{{ day }}</span></label></div></fieldset>
+          </div>
+        </section>
+        <section class="ai-card" aria-labelledby="topics-title">
+          <div class="card-heading"><div class="section-icon"><i class="pi pi-check-square"></i></div><div><h2 id="topics-title">O que a IA pode responder</h2><p>Desmarque os assuntos que devem ser encaminhados para uma pessoa.</p></div></div>
+          <div class="options-stack"><label *ngFor="let topic of topics" class="option"><input type="checkbox" [checked]="model.allowedTopics.includes(topic[0])" (change)="toggleOption('allowedTopics', topic[0], $any($event.target).checked)"><span><strong>{{ topic[1] }}</strong><small>{{ topic[2] }}</small></span></label></div>
+        </section>
+        <section class="ai-card" aria-labelledby="handoff-title">
+          <div class="card-heading"><div class="section-icon"><i class="pi pi-shield"></i></div><div><h2 id="handoff-title">Quando chamar uma pessoa</h2><p>As regras essenciais de segurança permanecem sempre ativas.</p></div></div>
+          <div class="options-stack"><label *ngFor="let trigger of triggers" class="option" [class.mandatory]="requiredTriggers.includes(trigger[0])"><input type="checkbox" [checked]="model.handoffTriggers.includes(trigger[0])" [disabled]="requiredTriggers.includes(trigger[0])" (change)="toggleOption('handoffTriggers', trigger[0], $any($event.target).checked)"><span><strong>{{ trigger[1] }} <span class="required-badge" *ngIf="requiredTriggers.includes(trigger[0])">Obrigatório</span></strong><small>{{ trigger[2] }}</small></span></label></div>
+        </section>
+      </fieldset>
+      <section class="ai-card" aria-labelledby="save-title">
+        <div class="card-heading review-heading"><div><h2 id="save-title">Revisar e salvar</h2><p>Salvar as regras não altera o status de ativação da IA.</p></div><span class="status-pill" [class.enabled]="enabled"><span class="status-dot"></span>{{ enabled ? 'IA ativa' : 'IA pausada' }}</span></div>
+        <div class="notice"><i class="pi pi-info-circle"></i><span>{{ dirty ? 'Você tem alterações não salvas. Salve as regras antes de ativar a IA.' : 'Ao ativar, a IA passa a usar as regras salvas para atender no modo escolhido.' }}</span></div>
+        <div class="notice success" *ngIf="success" role="status">{{ success }}</div>
+        <div class="save-actions">
+          <button type="button" class="btn-back" (click)="toggleStatus()" [disabled]="busy || (!enabled && dirty)"><i class="pi" [class.pi-pause]="enabled" [class.pi-play]="!enabled"></i>{{ updating ? 'Atualizando...' : enabled ? 'Pausar IA' : 'Ativar IA' }}</button>
+          <button type="submit" class="btn-next" [disabled]="busy || configurationForm.invalid"><i class="pi pi-check"></i>{{ saving ? 'Salvando...' : 'Salvar regras' }}</button>
+        </div>
+      </section>
+    </form>
+    <div class="wizard-footer-actions"><a class="btn-back" routerLink="/wizard-step-6-whatsapp"><i class="pi pi-chevron-left"></i>Voltar para WhatsApp</a><button type="button" class="btn-next" (click)="goToReview()" [disabled]="busy || !loaded">Revisar passo 8<i class="pi pi-arrow-right" aria-hidden="true"></i></button></div>
+  </main>
+  <app-wizard-summary [steps]="steps" [currentStepId]="7"></app-wizard-summary>
+</div>

@@ -61,10 +61,10 @@
     </div>
 
     <!-- Card "Quase lá!" / Ativação -->
-    <div class="activation-card">
+    <div class="activation-card" [class.activation-card--ready]="allStepsCompleted">
       <div class="activation-header">
-        <strong>Quase lá! 🎉</strong>
-        <p>Finalize a configuração e comece a atender pacientes com mais organização.</p>
+        <strong>{{ allStepsCompleted ? 'Tudo pronto para começar!' : 'Quase lá! 🎉' }}</strong>
+        <p>{{ allStepsCompleted ? 'Configuração 100% concluída. Acesse os atendimentos da sua clínica.' : 'Finalize a configuração e comece a atender pacientes com mais organização.' }}</p>
       </div>
       <button
         type="button"
@@ -72,7 +72,7 @@
         [disabled]="!allStepsCompleted"
         (click)="onActivate()"
       >
-        <span>Ativar atendimento</span>
+        <span>{{ allStepsCompleted ? 'Iniciar atendimento' : 'Ativar atendimento' }}</span>
         <i class="pi pi-bolt"></i>
       </button>
     </div>

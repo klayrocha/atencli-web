@@ -33,11 +33,17 @@
         </div>
         <div class="status-pill" [class.status-pill--connected]="connectionStatus === 'CONNECTED'" [class.status-pill--paused]="connectionStatus === 'PAUSED'">
           <span class="status-dot"></span>
-          {{ statusLabel }}
+          {{ loading() ? 'Carregando...' : !integration ? 'Indisponível' : statusLabel }}
         </div>
       </div>
 
-      <div class="connection-grid">
+      <div class="connection-notice" role="alert" *ngIf="error()">
+        <i class="pi pi-exclamation-circle"></i>
+        <p>{{ error() }}</p>
+        <button type="button" class="btn-manage" (click)="load()" [disabled]="busy">Tentar novamente</button>
+      </div>
+      <p *ngIf="preparing()" role="status">Preparando conexão com a Meta...</p>
+      <div class="connection-grid" *ngIf="integration && !loading()">
         <div class="connection-summary">
           <div class="whatsapp-mark"><i class="pi pi-whatsapp"></i></div>
           <div class="summary-copy">
@@ -45,25 +51,27 @@
             <span *ngIf="connectionStatus === 'NOT_CONFIGURED'">Conecte o número oficial da clínica para iniciar a configuração.</span>
             <span *ngIf="connectionStatus !== 'NOT_CONFIGURED'">{{ displayPhoneNumber }}</span>
           </div>
+          <div class="pin-field" *ngIf="pinRequired() && canManageIntegration && connectionStatus !== 'CONNECTED' && connectionStatus !== 'PAUSED'">
+            <label for="whatsapp-pin">PIN do WhatsApp</label>
+            <input id="whatsapp-pin" type="password" inputmode="numeric" maxlength="6" autocomplete="off" [(ngModel)]="pin" [disabled]="busy" aria-describedby="pin-help">
+            <small id="pin-help">Informe o PIN de seis dígitos da verificação em duas etapas deste número. Ele não é o código enviado por SMS.</small>
+          </div>
           <button
-            *ngIf="connectionStatus === 'NOT_CONFIGURED'"
+            *ngIf="connectionStatus === 'NOT_CONFIGURED' || connectionStatus === 'ERROR' || connectionStatus === 'DISCONNECTED'"
             type="button"
             class="btn-connect"
             (click)="beginConnection()"
-            [disabled]="!canManageIntegration || connecting()"
+            [disabled]="!canManageIntegration || busy || !configuration"
           >
             <i class="pi" [class.pi-spin]="connecting()" [class.pi-spinner]="connecting()" [class.pi-external-link]="!connecting()"></i>
             <span>{{ connecting() ? 'Conectando com a Meta...' : 'Conectar WhatsApp Business' }}</span>
           </button>
           <div class="connection-actions" *ngIf="connectionStatus !== 'NOT_CONFIGURED'">
-            <button type="button" class="btn-manage" (click)="toggleIntegration()" [disabled]="!canManageIntegration">
+            <button type="button" class="btn-manage" (click)="toggleIntegration()" [disabled]="!canManageIntegration || busy">
               <i class="pi" [class.pi-pause]="connectionStatus === 'CONNECTED'" [class.pi-play]="connectionStatus === 'PAUSED'"></i>
-              <span>{{ connectionStatus === 'PAUSED' ? 'Ativar integração' : 'Pausar integração' }}</span>
+              <span>{{ updating() ? 'Salvando...' : integration.enabled ? 'Pausar integração' : 'Ativar integração' }}</span>
             </button>
-            <button type="button" class="btn-disconnect" (click)="disconnect()" [disabled]="!canManageIntegration">
-              <i class="pi pi-unlink"></i>
-              <span>Desconectar</span>
-            </button>
+
           </div>
         </div>
 
@@ -82,16 +90,16 @@
           </div>
           <div>
             <dt>Sincronização</dt>
-            <dd>{{ contactsSynchronized ? 'Contatos sincronizados' : 'Não iniciada' }}</dd>
+            <dd>{{ synchronizationLabel }}</dd>
           </div>
         </dl>
       </div>
 
-      <div class="connection-notice" *ngIf="connectionNotice()">
+      <div class="connection-notice" role="status" *ngIf="connectionNotice()">
         <i class="pi pi-info-circle"></i>
         <div>
           <strong>WhatsApp Business conectado com sucesso</strong>
-          <p>O número da Clínica Harmonia está ativo e os contatos foram sincronizados.</p>
+          <p>A conexão de {{ verifiedName || displayPhoneNumber || 'sua clínica' }} foi salva. Consulte o status acima.</p>
         </div>
         <button type="button" class="notice-close" (click)="dismissNotice()" title="Fechar">
           <i class="pi pi-times"></i>

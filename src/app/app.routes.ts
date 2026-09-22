@@ -9,6 +9,8 @@ import { WizardStep3ServicesComponent } from './pages/wizard-step-3-services/wiz
 import { WizardStep4ScheduleComponent } from './pages/wizard-step-4-schedule/wizard-step-4-schedule.component';
 import { WizardStep5TeamComponent } from './pages/wizard-step-5-team/wizard-step-5-team.component';
 import { WizardStep6WhatsappComponent } from './pages/wizard-step-6-whatsapp/wizard-step-6-whatsapp.component';
+import { WizardStep7AiComponent } from './pages/wizard-step-7-ai/wizard-step-7-ai.component';
+import { WizardStep8ReviewComponent } from './pages/wizard-step-8-review/wizard-step-8-review.component';
 import { OAuth2CallbackComponent } from './pages/oauth2-callback/oauth2-callback.component';
 import { authGuard, guestGuard } from './guards/auth.guard';
 
@@ -46,7 +48,9 @@ export const routes: Routes = [
       { path: 'agenda', component: DashboardComponent },
       { path: 'tarefas', component: DashboardComponent },
       { path: 'resultados', component: DashboardComponent },
-      { path: 'ia', component: DashboardComponent },
+      { path: 'ia', component: WizardStep7AiComponent },
+      { path: 'wizard-step-7-ai', redirectTo: 'ia', pathMatch: 'full' },
+      { path: 'wizard-step-8-review', component: WizardStep8ReviewComponent },
       { path: 'equipe', component: DashboardComponent },
       { path: 'configuracoes', component: DashboardComponent },
       { path: 'ajuda', component: DashboardComponent },
