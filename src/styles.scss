@@ -131,3 +131,25 @@ app-topbar {
     flex-shrink: 0;
   }
 }
+
+/* Conversation workspace uses the available viewport and its own scroll areas. */
+.layout-content:has(app-conversations) {
+  padding: 20px 18px 18px;
+  overflow: hidden;
+  min-height: 0;
+  background: #f5f6f8;
+}
+@media (max-width: 760px) {
+  .layout-wrapper:has(app-conversations) {
+    .sidebar { width: 60px; min-width: 60px; }
+    .sidebar .logo-text, .sidebar .menu-label, .sidebar .collapse-btn span { display: none; }
+    .sidebar .sidebar-logo { padding: 18px 12px; }
+    .sidebar .menu-list { padding: 0 6px; }
+    .sidebar .menu-item { padding: 12px; justify-content: center; }
+    .sidebar .sidebar-footer { padding: 6px; }
+    .topbar { padding: 0 10px; }
+    .topbar-center, .search-box, .user-name { display: none; }
+    .clinic-name { font-size: 12px; }
+    .layout-content { padding: 8px; }
+  }
+}

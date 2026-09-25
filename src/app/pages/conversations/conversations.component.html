@@ -1,0 +1,57 @@
+<div class="conversations" [class.mobile-chat]="mobileChat" [class.show-contact]="contactOpen">
+  <section class="inbox" aria-label="Lista de conversas">
+    <header class="inbox-heading"><h1>Conversas</h1><div class="tools">
+      <button class="icon-button" [class.is-active]="unreadOnly" (click)="unreadOnly = !unreadOnly" title="Somente não lidas" aria-label="Filtrar não lidas" [attr.aria-pressed]="unreadOnly"><i class="pi pi-filter"></i></button>
+      <button class="icon-button" (click)="searchOpen = !searchOpen" aria-label="Buscar conversas" [attr.aria-expanded]="searchOpen"><i class="pi pi-search"></i></button>
+      <button class="icon-button" (click)="ascending = !ascending" aria-label="Inverter ordem das conversas"><i class="pi pi-sort-alt"></i></button>
+    </div></header>
+    <div class="search" *ngIf="searchOpen"><i class="pi pi-search"></i><input autofocus [(ngModel)]="query" placeholder="Buscar conversa..." aria-label="Buscar por nome ou mensagem"><button class="icon-button" (click)="query = ''" aria-label="Limpar busca"><i class="pi pi-times"></i></button></div>
+    <div class="filters" aria-label="Filtrar conversas">
+      <button [class.active]="filter === 'all'" [attr.aria-pressed]="filter === 'all'" (click)="filter = 'all'">Todas <span>{{ conversations.length }}</span></button>
+      <button [class.active]="filter === 'mine'" [attr.aria-pressed]="filter === 'mine'" (click)="filter = 'mine'">Minhas <span>{{ mineCount }}</span></button>
+      <button [class.active]="filter === 'unassigned'" [attr.aria-pressed]="filter === 'unassigned'" (click)="filter = 'unassigned'">Sem responsável <span>{{ unassignedCount }}</span></button>
+    </div>
+    <div class="conversation-list">
+      <button *ngFor="let conversation of filteredConversations" class="conversation" [class.selected]="selected.id === conversation.id" [attr.aria-pressed]="selected.id === conversation.id" (click)="select(conversation)">
+        <span class="avatar"><i class="pi pi-image" aria-hidden="true"></i><i *ngIf="conversation.id !== 3" class="pi pi-whatsapp channel" aria-hidden="true"></i></span>
+        <span class="conversation-copy"><span class="conversation-title"><strong>{{ conversation.name }}</strong><time>{{ conversation.time }}</time></span><span class="conversation-bottom"><span class="preview">{{ conversation.preview }}</span><span class="status-wrap"><span class="badge" [ngClass]="conversation.color">{{ conversation.status }}</span><span class="unread" *ngIf="conversation.unread">{{ conversation.unread }}<span class="sr-only"> não lidas</span></span></span></span></span>
+      </button>
+      <p class="empty" *ngIf="!filteredConversations.length">Nenhuma conversa encontrada.</p>
+    </div>
+    <footer class="list-footer">Todas as conversas carregadas <i class="pi pi-check"></i></footer>
+  </section>
+
+  <section class="chat" aria-label="Conversa selecionada">
+    <header class="chat-heading">
+      <button class="icon-button back-button" (click)="mobileChat = false" aria-label="Voltar para conversas"><i class="pi pi-arrow-left"></i></button>
+      <span class="avatar"><i class="pi pi-image" aria-hidden="true"></i><i class="pi pi-whatsapp channel" aria-hidden="true"></i></span>
+      <div class="chat-person"><div class="person-title"><h2>{{ selected.name }}</h2><span class="badge yellow waiting" *ngIf="selected.id === 1">Esperando resposta há 22 min</span></div><p>Origem: {{ selected.origin }} <span>·</span> {{ selected.topic }}</p></div>
+      <div class="tools chat-tools"><button class="icon-button" (click)="previewOnly()" aria-label="Gerenciar tags"><i class="pi pi-tag"></i></button><button class="icon-button" (click)="contactOpen = !contactOpen" aria-label="Mostrar dados do contato"><i class="pi pi-user"></i></button><button class="icon-button" (click)="previewOnly()" aria-label="Agendar atendimento"><i class="pi pi-calendar"></i></button><button class="icon-button" (click)="previewOnly()" aria-label="Mais opções"><i class="pi pi-ellipsis-v"></i></button></div>
+    </header>
+    <div class="chat-body">
+      <div class="messages" #messageList [scrollTop]="messageList.scrollHeight" role="log" aria-label="Mensagens" aria-live="polite">
+        <span class="day-label">{{ selected.id === 6 ? 'Ontem' : 'Hoje' }}</span>
+        <div *ngFor="let message of selected.messages" class="message" [class.outgoing]="message.outgoing" [class.internal-note]="message.note"><small *ngIf="message.note" class="note-label"><i class="pi pi-lock"></i> Nota interna</small><p>{{ message.text }}</p><span class="message-meta">{{ message.time }} <i *ngIf="message.outgoing && !message.note" class="pi pi-check" aria-label="Mensagem local"></i></span></div>
+      </div>
+      <div class="suggestions" *ngIf="suggestionsOpen"><button (click)="useSuggestion('Podemos agendar uma avaliação para entender melhor o que você precisa. Qual dia seria melhor para você?')">Podemos agendar uma avaliação. Qual dia seria melhor para você?</button><button (click)="useSuggestion('Vou te ajudar! Você tem preferência de dia e horário para uma avaliação?')">Vou te ajudar! Você tem preferência de dia e horário?</button></div>
+      <div class="ai-bar"><i class="pi pi-sparkles"></i><span>IA sugeriu resposta <span class="variation">· &nbsp;2 variações</span></span><button (click)="suggestionsOpen = !suggestionsOpen" [attr.aria-expanded]="suggestionsOpen">Ver sugestões <i class="pi pi-chevron-down"></i></button></div>
+      <div class="composer">
+        <div class="composer-tabs"><button [class.active]="!noteMode" (click)="noteMode = false" [attr.aria-pressed]="!noteMode">Mensagem</button><button [class.active]="noteMode" (click)="noteMode = true" [attr.aria-pressed]="noteMode">Nota interna</button><span class="local-label">Prévia local</span></div>
+        <form (ngSubmit)="send()" class="message-input" [class.note-input]="noteMode"><textarea name="message" [(ngModel)]="draft" [placeholder]="noteMode ? 'Escreva uma nota para a equipe...' : 'Digite sua mensagem...'" [attr.aria-label]="noteMode ? 'Nota interna' : 'Mensagem'"></textarea><div class="composer-bottom"><div class="tools"><button type="button" class="icon-button" (click)="draft = draft + ' 😊'" aria-label="Adicionar emoji"><i class="pi pi-face-smile"></i></button><button type="button" class="icon-button" (click)="previewOnly()" aria-label="Anexar arquivo"><i class="pi pi-paperclip"></i></button><button type="button" class="icon-button" (click)="suggestionsOpen = !suggestionsOpen" aria-label="Respostas rápidas"><i class="pi pi-bolt"></i></button><button type="button" class="icon-button" (click)="previewOnly()" aria-label="Mais ferramentas"><i class="pi pi-ellipsis-h"></i></button></div><div class="tools"><button type="button" class="icon-button microphone" (click)="previewOnly()" aria-label="Gravar áudio"><i class="pi pi-microphone"></i></button><button type="submit" class="send-button" [disabled]="!draft.trim()" [attr.aria-label]="noteMode ? 'Adicionar nota local' : 'Adicionar mensagem local'"><i class="pi pi-send"></i></button></div></div></form>
+      </div>
+      <div class="notice" *ngIf="notice" role="status">{{ notice }}<button class="icon-button" (click)="notice = ''" aria-label="Fechar aviso"><i class="pi pi-times"></i></button></div>
+    </div>
+  </section>
+
+  <aside class="contact" aria-label="Dados do contato">
+    <header class="contact-heading"><h2>Dados do contato</h2><button class="soft-button" (click)="previewOnly()">Ver ficha completa <i class="pi pi-arrow-right"></i></button><button class="icon-button close-contact" (click)="contactOpen = false" aria-label="Fechar dados do contato"><i class="pi pi-times"></i></button></header>
+    <div class="contact-card"><div class="contact-identity"><span class="avatar large"><i class="pi pi-image" aria-hidden="true"></i></span><div><h3>{{ selected.name }}</h3><p>{{ selected.phone }} <i class="pi pi-whatsapp"></i></p><p>{{ selected.email }}</p></div></div><span class="badge green">Novo contato</span></div>
+    <div class="contact-card details-card">
+      <section><h4>Origem do contato</h4><div class="origin"><i class="pi" [ngClass]="selected.origin === 'Instagram' ? 'pi-instagram instagram' : 'pi-whatsapp whatsapp'"></i><div>{{ selected.origin }}<small>Mensagem recebida em 05/08/2026 às {{ selected.time }}</small></div></div><h4>Interessado em</h4><p>{{ selected.topic }}</p></section>
+      <section><h4>Etapa atual</h4><div class="detail-row"><span><span class="stage-dot"></span> Qualificação</span><button class="soft-button" (click)="previewOnly()">Ver etapas <i class="pi pi-arrow-right"></i></button></div></section>
+      <section><h4>Responsável</h4><div class="detail-row"><span class="owner"><span class="avatar tiny"><i class="pi pi-image"></i></span>{{ selected.status === 'Sem responsável' ? 'Sem responsável' : 'Mariana Silva' }}</span><button class="soft-button" (click)="previewOnly()">Transferir</button></div><h4>Último atendimento</h4><p>05/08/2026 às {{ selected.time }}</p></section>
+      <section><h4>Tags</h4><div class="tags"><span>{{ selected.topic === 'Implante dentário' ? 'implante' : selected.topic }}</span><span>interessado</span><button class="icon-button" (click)="previewOnly()" aria-label="Adicionar tag"><i class="pi pi-plus"></i></button></div></section>
+      <section class="history"><div class="detail-row"><h4>Histórico rápido</h4><button class="text-button" (click)="previewOnly()">Ver todos <i class="pi pi-arrow-right"></i></button></div><div class="history-item"><time>05/08<br>09:18</time><i class="pi pi-whatsapp"></i><div>Mensagem recebida<small>{{ selected.messages[0].text }}</small></div></div><div class="history-item" *ngIf="selected.id === 1"><time>05/08<br>09:20</time><i class="pi pi-sparkles"></i><div>IA respondeu automaticamente<small>Mensagem de boas-vindas enviada</small></div></div></section>
+    </div>
+  </aside>
+</div>

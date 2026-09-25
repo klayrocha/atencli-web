@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### Adicionado
+
+- Tela de conversas em `/conversas`, com lista de contatos, mensagens e resumo do contato, baseada no modelo visual fornecido.
+- Busca por nome ou mensagem, filtros por responsável e mensagens não lidas, além de inversão da ordem da lista.
+- Prévia local de mensagens, notas internas, sugestões de resposta e rascunhos independentes por contato, sem integração com o backend.
+- Ícones de foto nos perfis e layout responsivo para desktop e celular.
+- Testes de filtros, isolamento de rascunhos, notas internas e composição de mensagens locais.
+
 ## [0.3.0] - 2026-09-22
 
 ### Adicionado

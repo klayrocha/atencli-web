@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { LayoutComponent } from './layout/layout.component';
+import { ConversationsComponent } from './pages/conversations/conversations.component';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { LoginComponent } from './pages/login/login.component';
 import { RegisterComponent } from './pages/register/register.component';
@@ -42,7 +43,7 @@ export const routes: Routes = [
       { path: 'wizard-step-5-team', component: WizardStep5TeamComponent },
       { path: 'wizard-step-6-whatsapp', component: WizardStep6WhatsappComponent },
       { path: 'configuracoes/whatsapp', component: WizardStep6WhatsappComponent },
-      { path: 'conversas', component: DashboardComponent },
+      { path: 'conversas', component: ConversationsComponent },
       { path: 'contatos', component: DashboardComponent },
       { path: 'etapas', component: DashboardComponent },
       { path: 'agenda', component: DashboardComponent },
