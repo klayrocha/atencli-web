@@ -40,16 +40,16 @@ interface Clinic {
 
       <!-- Right: search, notifications, user -->
       <div class="topbar-right">
-        <div class="search-box">
+        <!--div class="search-box">
           <i class="pi pi-search"></i>
           <span class="search-text">Buscar</span>
           <kbd>⌘ K</kbd>
-        </div>
+        </div -->
 
-        <button class="icon-btn" pTooltip="Notificações" tooltipPosition="bottom">
+        <!-- button class="icon-btn" pTooltip="Notificações" tooltipPosition="bottom">
           <i class="pi pi-bell"></i>
-          <span class="notif-badge">3</span>
-        </button>
+          <span class="notif-badge">0</span>
+        </button -->
 
         <div class="user-menu" (click)="toggleUserMenu(); $event.stopPropagation()" [class.open]="userMenuOpen">
           <p-avatar
