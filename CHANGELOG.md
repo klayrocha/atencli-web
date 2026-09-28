@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-09-28
+
 ### Adicionado
 
 - Tela de conversas integrada ao backend, com lista e mensagens paginadas, dados do contato, filtros por responsável, busca nas conversas carregadas e envio de texto.
