@@ -8,21 +8,7 @@
       </div>
     </header>
 
-    <div class="horizontal-stepper">
-      <div
-        *ngFor="let step of steps; let last = last"
-        class="step-item"
-        [class.active]="step.id === 6"
-        [class.completed]="step.id < 6"
-      >
-        <div class="step-circle">
-          <i class="pi pi-check" *ngIf="step.id < 6"></i>
-          <span *ngIf="step.id >= 6">{{ step.id }}</span>
-        </div>
-        <span class="step-label">{{ step.label }}</span>
-        <div class="step-line" *ngIf="!last" [class.completed]="step.id < 6"></div>
-      </div>
-    </div>
+    <app-wizard-stepper [currentStepId]="6"></app-wizard-stepper>
 
     <section class="integration-card">
       <div class="integration-heading">

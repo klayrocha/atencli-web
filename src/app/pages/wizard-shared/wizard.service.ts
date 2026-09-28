@@ -132,9 +132,20 @@ export interface InvitationDetailsResponse {
 
 export type AvailabilityType = 'WORKING_HOURS' | 'BREAK' | 'NON_WORKING_DAY';
 
+export interface AvailabilityRequest {
+  availabilityType: AvailabilityType;
+  dayOfWeek?: number;
+  specificDate?: string;
+  startTime?: string;
+  endTime?: string;
+  description?: string;
+  appointmentIntervalMinutes?: number;
+}
+
 export interface ClientAvailabilityOption {
   id: number;
   clientUuid: string;
+  appointmentIntervalMinutes?: number;
   availabilityType: AvailabilityType;
   dayOfWeek: number | null;
   specificDate: string | null;
@@ -267,14 +278,22 @@ export class WizardService {
     );
   }
 
-  async createAvailability(availability: {
-    availabilityType: AvailabilityType;
-    dayOfWeek?: number;
-    specificDate?: string;
-    startTime?: string;
-    endTime?: string;
-    description?: string;
-  }): Promise<ClientAvailabilityOption> {
+  async deleteAvailability(id: number): Promise<void> {
+    await firstValueFrom(this.http.delete<void>(
+      `${environment.apiBaseUrl}/api/v1/client/availability/${id}`,
+      { headers: this.headers },
+    ));
+  }
+
+  async updateAvailability(id: number, availability: AvailabilityRequest): Promise<ClientAvailabilityOption> {
+    return firstValueFrom(this.http.put<ClientAvailabilityOption>(
+      `${environment.apiBaseUrl}/api/v1/client/availability/${id}`,
+      availability,
+      { headers: this.headers },
+    ));
+  }
+
+  async createAvailability(availability: AvailabilityRequest): Promise<ClientAvailabilityOption> {
     return firstValueFrom(
       this.http.post<ClientAvailabilityOption>(
         `${environment.apiBaseUrl}/api/v1/client/availability`,

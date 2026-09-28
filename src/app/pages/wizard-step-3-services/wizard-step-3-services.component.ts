@@ -1,3 +1,4 @@
+import { WizardStepperComponent } from '../wizard-shared/wizard-stepper.component';
 import { Component, computed, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -28,7 +29,7 @@ export interface DurationOption {
 @Component({
   selector: 'app-wizard-step-3-services',
   standalone: true,
-  imports: [
+  imports: [WizardStepperComponent,
     CommonModule,
     FormsModule,
     RouterModule,

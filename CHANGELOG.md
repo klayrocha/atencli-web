@@ -4,11 +4,28 @@
 
 ### Adicionado
 
-- Tela de conversas em `/conversas`, com lista de contatos, mensagens e resumo do contato, baseada no modelo visual fornecido.
-- Busca por nome ou mensagem, filtros por responsável e mensagens não lidas, além de inversão da ordem da lista.
-- Prévia local de mensagens, notas internas, sugestões de resposta e rascunhos independentes por contato, sem integração com o backend.
+- Tela de conversas integrada ao backend, com lista e mensagens paginadas, dados do contato, filtros por responsável, busca nas conversas carregadas e envio de texto.
+- Rascunhos independentes por contato, preservação do texto em falhas de envio e proteção contra respostas atrasadas ao trocar de conversa.
 - Ícones de foto nos perfis e layout responsivo para desktop e celular.
-- Testes de filtros, isolamento de rascunhos, notas internas e composição de mensagens locais.
+- Intervalo entre consultas configurável de 1 a 120 minutos, com switch de ativação, campo restrito a três dígitos e persistência na API.
+- Progresso do onboarding salvo por clínica neste navegador, retomada da configuração e etapas concluídas com links de revisão nos indicadores superiores e no resumo lateral.
+- Testes dos contratos HTTP, paginação, envio, progresso, navegação, intervalos e fechamento de dias.
+
+### Alterado
+
+- Banner inicial adaptado ao andamento da configuração e oculto após a conclusão.
+- Menu Configurações direcionado à revisão, com a seção de ajustes expandida e o box de conclusão oculto quando acessado pelo menu.
+- Botão Revisar passa a validar e salvar as regras da IA antes de avançar, substituindo o botão separado de salvar.
+- Ação final renomeada para “Acompanhar atendimentos”, mantida apenas no resumo lateral e direcionada a Conversas.
+- Título do box de conclusão alinhado ao lado do ícone.
+- Banners de sugestão de IA em Especialidades e Serviços comentados para uso posterior.
+- Remoção das simulações de notas internas, sugestões de IA e contagem de não lidas da tela de conversas integrada.
+
+### Corrigido
+
+- Dias desmarcados no passo Horários agora removem os horários recorrentes e intervalos associados na API, preservando exceções por data.
+- Reabertura dos horários mantém todos os dias fechados quando não existem horários cadastrados.
+- Progresso concluído permanece em 100% ao voltar para editar etapas.
 
 ## [0.3.0] - 2026-09-22
 

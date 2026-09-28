@@ -16,21 +16,7 @@
     </div>
 
     <!-- Stepper horizontal -->
-    <div class="horizontal-stepper">
-      <div
-        *ngFor="let step of steps; let last = last"
-        class="step-item"
-        [class.active]="step.id === 5"
-        [class.completed]="step.id < 5"
-      >
-        <div class="step-circle">
-          <i class="pi pi-check" *ngIf="step.id < 5"></i>
-          <span *ngIf="step.id >= 5">{{ step.id }}</span>
-        </div>
-        <span class="step-label">{{ step.label }}</span>
-        <div class="step-line" *ngIf="!last" [class.completed]="step.id < 5"></div>
-      </div>
-    </div>
+    <app-wizard-stepper [currentStepId]="5"></app-wizard-stepper>
 
     <!-- ═══ SEÇÃO 1: Membros da Equipe ══════════════════════════════════════ -->
     <div class="section-card">

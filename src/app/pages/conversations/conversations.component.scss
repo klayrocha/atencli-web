@@ -6,3 +6,14 @@ button, input, textarea { font: inherit; } button { cursor: pointer; color: inhe
 @media(min-width: 1550px) { .conversation { min-height: 105px; padding-top: 25px; padding-bottom: 25px; } .messages { gap: 15px; } .message { max-width: 60%; } .message.outgoing { max-width: 65%; } }
 @media(max-width: 1250px) { .conversations { grid-template-columns: 285px minmax(0,1fr); position: relative; } .contact { display: none; } .show-contact .contact { display: block; position: absolute; right: 0; top: 0; bottom: 0; width: 320px; z-index: 3; box-shadow: -8px 0 30px #25352a20; } .close-contact { display: grid; } .contact-heading .soft-button { display: none; } }
 @media(max-width: 760px) { .conversations { display: block; } .inbox { height: 100%; border-radius: 14px; } .chat { display: none; height: 100%; border-radius: 14px; overflow: hidden; } .mobile-chat .inbox { display: none; } .mobile-chat .chat { display: flex; } .back-button { display: grid; } .chat-heading { padding: 12px; gap: 8px; min-height: 85px; } .chat-heading .avatar { width: 36px; height: 36px; } .chat-heading h2 { font-size: 13px; } .chat-tools .icon-button:not(:nth-child(2)) { display: none; } .waiting { font-size: 8px; } .messages { padding: 14px 16px; } .message,.message.outgoing { max-width: 88%; } .ai-bar { margin: 5px 10px 10px; } .variation { display: none; } .composer { margin: 0 6px 6px; padding: 7px; } .contact { max-width: 100%; } }
+.api-error { margin: 10px; padding: 12px; border-radius: 8px; background: #fef2f2; color: #991b1b; font-size: 12px; line-height: 1.5; }
+.api-error button { text-decoration: underline; font-weight: 600; }
+.empty-selection { align-items: center; justify-content: center; gap: 16px; padding: 30px; text-align: center; color: #64748b; }
+.empty-selection > i { font-size: 40px; color: #84cc16; }
+.list-footer { display: grid; gap: 10px; }
+.older-button { align-self: center; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 8px 14px; font-size: 11px; }
+.composer-label { padding: 9px 5px; border-bottom: 2px solid #d8e947; font-size: 11px; }
+.contact-hint { font-size: 11px; margin-top: 8px; color: #64748b; }
+.failed-message { border-color: #fca5a5 !important; }
+button:disabled { cursor: not-allowed; opacity: .55; }
+.details-card p + h4 { margin-top: 12px; }

@@ -7,6 +7,7 @@ interface MenuItem {
   label: string;
   icon: string;
   route: string;
+  queryParams?: Record<string, string>;
 }
 
 @Component({
@@ -28,6 +29,7 @@ interface MenuItem {
         <li *ngFor="let item of menuItems">
           <a
             [routerLink]="item.route"
+            [queryParams]="item.queryParams"
             routerLinkActive="active"
             [routerLinkActiveOptions]="{exact: item.route === '/'}"
             class="menu-item"
@@ -64,7 +66,7 @@ export class SidebarComponent {
     { label: 'Resultados', icon: 'pi pi-chart-bar', route: '/resultados' },
     { label: 'Inteligência artificial', icon: 'pi pi-sparkles', route: '/ia' },
     { label: 'Equipe', icon: 'pi pi-cog', route: '/equipe' },
-    { label: 'Configurações', icon: 'pi pi-sliders-h', route: '/configuracoes' },
+    { label: 'Configurações', icon: 'pi pi-sliders-h', route: '/wizard-step-8-review', queryParams: { source: 'menu' } },
     { label: 'Ajuda', icon: 'pi pi-question-circle', route: '/ajuda' },
   ];
 

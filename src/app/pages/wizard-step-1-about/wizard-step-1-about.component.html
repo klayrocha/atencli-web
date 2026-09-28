@@ -16,20 +16,7 @@
     </div>
 
     <!-- Stepper horizontal numerado (1 a 8) -->
-    <div class="horizontal-stepper">
-      <div
-        *ngFor="let step of steps; let i = index; let last = last"
-        class="step-item"
-        [class.active]="step.current"
-        [class.completed]="step.completed && !step.current"
-      >
-        <div class="step-circle">
-          {{ step.id }}
-        </div>
-        <span class="step-label">{{ step.label }}</span>
-        <div class="step-line" *ngIf="!last"></div>
-      </div>
-    </div>
+    <app-wizard-stepper [currentStepId]="1"></app-wizard-stepper>
 
     <!-- Card de Conteúdo do Passo 1 -->
     <div class="step-card">

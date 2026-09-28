@@ -16,21 +16,7 @@
     </div>
 
     <!-- Stepper horizontal numerado (1 a 8) -->
-    <div class="horizontal-stepper">
-      <div
-        *ngFor="let step of steps; let last = last"
-        class="step-item"
-        [class.active]="step.id === 3"
-        [class.completed]="step.id < 3"
-      >
-        <div class="step-circle">
-          <i class="pi pi-check" *ngIf="step.id < 3"></i>
-          <span *ngIf="step.id >= 3">{{ step.id }}</span>
-        </div>
-        <span class="step-label">{{ step.label }}</span>
-        <div class="step-line" *ngIf="!last" [class.completed]="step.id < 3"></div>
-      </div>
-    </div>
+    <app-wizard-stepper [currentStepId]="3"></app-wizard-stepper>
 
     <!-- Card de Conteúdo do Passo 3: Serviços -->
     <div class="step-card">
@@ -231,7 +217,7 @@
 
     </div>
 
-    <!-- Banner de IA -->
+    <!-- Banner de IA (temporariamente desativado)
     <div class="ai-recommendation-box">
       <div class="ai-box-left">
         <div class="ai-icon">
@@ -247,6 +233,7 @@
         <span>Preencher com IA</span>
       </button>
     </div>
+    -->
 
     <!-- Ações rodapé -->
     <div class="wizard-footer-actions">

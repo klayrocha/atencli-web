@@ -16,21 +16,7 @@
     </div>
 
     <!-- Stepper horizontal numerado (1 a 8) -->
-    <div class="horizontal-stepper">
-      <div
-        *ngFor="let step of steps; let last = last"
-        class="step-item"
-        [class.active]="step.id === 4"
-        [class.completed]="step.id < 4"
-      >
-        <div class="step-circle">
-          <i class="pi pi-check" *ngIf="step.id < 4"></i>
-          <span *ngIf="step.id >= 4">{{ step.id }}</span>
-        </div>
-        <span class="step-label">{{ step.label }}</span>
-        <div class="step-line" *ngIf="!last" [class.completed]="step.id < 4"></div>
-      </div>
-    </div>
+    <app-wizard-stepper [currentStepId]="4"></app-wizard-stepper>
 
     <!-- ═══ SEÇÃO 1: Horários Padrão ═══════════════════════════════════════ -->
     <div class="section-card">
@@ -121,6 +107,35 @@
       </div>
 
     </div>
+
+    <section class="section-card" aria-labelledby="interval-title">
+      <div class="section-header">
+        <div class="section-header-left">
+          <div class="section-icon"><i class="pi pi-hourglass" aria-hidden="true"></i></div>
+          <div>
+            <h2 id="interval-title" class="section-title">Intervalo entre consultas</h2>
+            <p class="section-desc">Reserve um tempo de descanso entre o fim de uma consulta e o início da próxima.</p>
+          </div>
+        </div>
+      </div>
+      <div class="appointment-interval">
+        <label class="interval-option">
+          <input type="checkbox" role="switch" class="interval-switch" [(ngModel)]="intervalEnabled" (ngModelChange)="changeInterval()"
+            [disabled]="loading() || saving() || loadFailed()" aria-controls="interval-settings">
+          <span>Adicionar intervalo entre consultas</span>
+        </label>
+        <div id="interval-settings" *ngIf="intervalEnabled" class="interval-settings">
+          <label for="interval-minutes" class="field-label">Tempo de descanso (minutos)</label>
+          <input id="interval-minutes" class="field-input" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3"
+            [value]="intervalMinutes ?? ''" (beforeinput)="restrictIntervalInput($event)" (input)="updateIntervalInput($event)"
+            [disabled]="loading() || saving() || loadFailed()" [attr.aria-invalid]="intervalInvalid"
+            aria-describedby="interval-help">
+          <p id="interval-help" [class.interval-error]="intervalInvalid">Informe um número inteiro de 1 a 120 minutos.</p>
+        </div>
+        <p *ngIf="mixedIntervals" class="interval-hint">Existem intervalos diferentes nos horários cadastrados. Eles serão mantidos até você alterar esta opção ou o tempo de descanso.</p>
+        <p class="interval-hint">Ao alterar esta configuração, o intervalo será aplicado aos horários de funcionamento e horários especiais desta tela. Desative a opção para permitir consultas consecutivas.</p>
+      </div>
+    </section>
 
     <!-- ═══ SEÇÃO 2: Exceções ═══════════════════════════════════════════════ -->
     <div class="section-card">
@@ -321,6 +336,11 @@
 
     </div>
 
+    <div *ngIf="error()" class="schedule-error" role="alert">
+      {{ error() }}
+      <button *ngIf="loadFailed()" type="button" (click)="ngOnInit()" [disabled]="loading()">Tentar novamente</button>
+    </div>
+
     <!-- Ações rodapé -->
     <div class="wizard-footer-actions">
       <button type="button" class="btn-voltar" (click)="goBack()">
@@ -328,7 +348,7 @@
         <span>Voltar (Passo 3)</span>
       </button>
 
-      <button type="button" class="btn-continuar" (click)="goNext()" [disabled]="loading() || saving()">
+      <button type="button" class="btn-continuar" (click)="goNext()" [disabled]="loading() || saving() || loadFailed()">
         <i class="pi pi-spin pi-spinner" *ngIf="saving()"></i>
         <span>{{ saving() ? 'Salvando...' : 'Continuar para Equipe' }}</span>
         <i class="pi pi-arrow-right" *ngIf="!saving()"></i>

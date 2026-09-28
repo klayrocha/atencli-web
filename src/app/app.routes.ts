@@ -53,7 +53,7 @@ export const routes: Routes = [
       { path: 'wizard-step-7-ai', redirectTo: 'ia', pathMatch: 'full' },
       { path: 'wizard-step-8-review', component: WizardStep8ReviewComponent },
       { path: 'equipe', component: DashboardComponent },
-      { path: 'configuracoes', component: DashboardComponent },
+      { path: 'configuracoes', redirectTo: 'wizard-step-8-review', pathMatch: 'full' },
       { path: 'ajuda', component: DashboardComponent },
     ]
   },

@@ -1,3 +1,4 @@
+import { WizardStepperComponent } from '../wizard-shared/wizard-stepper.component';
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -21,7 +22,7 @@ export interface SpecialtyItem {
 @Component({
   selector: 'app-wizard-step-2-specialty',
   standalone: true,
-  imports: [
+  imports: [WizardStepperComponent,
     CommonModule,
     FormsModule,
     RouterModule,

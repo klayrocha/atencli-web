@@ -39,11 +39,14 @@
 
     <!-- Lista vertical de etapas detalhadas -->
     <div class="steps-detail-list">
-      <div
+      <a
         *ngFor="let step of steps"
+        [routerLink]="isCompleted(step.id) ? routes[step.id - 1] : null"
+        [attr.aria-disabled]="!isCompleted(step.id) ? 'true' : null"
+        [attr.aria-current]="step.id === currentStepId ? 'step' : null"
         class="step-detail-item"
         [class.active]="step.id === currentStepId"
-        [class.done]="step.completed && step.id !== currentStepId"
+        [class.done]="isCompleted(step.id) && step.id !== currentStepId"
       >
         <div class="detail-icon-wrap">
           <i [class]="step.icon"></i>
@@ -52,12 +55,12 @@
           <span class="detail-name">{{ step.label }}</span>
           <span class="detail-sub">{{ step.sublabel }}</span>
         </div>
-        <div class="detail-status" *ngIf="step.completed">
+        <div class="detail-status" *ngIf="isCompleted(step.id)">
           <div class="check-bubble">
             <i class="pi pi-check"></i>
           </div>
         </div>
-      </div>
+      </a>
     </div>
 
     <!-- Card "Quase lá!" / Ativação -->
@@ -72,7 +75,7 @@
         [disabled]="!allStepsCompleted"
         (click)="onActivate()"
       >
-        <span>{{ allStepsCompleted ? 'Iniciar atendimento' : 'Ativar atendimento' }}</span>
+        <span>{{ allStepsCompleted ? 'Acompanhar atendimentos' : 'Ativar atendimento' }}</span>
         <i class="pi pi-bolt"></i>
       </button>
     </div>

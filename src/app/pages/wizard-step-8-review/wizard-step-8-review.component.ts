@@ -1,38 +1,35 @@
+import { WizardStepperComponent } from '../wizard-shared/wizard-stepper.component';
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { searchReviewSteps } from './review-search';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { WizardSummaryComponent } from '../wizard-shared/wizard-summary/wizard-summary.component';
 import { WIZARD_STEPS_DEFAULT } from '../wizard-shared/wizard.models';
 
 @Component({
   selector: 'app-wizard-step-8-review',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, WizardSummaryComponent],
+  imports: [WizardStepperComponent, CommonModule, FormsModule, RouterLink, WizardSummaryComponent],
   template: `
     <div class="wizard-container">
     <main class="review-page">
       <header><span class="step-label">Passo 8 de 8</span><h1>Parabéns, você concluiu a configuração!</h1><p>Um novo começo para o atendimento da sua clínica: mais organização para a equipe e mais cuidado em cada conversa.</p></header>
-      <div class="horizontal-stepper" role="list" aria-label="Etapas da configuração">
-        <div *ngFor="let step of steps; let last = last" class="step-item" role="listitem" [class.active]="step.id === 8" [class.completed]="step.id < 8" [attr.aria-current]="step.id === 8 ? 'step' : null">
-          <div class="step-circle"><i *ngIf="step.id < 8" class="pi pi-check" aria-hidden="true"></i><span *ngIf="step.id === 8">8</span></div>
-          <span class="step-label">{{ step.label }}</span>
-          <div *ngIf="!last" class="step-line completed" aria-hidden="true"></div>
+      <app-wizard-stepper [currentStepId]="8"></app-wizard-stepper>
+      <section *ngIf="!fromSettingsMenu" class="completion-card" aria-labelledby="next-title">
+        <div class="completion-heading">
+          <div class="completion-icon"><i class="pi pi-check" aria-hidden="true"></i></div>
+          <h2 id="next-title">Tudo pronto para o próximo passo</h2>
         </div>
-      </div>
-      <section class="completion-card" aria-labelledby="next-title">
-        <div class="completion-icon"><i class="pi pi-check" aria-hidden="true"></i></div>
-        <h2 id="next-title">Tudo pronto para o próximo passo</h2>
         <p>Acesse sua área de atendimento para acompanhar as conversas e organizar a rotina da equipe. Veja o que você pode fazer agora:</p>
         <ul class="next-actions">
           <li><i class="pi pi-comments" aria-hidden="true"></i><div><strong>Acompanhar suas conversas</strong><p>Consulte os atendimentos e dê continuidade ao contato com seus pacientes.</p></div></li>
           <li><i class="pi pi-users" aria-hidden="true"></i><div><strong>Organizar o trabalho da equipe</strong><p>Acompanhe as demandas e mantenha todos alinhados sobre os próximos passos de cada atendimento.</p></div></li>
           <li><i class="pi pi-sparkles" aria-hidden="true"></i><div><strong>Contar com o apoio da IA</strong><p>Quando ativada, a IA segue as regras que você definiu para apoiar o atendimento da clínica.</p></div></li>
         </ul>
-        <a class="primary" routerLink="/conversas"><i class="pi pi-bolt" aria-hidden="true"></i> Iniciar atendimento <i class="pi pi-arrow-right" aria-hidden="true"></i></a>
       </section>
-      <p class="review-invitation">Caso deseje, você poderá revisar as configurações já realizadas.</p>
+      <p *ngIf="!fromSettingsMenu" class="review-invitation">Caso deseje, você poderá revisar as configurações já realizadas.</p>
       <section class="review-panel" aria-label="Revisão das configurações">
         <button type="button" class="review-toggle" [attr.aria-expanded]="reviewExpanded" aria-controls="review-steps" (click)="reviewExpanded = !reviewExpanded">
           <i class="pi pi-sliders-h" aria-hidden="true"></i>
@@ -138,7 +135,9 @@ import { WIZARD_STEPS_DEFAULT } from '../wizard-shared/wizard.models';
     footer { display: flex; justify-content: space-between; gap: 1rem; margin-top: 1.5rem; } footer a { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; padding: .8rem 1.15rem; border-radius: 8px; font-weight: 700; font-size: .85rem; text-decoration: none; }
     .back { border: 1px solid #cbd5e1; background: white; color: #475569; } .primary { min-height: 52px; background: #84cc16; color: #1a2e05; box-shadow: 0 6px 18px rgba(101,163,13,.25); border: 1px solid #65a30d; font-size: 1rem; } .primary:hover { background: #a3e635; box-shadow: 0 8px 22px rgba(101,163,13,.32); }
     .completion-card { padding: 2rem; border: 1px solid #d9e9c6; border-radius: 16px; background: #fff; }
-    .completion-icon { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%; background: #ecfccb; color: #4d7c0f; font-size: 1.5rem; margin-bottom: 1rem; }
+    .completion-heading { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+    .completion-heading h2 { margin: 0; min-width: 0; }
+    .completion-icon { flex-shrink: 0; display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%; background: #ecfccb; color: #4d7c0f; font-size: 1.5rem; }
     h2 { margin: 0 0 .65rem; font-size: 1.35rem; }
     .next-actions { list-style: none; padding: 0; margin: 1.5rem 0; display: grid; gap: 1.25rem; }
     .next-actions li { display: flex; align-items: flex-start; gap: .85rem; }
@@ -172,9 +171,15 @@ import { WIZARD_STEPS_DEFAULT } from '../wizard-shared/wizard.models';
   `],
 })
 export class WizardStep8ReviewComponent {
+  fromSettingsMenu = false;
   reviewExpanded = false;
   readonly steps = WIZARD_STEPS_DEFAULT.map(step => ({ ...step, completed: true, current: step.id === 8 }));
-  constructor(private router: Router) {}
+  constructor(private router: Router, route: ActivatedRoute) {
+    route.queryParamMap.pipe(takeUntilDestroyed()).subscribe(params => {
+      this.fromSettingsMenu = params.get('source') === 'menu';
+      this.reviewExpanded = this.fromSettingsMenu;
+    });
+  }
   startService() { void this.router.navigate(['/conversas']); }
   searchQuery = '';
   get filteredSteps() { return searchReviewSteps(this.searchQuery); }

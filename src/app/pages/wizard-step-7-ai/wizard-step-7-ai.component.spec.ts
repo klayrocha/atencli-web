@@ -7,9 +7,11 @@ describe('Wizard AI configuration', () => {
   let component: WizardStep7AiComponent;
   let api: jasmine.SpyObj<AiConfigurationService>;
   let data: AiConfiguration;
+  let router: jasmine.SpyObj<Router>;
   beforeEach(async () => {
     api = jasmine.createSpyObj('AiConfigurationService', ['getConfiguration', 'save', 'setEnabled']);
-    component = new WizardStep7AiComponent(api, { currentProfile: () => ({ roles: ['ADMIN'] }) } as unknown as AuthService, jasmine.createSpyObj<Router>('Router', ['navigate']));
+    router = jasmine.createSpyObj<Router>('Router', ['navigate']);
+    component = new WizardStep7AiComponent(api, { currentProfile: () => ({ roles: ['ADMIN'] }) } as unknown as AuthService, router);
     data = { ...component.model, enabled: false, usingDefaults: true, activeDays: [], serviceStartTime: null, serviceEndTime: null };
     api.getConfiguration.and.resolveTo(data);
     api.save.and.callFake(async payload => ({ ...payload, enabled: false, usingDefaults: false }));
@@ -61,5 +63,34 @@ describe('Wizard AI configuration', () => {
     expect(component.enabled).toBeFalse();
     expect(component.error).toBeTruthy();
     expect(component.saving).toBeFalse();
+  });
+  it('saves defaults before navigating to review even without edits', async () => {
+    await component.goToReview();
+    expect(api.save).toHaveBeenCalledTimes(1);
+    expect(router.navigate).toHaveBeenCalledOnceWith(['/wizard-step-8-review']);
+  });
+  it('validates on review and stays on the form for invalid input', async () => {
+    component.model.tone = '   ';
+    await component.goToReview();
+    expect(api.save).not.toHaveBeenCalled();
+    expect(router.navigate).not.toHaveBeenCalled();
+    expect(component.error).toContain('tom de voz');
+  });
+  it('stays on the form if saving from review fails', async () => {
+    api.save.and.rejectWith(new Error('offline'));
+    await component.goToReview();
+    expect(router.navigate).not.toHaveBeenCalled();
+    expect(component.error).toBeTruthy();
+  });
+  it('waits for persistence and ignores repeated review clicks while saving', async () => {
+    let finish!: (value: AiConfiguration) => void;
+    api.save.and.returnValue(new Promise(resolve => { finish = resolve; }));
+    const review = component.goToReview();
+    await component.goToReview();
+    expect(router.navigate).not.toHaveBeenCalled();
+    expect(api.save).toHaveBeenCalledTimes(1);
+    finish(data);
+    await review;
+    expect(router.navigate).toHaveBeenCalledTimes(1);
   });
 });

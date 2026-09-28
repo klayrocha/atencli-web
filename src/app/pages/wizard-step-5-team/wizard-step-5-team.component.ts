@@ -1,3 +1,4 @@
+import { WizardStepperComponent } from '../wizard-shared/wizard-stepper.component';
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -53,7 +54,7 @@ export interface PendingInvite {
 @Component({
   selector: 'app-wizard-step-5-team',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, WizardSummaryComponent],
+  imports: [WizardStepperComponent, CommonModule, FormsModule, RouterModule, WizardSummaryComponent],
   templateUrl: './wizard-step-5-team.component.html',
   styleUrls: ['./wizard-step-5-team.component.scss'],
 })

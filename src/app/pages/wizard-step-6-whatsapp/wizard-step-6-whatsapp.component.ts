@@ -1,3 +1,4 @@
+import { WizardStepperComponent } from '../wizard-shared/wizard-stepper.component';
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, OnDestroy, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -14,7 +15,7 @@ type ConnectionStatus = 'NOT_CONFIGURED' | 'CONNECTED' | 'PAUSED' | 'DISCONNECTE
 @Component({
   selector: 'app-wizard-step-6-whatsapp',
   standalone: true,
-  imports: [CommonModule, FormsModule, WizardSummaryComponent],
+  imports: [WizardStepperComponent, CommonModule, FormsModule, WizardSummaryComponent],
   templateUrl: './wizard-step-6-whatsapp.component.html',
   styleUrls: ['./wizard-step-6-whatsapp.component.scss'],
 })

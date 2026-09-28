@@ -1,21 +1,27 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
+import { ONBOARDING_ROUTES, OnboardingProgressService } from '../onboarding-progress.service';
+import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { WizardStep } from '../wizard.models';
 
 @Component({
   selector: 'app-wizard-summary',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink],
   templateUrl: './wizard-summary.component.html',
   styleUrls: ['./wizard-summary.component.scss'],
 })
 export class WizardSummaryComponent {
+  readonly progress = inject(OnboardingProgressService);
+  private readonly router = inject(Router);
+  readonly routes = ONBOARDING_ROUTES;
+  isCompleted(id: number): boolean { return id <= this.progress.completedSteps(); }
   @Input() steps: WizardStep[] = [];
   @Input() currentStepId = 1;
   @Output() activate = new EventEmitter<void>();
 
   get completedCount(): number {
-    return this.steps.filter(s => s.completed).length;
+    return this.steps.filter(s => this.isCompleted(s.id)).length;
   }
 
   get totalCount(): number {
@@ -34,12 +40,12 @@ export class WizardSummaryComponent {
   }
 
   get allStepsCompleted(): boolean {
-    return this.steps.length > 0 && this.steps.every(s => s.completed);
+    return this.steps.length > 0 && this.steps.every(s => this.isCompleted(s.id));
   }
 
   onActivate(): void {
     if (this.allStepsCompleted) {
-      this.activate.emit();
+      void this.router.navigate(['/conversas']);
     }
   }
 }

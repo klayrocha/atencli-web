@@ -16,21 +16,7 @@
     </div>
 
     <!-- Stepper horizontal numerado (1 a 8) -->
-    <div class="horizontal-stepper">
-      <div
-        *ngFor="let step of steps; let i = index; let last = last"
-        class="step-item"
-        [class.active]="step.id === 2"
-        [class.completed]="step.id < 2"
-      >
-        <div class="step-circle">
-          <i class="pi pi-check" *ngIf="step.id < 2"></i>
-          <span *ngIf="step.id >= 2">{{ step.id }}</span>
-        </div>
-        <span class="step-label">{{ step.label }}</span>
-        <div class="step-line" *ngIf="!last" [class.completed]="step.id < 2"></div>
-      </div>
-    </div>
+    <app-wizard-stepper [currentStepId]="2"></app-wizard-stepper>
 
     <!-- Card de Conteúdo do Passo 2: Especialidades -->
     <div class="step-card">
@@ -124,7 +110,7 @@
         <button type="button" class="btn-reset-search" (click)="searchTerm = ''">Limpar busca</button>
       </div>
 
-      <!-- Banner de Recomendação IA -->
+      <!-- Banner de Recomendação IA (temporariamente desativado)
       <div class="ai-recommendation-box">
         <div class="ai-box-left">
           <div class="ai-icon">
@@ -140,6 +126,7 @@
           <span>Sugerir especialidades populares</span>
         </button>
       </div>
+      -->
 
     </div>
 

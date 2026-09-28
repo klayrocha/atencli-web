@@ -1,3 +1,4 @@
+import { WizardStepperComponent } from '../wizard-shared/wizard-stepper.component';
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -35,7 +36,7 @@ interface Step1Draft {
 @Component({
   selector: 'app-wizard-step-1-about',
   standalone: true,
-  imports: [
+  imports: [WizardStepperComponent,
     CommonModule,
     FormsModule,
     RouterModule,

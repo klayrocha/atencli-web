@@ -1,3 +1,4 @@
+import { OnboardingProgressService } from '../wizard-shared/onboarding-progress.service';
 import { Component, OnInit, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -49,6 +50,7 @@ interface Acao {
 export class DashboardComponent implements OnInit {
 
   private auth = inject(AuthService);
+  readonly onboarding = inject(OnboardingProgressService);
 
   readonly userName = computed(() => {
     const name = this.auth.currentProfile()?.fullName ?? this.auth.currentUser()?.name ?? '';

@@ -1,55 +1,185 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { AfterViewChecked, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-
-interface Message { text: string; time: string; outgoing?: boolean; note?: boolean; }
-interface Conversation {
-  id: number; name: string; preview: string; time: string; status: string; color: string;
-  unread: number; mine: boolean; phone: string; email: string; topic: string; origin: string; messages: Message[];
-}
+import { HttpErrorResponse } from '@angular/common/http';
+import { ConversationDetail, ConversationFilter, ConversationMessage, ConversationSummary, ConversationsService } from '../../whatsapp/conversations.service';
 
 @Component({
   selector: 'app-conversations', standalone: true, imports: [CommonModule, FormsModule],
   templateUrl: './conversations.component.html', styleUrls: ['./conversations.component.scss'],
 })
-export class ConversationsComponent {
-  filter = 'all'; query = ''; unreadOnly = false; ascending = false; searchOpen = false;
-  mobileChat = false; contactOpen = false; suggestionsOpen = false; noteMode = false;
-  drafts: Record<number, string> = {}; notice = '';
-  conversations: Conversation[] = [
-    { id: 1, name: 'Fernanda Lima', preview: 'Oi! Gostaria de saber mais sobre implante dentário.', time: '09:18', status: 'Esperando', color: 'yellow', unread: 1, mine: true, phone: '(61) 99999-8888', email: 'fernanda.lima@email.com', topic: 'Implante dentário', origin: 'Instagram', messages: [
-      { text: 'Oi! Gostaria de saber mais sobre implante dentário.', time: '09:18' },
-      { text: 'Olá, Fernanda! 👋\nTudo bem? Posso te passar algumas informações sobre implante.', time: '09:21', outgoing: true },
-      { text: 'Quero saber como funciona e qual o valor.', time: '09:22' },
-      { text: 'Claro! Vou te explicar rapidinho.\nAntes, você já fez avaliação com algum dentista?', time: '09:23', outgoing: true },
-      { text: 'Ainda não. Essa seria minha primeira avaliação.', time: '09:24' },
-    ] },
-    { id: 2, name: 'Bruno Martins', preview: 'Tenho interesse em aparelho ortodôntico.', time: '09:07', status: 'Em atendimento', color: 'blue', unread: 0, mine: true, phone: '(61) 98888-7777', email: 'bruno.martins@email.com', topic: 'Ortodontia', origin: 'WhatsApp', messages: [{ text: 'Tenho interesse em aparelho ortodôntico.', time: '09:07' }] },
-    { id: 3, name: 'Número não identificado', preview: 'Mensagem de voz (0:32)', time: '08:58', status: 'Sem responsável', color: 'orange', unread: 2, mine: false, phone: '(61) 97777-6666', email: 'Não informado', topic: 'Não informado', origin: 'WhatsApp', messages: [{ text: '🎙 Mensagem de voz · 0:32 (áudio indisponível nesta prévia)', time: '08:58' }] },
-    { id: 4, name: 'Juliana Alves', preview: 'Preciso reagendar minha consulta de amanhã.', time: '08:45', status: 'Concluída', color: 'green', unread: 0, mine: true, phone: '(61) 96666-5555', email: 'juliana.alves@email.com', topic: 'Agendamento', origin: 'WhatsApp', messages: [{ text: 'Preciso reagendar minha consulta de amanhã.', time: '08:45' }] },
-    { id: 5, name: 'Ricardo Santos', preview: 'Qual o valor da faceta de resina?', time: '08:32', status: 'Aguardando', color: 'yellow', unread: 0, mine: false, phone: '(61) 95555-4444', email: 'ricardo.santos@email.com', topic: 'Faceta de resina', origin: 'WhatsApp', messages: [{ text: 'Qual o valor da faceta de resina?', time: '08:32' }] },
-    { id: 6, name: 'Patrícia Gomes', preview: 'Obrigado pelo atendimento!', time: 'Ontem', status: 'Concluída', color: 'green', unread: 0, mine: true, phone: '(61) 94444-3333', email: 'patricia.gomes@email.com', topic: 'Atendimento geral', origin: 'WhatsApp', messages: [{ text: 'Obrigado pelo atendimento!', time: 'Ontem' }] },
-  ];
-  selected = this.conversations[0];
-  get draft() { return this.drafts[this.selected.id] ?? ''; }
-  set draft(value: string) { this.drafts[this.selected.id] = value; }
-  get mineCount() { return this.conversations.filter(c => c.mine).length; }
-  get unassignedCount() { return this.conversations.filter(c => c.status === 'Sem responsável').length; }
+export class ConversationsComponent implements OnInit, OnDestroy, AfterViewChecked {
+  filter: ConversationFilter = 'all';
+  query = '';
+  ascending = false;
+  searchOpen = false;
+  mobileChat = false;
+  contactOpen = false;
+  drafts: Record<number, string> = {};
+  conversations: ConversationSummary[] = [];
+  selected: ConversationSummary | null = null;
+  detail: ConversationDetail | null = null;
+  messages: ConversationMessage[] = [];
+  loading = false;
+  loadingDetail = false;
+  loadingOlder = false;
+  sending = false;
+  listError = '';
+  detailError = '';
+  sendError = '';
+  listPage = -1;
+  listPages = 0;
+  total = 0;
+  messagePage = -1;
+  messagePages = 0;
+  private listVersion = 0;
+  private selectionVersion = 0;
+  private destroyed = false;
+  private scrollToLatest = false;
+  @ViewChild('messageList') private messageList?: ElementRef<HTMLElement>;
+
+  ngAfterViewChecked(): void {
+    if (this.scrollToLatest && this.messageList) {
+      const list = this.messageList.nativeElement;
+      list.scrollTop = list.scrollHeight;
+      this.scrollToLatest = false;
+    }
+  }
+
+  constructor(private api: ConversationsService) {}
+  ngOnInit(): void { void this.load(); }
+  ngOnDestroy(): void { this.destroyed = true; this.listVersion++; this.selectionVersion++; }
+
+  get draft() { return this.selected ? this.drafts[this.selected.id] ?? '' : ''; }
+  set draft(value: string) { if (this.selected) this.drafts[this.selected.id] = value; }
   get filteredConversations() {
     const normalize = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-    const list = this.conversations.filter(c => (this.filter === 'all' || (this.filter === 'mine' ? c.mine : c.status === 'Sem responsável')) && (!this.unreadOnly || c.unread > 0) && normalize(c.name + ' ' + c.preview).includes(normalize(this.query)));
+    const list = this.conversations.filter(c => normalize(`${c.profileName ?? ''} ${c.lastMessageText ?? ''}`).includes(normalize(this.query)));
     return this.ascending ? [...list].reverse() : list;
   }
-  select(conversation: Conversation) { this.selected = conversation; this.mobileChat = true; this.suggestionsOpen = false; this.notice = ''; }
-  send() {
-    if (!this.draft.trim()) return;
-    const text = this.draft.trim();
-    const time = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-    this.selected.messages.push({ text, time, outgoing: true, note: this.noteMode });
-    if (!this.noteMode) { this.selected.preview = text; this.selected.time = time; }
-    this.draft = '';
-    this.notice = this.noteMode ? 'Nota adicionada nesta prévia.' : 'Mensagem adicionada nesta prévia. Nenhuma mensagem foi enviada.';
+  get canSend() { return !!this.detail?.phone && !this.loadingDetail && !this.detailError && !this.sending && !!this.draft.trim() && this.draft.length <= 4096; }
+
+  async setFilter(filter: ConversationFilter): Promise<void> {
+    if (filter === this.filter) return;
+    this.filter = filter;
+    this.clearSelection();
+    await this.load();
   }
-  useSuggestion(text: string) { this.draft = text; this.noteMode = false; this.suggestionsOpen = false; }
-  previewOnly() { this.notice = 'Esta ação estará disponível em uma próxima etapa.'; }
+
+  async load(more = false): Promise<void> {
+    if (more && (this.loading || this.listPage + 1 >= this.listPages)) return;
+    const version = ++this.listVersion;
+    const page = more ? this.listPage + 1 : 0;
+    this.loading = true;
+    this.listError = '';
+    if (!more) { this.conversations = []; this.total = 0; this.listPage = -1; this.listPages = 0; }
+    try {
+      const result = await this.api.list(this.filter, page);
+      if (this.destroyed || version !== this.listVersion) return;
+      this.conversations = this.unique([...(more ? this.conversations : []), ...result.content]);
+      this.listPage = result.page.number;
+      this.listPages = result.page.totalPages;
+      this.total = result.page.totalElements;
+      if (!more) {
+        const next = this.conversations.find(c => c.id === this.selected?.id) ?? this.conversations[0];
+        if (next) await this.select(next, false);
+        else this.clearSelection();
+      }
+    } catch (error) {
+      if (version === this.listVersion && !this.destroyed) this.listError = this.errorMessage(error, 'carregar as conversas');
+    } finally { if (version === this.listVersion) this.loading = false; }
+  }
+
+  async select(conversation: ConversationSummary, openOnMobile = true): Promise<void> {
+    const version = ++this.selectionVersion;
+    this.selected = conversation;
+    this.detail = null;
+    this.messages = [];
+    this.messagePage = -1;
+    this.messagePages = 0;
+    this.loadingOlder = false;
+    this.loadingDetail = true;
+    this.detailError = '';
+    this.sendError = '';
+    this.contactOpen = false;
+    if (openOnMobile) this.mobileChat = true;
+    try {
+      const [detail, messages] = await Promise.all([this.api.detail(conversation.id), this.api.messages(conversation.id)]);
+      if (this.destroyed || version !== this.selectionVersion) return;
+      this.detail = detail;
+      this.messages = messages.content;
+      this.scrollToLatest = true;
+      this.messagePage = messages.page.number;
+      this.messagePages = messages.page.totalPages;
+    } catch (error) {
+      if (version === this.selectionVersion && !this.destroyed) this.detailError = this.errorMessage(error, 'carregar esta conversa');
+    } finally { if (version === this.selectionVersion) this.loadingDetail = false; }
+  }
+
+  async loadOlder(): Promise<void> {
+    if (!this.selected || this.loadingOlder || this.messagePage + 1 >= this.messagePages) return;
+    const version = this.selectionVersion;
+    this.loadingOlder = true;
+    this.sendError = '';
+    try {
+      const page = await this.api.messages(this.selected.id, this.messagePage + 1);
+      if (this.destroyed || version !== this.selectionVersion) return;
+      this.messages = this.unique([...page.content, ...this.messages]);
+      this.messagePage = page.page.number;
+      this.messagePages = page.page.totalPages;
+    } catch (error) {
+      if (version === this.selectionVersion && !this.destroyed) this.sendError = this.errorMessage(error, 'carregar mensagens anteriores');
+    } finally { if (version === this.selectionVersion) this.loadingOlder = false; }
+  }
+
+  async send(): Promise<void> {
+    if (!this.canSend || !this.selected || !this.detail?.phone) return;
+    const id = this.selected.id;
+    const draft = this.draft;
+    const version = this.selectionVersion;
+    this.sending = true;
+    this.sendError = '';
+    try {
+      const message = await this.api.send(this.detail.phone, draft.trim());
+      if (this.destroyed) return;
+      if (message.status === 'FAILED') {
+        if (version === this.selectionVersion) this.sendError = 'Não foi possível enviar a mensagem. O texto foi mantido para você tentar novamente.';
+        return;
+      }
+      if (this.drafts[id] === draft) this.drafts[id] = '';
+      if (version === this.selectionVersion) {
+        this.messages = this.unique([...this.messages, message]);
+        this.scrollToLatest = true;
+      }
+      this.conversations = this.conversations.map(c => c.id === id ? { ...c, lastMessageText: message.textBody, updatedAt: message.createdAt } : c)
+        .sort((a, b) => (b.updatedAt ?? '').localeCompare(a.updatedAt ?? ''));
+    } catch (error) {
+      if (version === this.selectionVersion && !this.destroyed) this.sendError = this.errorMessage(error, 'enviar a mensagem');
+    } finally { this.sending = false; }
+  }
+
+  messageText(message: ConversationMessage): string {
+    if (message.textBody) return message.textBody;
+    const types: Record<string, string> = { audio: 'Mensagem de áudio', image: 'Imagem', video: 'Vídeo', document: 'Documento', sticker: 'Figurinha', location: 'Localização', contacts: 'Contato' };
+    return `${types[message.messageType.toLowerCase()] ?? 'Mensagem sem texto'} (visualização indisponível)`;
+  }
+  messageStatus(status: string): string {
+    const labels: Record<string, string> = { SENT: 'Enviada', DELIVERED: 'Entregue', READ: 'Lida', FAILED: 'Falha no envio', PENDING: 'Pendente', RECEIVED: 'Recebida' };
+    return labels[status.toUpperCase()] ?? status;
+  }
+  private clearSelection(): void {
+    this.selectionVersion++;
+    this.selected = null; this.detail = null; this.messages = [];
+    this.loadingDetail = false; this.loadingOlder = false; this.mobileChat = false; this.contactOpen = false;
+  }
+  private unique<T extends { id: number }>(items: T[]): T[] { return [...new Map(items.map(item => [item.id, item])).values()]; }
+  private errorMessage(error: unknown, action: string): string {
+    if (error instanceof HttpErrorResponse) {
+      if (error.status === 401) return 'Sua sessão expirou. Entre novamente.';
+      if (error.status === 403) return 'Você não tem permissão para esta ação.';
+      if (error.status === 404) return 'Conversa não encontrada. Atualize a lista.';
+      if (error.status === 400) return 'Não foi possível concluir a ação. Verifique se a integração está ativa e se a janela de atendimento de 24 horas está aberta.';
+    }
+    return `Não foi possível ${action}. Tente novamente.`;
+  }
 }

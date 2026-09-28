@@ -1,3 +1,4 @@
+import { WizardStepperComponent } from '../wizard-shared/wizard-stepper.component';
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -11,7 +12,7 @@ import { WizardSummaryComponent } from '../wizard-shared/wizard-summary/wizard-s
 @Component({
   selector: 'app-wizard-step-7-ai',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, WizardSummaryComponent],
+  imports: [WizardStepperComponent, CommonModule, FormsModule, RouterLink, WizardSummaryComponent],
   templateUrl: './wizard-step-7-ai.component.html',
   styleUrls: ['./wizard-step-7-ai.component.scss'],
 })
@@ -129,11 +130,9 @@ export class WizardStep7AiComponent implements OnInit {
     finally { this.updating = false; }
   }
   async goToReview() {
-    if (this.busy || !this.loaded) return;
-    if (this.dirty) {
-      await this.save();
-      if (this.dirty || this.error) return;
-    }
+    if (this.busy || !this.loaded || !this.canManage) return;
+    await this.save();
+    if (this.error) return;
     await this.router.navigate(['/wizard-step-8-review']);
   }
   private errorMessage(error: unknown) {

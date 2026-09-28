@@ -24,7 +24,7 @@
   </div>
 
   <!-- Banner de Destaque: Configuração da Clínica -->
-  <div class="setup-clinic-banner">
+  <div class="setup-clinic-banner" *ngIf="!onboarding.complete()">
     <div class="banner-left">
       <div class="banner-icon-wrap">
         <i class="pi pi-cog pi-spin-slow"></i>
@@ -32,17 +32,17 @@
       <div class="banner-info">
         <div class="banner-badge">
           <i class="pi pi-sparkles"></i>
-          <span>Passo inicial</span>
+          <span>{{ onboarding.started() ? 'Configuração em andamento' : 'Passo inicial' }}</span>
         </div>
-        <h2 class="banner-title">Chegou a hora de configurar sua clínica! 🚀</h2>
+        <h2 class="banner-title">{{ onboarding.started() ? 'Que bom que iniciou a configuração!' : 'Chegou a hora de configurar sua clínica! 🚀' }}</h2>
         <p class="banner-desc">
-          Ative seu CRM em poucos passos para personalizar seu atendimento, conectar o WhatsApp e liberar a IA para a sua clínica.
+          {{ onboarding.started() ? 'Continue de onde parou para concluir a configuração da sua clínica.' : 'Ative seu CRM em poucos passos para personalizar seu atendimento, conectar o WhatsApp e liberar a IA para a sua clínica.' }}
         </p>
       </div>
     </div>
     <div class="banner-actions">
-      <a routerLink="/wizard-step-1-aboult" class="banner-start-btn">
-        <span>Iniciar configuração</span>
+      <a [routerLink]="onboarding.resumeRoute()" class="banner-start-btn">
+        <span>{{ onboarding.started() ? 'Continuar configurando' : 'Iniciar configuração' }}</span>
         <i class="pi pi-arrow-right"></i>
       </a>
     </div>

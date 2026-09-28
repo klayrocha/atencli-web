@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { OnboardingProgressService } from '../pages/wizard-shared/onboarding-progress.service';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { SidebarComponent } from './sidebar/sidebar.component';
@@ -21,5 +22,6 @@ import { TopbarComponent } from './topbar/topbar.component';
   `
 })
 export class LayoutComponent {
+  private readonly onboarding = inject(OnboardingProgressService);
   sidebarCollapsed = false;
 }
