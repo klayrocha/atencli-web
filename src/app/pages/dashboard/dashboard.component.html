@@ -3,18 +3,18 @@
   <!-- Header greeting -->
   <div class="dashboard-header">
     <div class="greeting-area">
-      <h1 class="greeting-title">Bom dia, {{ userName() }}! 👋</h1>
-      <p class="greeting-sub">Veja como está o atendimento da clínica hoje.</p>
+      <h1 class="greeting-title">Bom dia, {{ userName() }}!</h1>
+      <p class="greeting-sub">Veja como está o atendimento da {{ home?.clinic?.name || 'clínica' }} hoje.</p>
 
       <div class="status-badges">
-        <span class="badge-status badge-green">
+        <span class="badge-status" [class]="whatsappBadgeClass()">
           <i class="pi pi-whatsapp"></i>
-          WhatsApp conectado
+          {{ whatsappStatusLabel() }}
           <span class="dot"></span>
         </span>
-        <span class="badge-status badge-yellow">
+        <span class="badge-status" [class]="aiBadgeClass()">
           <i class="pi pi-sparkles"></i>
-          IA atendendo normalmente
+          {{ aiStatusLabel() }}
           <span class="dot"></span>
         </span>
       </div>
@@ -48,154 +48,279 @@
     </div>
   </div>
 
-  <!-- Main grid -->
-  <div class="dashboard-grid">
+  <div class="dashboard-state error-state" *ngIf="errorMessage">
+    <i class="pi pi-exclamation-triangle"></i>
+    <span>{{ errorMessage }}</span>
+    <button class="link-btn" type="button" (click)="loadDashboard()">Tentar novamente</button>
+  </div>
 
-    <!-- LEFT COLUMN -->
-    <div class="col-left">
+  <div class="dashboard-state" *ngIf="loading">
+    <i class="pi pi-spin pi-spinner"></i>
+    <span>Carregando dados da página inicial...</span>
+  </div>
 
-      <!-- Pulso da Clínica -->
-      <div class="card pulso-card">
-        <h3 class="card-title">Pulso da clínica</h3>
+  <ng-container *ngIf="!loading">
+    <!-- Main grid -->
+    <div class="dashboard-grid">
 
-        <div class="pulso-content">
-          <!-- Donut chart -->
-          <div class="donut-wrapper">
-            <p-chart type="doughnut" [data]="chartData" [options]="chartOptions" height="170px"></p-chart>
-            <div class="donut-center">
-              <span class="donut-value">5</span>
-              <span class="donut-label">situações precisam<br>da sua atenção</span>
+      <!-- LEFT COLUMN -->
+      <div class="col-left">
+
+        <!-- Pulso da Clínica -->
+        <div class="card pulso-card">
+          <div class="card-header-row">
+            <div>
+              <h3 class="card-title">Pulso da clínica</h3>
+              <p class="card-sub">Veja o que precisa da sua atenção agora.</p>
             </div>
-          </div>
-
-          <!-- Stats grid -->
-          <div class="pulso-stats">
-            <div class="stat-item" *ngFor="let stat of pulsoStats">
-              <div class="stat-icon">
-                <i class="pi {{ stat.icon }}"></i>
-              </div>
-              <div class="stat-info">
-                <span class="stat-value">{{ stat.value }}</span>
-                <span class="stat-label">{{ stat.label }}</span>
-                <span class="stat-sub">{{ stat.sub }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <button class="link-btn">
-          Ver todos os atendimentos <i class="pi pi-arrow-right"></i>
-        </button>
-      </div>
-
-      <!-- Jornada do atendimento -->
-      <div class="card jornada-card">
-        <div class="card-header-row">
-          <div>
-            <h3 class="card-title">Jornada do atendimento</h3>
-            <p class="card-sub">Acompanhe cada etapa até se tornar um paciente.</p>
-          </div>
-          <button class="link-btn">Ver detalhes <i class="pi pi-arrow-right"></i></button>
-        </div>
-
-        <div class="jornada-steps">
-          <ng-container *ngFor="let step of jornadaSteps; let last = last">
-            <div class="jornada-step">
-              <div class="step-icon-wrapper">
-                <i class="pi {{ step.icon }}"></i>
-              </div>
-              <div class="step-info">
-                <span class="step-value">{{ step.value }}</span>
-                <span class="step-label">{{ step.label }}</span>
-                <span class="step-pct">{{ step.pct }}</span>
-              </div>
-            </div>
-            <div class="step-arrow" *ngIf="!last">
-              <i class="pi pi-chevron-right"></i>
-            </div>
-          </ng-container>
-        </div>
-
-        <!-- Progress bar -->
-        <div class="jornada-progress">
-          <div class="progress-track">
-            <div class="progress-dot" style="left: 0%"></div>
-            <div class="progress-dot" style="left: 33%"></div>
-            <div class="progress-dot" style="left: 66%"></div>
-            <div class="progress-dot" style="left: 100%"></div>
-            <div class="progress-fill" style="width: 100%"></div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- RIGHT COLUMN -->
-    <div class="col-right">
-
-      <!-- O que fazer agora -->
-      <div class="card acoes-card">
-        <div class="card-header-row">
-          <h3 class="card-title">O que fazer agora</h3>
-          <button class="link-btn">Ver todas <i class="pi pi-arrow-right"></i></button>
-        </div>
-
-        <div class="acoes-list">
-          <div class="acao-item" *ngFor="let acao of acoes">
-            <div class="acao-dot" [style.background]="getPrioridadeCor(acao.prioridade)"></div>
-            <div class="acao-icon-wrapper" [style.background]="getPrioridadeBg(acao.prioridade)">
-              <i class="pi {{ acao.icone }}" [style.color]="getPrioridadeCor(acao.prioridade)"></i>
-            </div>
-            <div class="acao-info">
-              <span class="acao-titulo">{{ acao.titulo }}</span>
-              <span class="acao-desc">{{ acao.descricao }}</span>
-            </div>
-            <button class="acao-btn">
-              {{ acao.botao }} <i class="pi pi-arrow-right"></i>
+            <button class="link-btn" type="button" (click)="loadDashboard()">
+              Atualizar <i class="pi pi-refresh"></i>
             </button>
           </div>
-        </div>
-      </div>
 
-      <!-- Próximas consultas de hoje -->
-      <div class="card consultas-card">
-        <div class="card-header-row">
-          <h3 class="card-title">Próximas consultas de hoje</h3>
-          <button class="link-btn">Ver agenda <i class="pi pi-arrow-right"></i></button>
-        </div>
-
-        <div class="consultas-list">
-          <div class="consulta-item" *ngFor="let c of consultas">
-            <div class="consulta-hora">{{ c.hora }}</div>
-
-            <p-avatar
-              [label]="c.iniciais"
-              shape="circle"
-              size="normal"
-              [style]="{'background-color': c.cor, 'color': '#fff', 'font-weight': '600', 'font-size': '0.75rem'}">
-            </p-avatar>
-
-            <div class="consulta-info">
-              <span class="consulta-nome">{{ c.nome }}</span>
-              <span class="consulta-espec">{{ c.especialidade }}</span>
-              <span class="badge-status" [class]="getStatusClass(c.status)">{{ c.status }}</span>
+          <div class="pulso-content">
+            <!-- Donut chart -->
+            <div class="donut-wrapper">
+              <p-chart type="doughnut" [data]="chartData" [options]="chartOptions" height="170px"></p-chart>
+              <div class="donut-center">
+                <span class="donut-value">{{ home?.attentionPulse?.total || 0 }}</span>
+                <span class="donut-label">situações precisam<br>da sua atenção</span>
+              </div>
             </div>
 
-            <div class="consulta-actions">
-              <button class="icon-action" pTooltip="Mensagem" tooltipPosition="top">
-                <i class="pi pi-comment"></i>
-              </button>
-              <button class="icon-action" pTooltip="Reagendar" tooltipPosition="top">
-                <i class="pi pi-calendar"></i>
-              </button>
-              <button class="icon-action" pTooltip="Mais opções" tooltipPosition="top">
-                <i class="pi pi-ellipsis-v"></i>
+            <!-- Stats grid -->
+            <div class="pulso-stats">
+              <div class="stat-item" *ngFor="let stat of pulsoStats">
+                <div class="stat-icon">
+                  <i class="pi {{ stat.icon }}"></i>
+                </div>
+                <div class="stat-info">
+                  <span class="stat-value">{{ stat.value }}</span>
+                  <span class="stat-label">{{ stat.label }}</span>
+                  <span class="stat-sub">{{ stat.sub }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Jornada do atendimento -->
+        <div class="card jornada-card">
+          <div class="card-header-row">
+            <div>
+              <h3 class="card-title">Jornada do atendimento</h3>
+              <p class="card-sub">Acompanhe cada etapa até se tornar um paciente.</p>
+            </div>
+          </div>
+
+          <div class="jornada-steps">
+            <ng-container *ngFor="let step of jornadaSteps; let last = last">
+              <div class="jornada-step">
+                <div class="step-icon-wrapper">
+                  <i class="pi {{ step.icon }}"></i>
+                </div>
+                <div class="step-info">
+                  <span class="step-value">{{ step.value }}</span>
+                  <span class="step-label">{{ step.label }}</span>
+                  <span class="step-pct">{{ step.pct }}</span>
+                </div>
+              </div>
+              <div class="step-arrow" *ngIf="!last">
+                <i class="pi pi-chevron-right"></i>
+              </div>
+            </ng-container>
+          </div>
+
+          <!-- Progress bar -->
+          <div class="jornada-progress">
+            <div class="progress-track">
+              <div class="progress-dot" style="left: 0%"></div>
+              <div class="progress-dot" style="left: 33%"></div>
+              <div class="progress-dot" style="left: 66%"></div>
+              <div class="progress-dot" style="left: 100%"></div>
+              <div class="progress-fill" style="width: 100%"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Resultados -->
+        <div class="card results-card">
+          <div class="card-header-row">
+            <div>
+              <h3 class="card-title">Resultados</h3>
+              <p class="card-sub">Período: {{ formatPeriod() }}</p>
+            </div>
+          </div>
+
+          <div class="metric-grid">
+            <div class="metric-card" *ngFor="let metric of resultsCards">
+              <div class="metric-icon">
+                <i class="pi {{ iconForMetric(metric.key) }}"></i>
+              </div>
+              <div class="metric-info">
+                <span class="metric-value">{{ displayMetricValue(metric) }}</span>
+                <span class="metric-label">{{ metric.label }}</span>
+                <span class="metric-helper">{{ metricHelper(metric) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Resumo do dia -->
+        <div class="card summary-card">
+          <div class="card-header-row">
+            <div>
+              <h3 class="card-title">Resumo do dia</h3>
+              <p class="card-sub">Um panorama rápido do que aconteceu hoje na clínica.</p>
+            </div>
+          </div>
+
+          <div class="metric-grid summary-grid">
+            <div class="metric-card" *ngFor="let metric of daySummaryCards">
+              <div class="metric-icon">
+                <i class="pi {{ iconForMetric(metric.key) }}"></i>
+              </div>
+              <div class="metric-info">
+                <span class="metric-value">{{ displayMetricValue(metric) }}</span>
+                <span class="metric-label">{{ metric.label }}</span>
+                <span class="metric-helper">{{ metricHelper(metric) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div class="col-right">
+
+        <!-- O que fazer agora -->
+        <div class="card acoes-card">
+          <div class="card-header-row">
+            <h3 class="card-title">O que fazer agora</h3>
+          </div>
+
+          <div class="empty-state" *ngIf="acoes.length === 0">
+            <i class="pi pi-check-circle"></i>
+            <span>Tudo em dia. Nenhuma ação pendente agora.</span>
+          </div>
+
+          <div class="acoes-list" *ngIf="acoes.length > 0">
+            <div class="acao-item" *ngFor="let acao of acoes">
+              <div class="acao-dot" [style.background]="getPrioridadeCor(acao.prioridade)"></div>
+              <div class="acao-icon-wrapper" [style.background]="getPrioridadeBg(acao.prioridade)">
+                <i class="pi {{ acao.icone }}" [style.color]="getPrioridadeCor(acao.prioridade)"></i>
+              </div>
+              <div class="acao-info">
+                <span class="acao-titulo">{{ acao.titulo }}</span>
+                <span class="acao-desc">{{ acao.descricao }}</span>
+              </div>
+              <button class="acao-btn" type="button" (click)="openAction(acao)">
+                {{ acao.botao }} <i class="pi pi-arrow-right"></i>
               </button>
             </div>
           </div>
         </div>
-      </div>
 
+        <!-- Próximas consultas de hoje -->
+        <div class="card consultas-card">
+          <div class="card-header-row">
+            <h3 class="card-title">Próximas consultas de hoje</h3>
+          </div>
+
+          <div class="empty-state" *ngIf="consultas.length === 0">
+            <i class="pi pi-calendar"></i>
+            <span>Nenhuma consulta para hoje.</span>
+          </div>
+
+          <div class="consultas-list" *ngIf="consultas.length > 0">
+            <div class="consulta-item" *ngFor="let c of consultas">
+              <div class="consulta-hora">{{ c.hora }}</div>
+
+              <p-avatar
+                [label]="c.iniciais"
+                shape="circle"
+                size="normal"
+                [style]="{'background-color': c.cor, 'color': '#fff', 'font-weight': '600', 'font-size': '0.75rem'}">
+              </p-avatar>
+
+              <div class="consulta-info">
+                <span class="consulta-nome">{{ c.nome }}</span>
+                <span class="consulta-espec">{{ c.especialidade }}</span>
+                <span class="badge-status" [class]="getStatusClass(c.status)">{{ c.status }}</span>
+              </div>
+
+              <div class="consulta-actions">
+                <button class="icon-action" pTooltip="Mensagem" tooltipPosition="top">
+                  <i class="pi pi-comment"></i>
+                </button>
+                <button class="icon-action" pTooltip="Reagendar" tooltipPosition="top">
+                  <i class="pi pi-calendar"></i>
+                </button>
+                <button class="icon-action" pTooltip="Mais opções" tooltipPosition="top">
+                  <i class="pi pi-ellipsis-v"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- IA no atendimento -->
+        <div class="card ai-card">
+          <div class="card-header-row">
+            <div>
+              <h3 class="card-title">IA no atendimento</h3>
+              <p class="card-sub">Veja o que sua IA fez hoje.</p>
+            </div>
+          </div>
+
+          <div class="simple-list">
+            <div class="simple-item">
+              <i class="pi pi-comments"></i>
+              <span>Atendeu <strong>{{ home?.aiToday?.assistedNewContacts || 0 }}</strong> novos contatos hoje</span>
+            </div>
+            <div class="simple-item">
+              <i class="pi pi-sparkles"></i>
+              <span><strong>{{ home?.aiToday?.conversationsInAi || 0 }}</strong> conversas em atendimento pela IA</span>
+            </div>
+            <div class="simple-item">
+              <i class="pi pi-exclamation-triangle"></i>
+              <span><strong>{{ home?.aiToday?.needsReview || 0 }}</strong> conversas precisam de revisão</span>
+            </div>
+            <div class="simple-item">
+              <i class="pi pi-user"></i>
+              <span><strong>{{ home?.aiToday?.transferredToHuman || 0 }}</strong> transferidas para humano</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Equipe hoje -->
+        <div class="card team-card">
+          <div class="card-header-row">
+            <div>
+              <h3 class="card-title">Equipe hoje</h3>
+              <p class="card-sub">Carga de conversas abertas por responsável.</p>
+            </div>
+          </div>
+
+          <div class="empty-state" *ngIf="!home?.teamToday?.length">
+            <i class="pi pi-users"></i>
+            <span>Nenhuma conversa atribuída.</span>
+          </div>
+
+          <div class="team-list" *ngIf="home?.teamToday?.length">
+            <div class="team-item" *ngFor="let member of home?.teamToday">
+              <div class="team-name">{{ member.userName }}</div>
+              <div class="team-bar">
+                <span [style.width.%]="member.capacity ? (member.openConversations / member.capacity) * 100 : 70"></span>
+              </div>
+              <div class="team-count">{{ member.openConversations }}{{ member.capacity ? ' / ' + member.capacity : '' }}</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
     </div>
-  </div>
+  </ng-container>
 </div>

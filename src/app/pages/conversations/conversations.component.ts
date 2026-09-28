@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { AfterViewChecked, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
+import { ActivatedRoute } from '@angular/router';
 import { ConversationDetail, ConversationFilter, ConversationMessage, ConversationSummary, ConversationsService } from '../../whatsapp/conversations.service';
 
 @Component({
@@ -36,6 +37,7 @@ export class ConversationsComponent implements OnInit, OnDestroy, AfterViewCheck
   private selectionVersion = 0;
   private destroyed = false;
   private scrollToLatest = false;
+  private targetConversationId: number | null = null;
   @ViewChild('messageList') private messageList?: ElementRef<HTMLElement>;
 
   ngAfterViewChecked(): void {
@@ -46,8 +48,14 @@ export class ConversationsComponent implements OnInit, OnDestroy, AfterViewCheck
     }
   }
 
-  constructor(private api: ConversationsService) {}
-  ngOnInit(): void { void this.load(); }
+  constructor(private api: ConversationsService, private route: ActivatedRoute) {}
+  ngOnInit(): void {
+    const queryFilter = this.route.snapshot.queryParamMap.get('filter');
+    if (queryFilter === 'unassigned') this.filter = 'unassigned';
+    const conversationId = Number(this.route.snapshot.queryParamMap.get('conversationId'));
+    this.targetConversationId = Number.isFinite(conversationId) && conversationId > 0 ? conversationId : null;
+    void this.load();
+  }
   ngOnDestroy(): void { this.destroyed = true; this.listVersion++; this.selectionVersion++; }
 
   get draft() { return this.selected ? this.drafts[this.selected.id] ?? '' : ''; }
@@ -81,9 +89,19 @@ export class ConversationsComponent implements OnInit, OnDestroy, AfterViewCheck
       this.listPages = result.page.totalPages;
       this.total = result.page.totalElements;
       if (!more) {
-        const next = this.conversations.find(c => c.id === this.selected?.id) ?? this.conversations[0];
-        if (next) await this.select(next, false);
-        else this.clearSelection();
+        const target = this.targetConversationId
+          ? this.conversations.find(c => c.id === this.targetConversationId)
+          : null;
+        if (target) {
+          this.targetConversationId = null;
+          await this.select(target, false);
+        } else if (this.targetConversationId) {
+          await this.selectById(this.targetConversationId);
+        } else {
+          const next = this.conversations.find(c => c.id === this.selected?.id) ?? this.conversations[0];
+          if (next) await this.select(next, false);
+          else this.clearSelection();
+        }
       }
     } catch (error) {
       if (version === this.listVersion && !this.destroyed) this.listError = this.errorMessage(error, 'carregar as conversas');
@@ -111,6 +129,48 @@ export class ConversationsComponent implements OnInit, OnDestroy, AfterViewCheck
       this.scrollToLatest = true;
       this.messagePage = messages.page.number;
       this.messagePages = messages.page.totalPages;
+    } catch (error) {
+      if (version === this.selectionVersion && !this.destroyed) this.detailError = this.errorMessage(error, 'carregar esta conversa');
+    } finally { if (version === this.selectionVersion) this.loadingDetail = false; }
+  }
+
+  async selectById(conversationId: number): Promise<void> {
+    const version = ++this.selectionVersion;
+    this.selected = {
+      id: conversationId,
+      profileName: null,
+      stage: null,
+      updatedAt: null,
+      lastMessageText: null,
+    };
+    this.detail = null;
+    this.messages = [];
+    this.messagePage = -1;
+    this.messagePages = 0;
+    this.loadingOlder = false;
+    this.loadingDetail = true;
+    this.detailError = '';
+    this.sendError = '';
+    this.contactOpen = false;
+    this.mobileChat = true;
+    try {
+      const [detail, messages] = await Promise.all([this.api.detail(conversationId), this.api.messages(conversationId)]);
+      if (this.destroyed || version !== this.selectionVersion) return;
+      this.detail = detail;
+      this.messages = messages.content;
+      const latestMessage = messages.content.length ? messages.content[messages.content.length - 1] : null;
+      this.selected = {
+        id: detail.id,
+        profileName: detail.profileName || detail.name,
+        stage: detail.stage,
+        updatedAt: latestMessage?.createdAt ?? null,
+        lastMessageText: latestMessage?.textBody ?? null,
+      };
+      this.conversations = this.unique([this.selected, ...this.conversations]);
+      this.scrollToLatest = true;
+      this.messagePage = messages.page.number;
+      this.messagePages = messages.page.totalPages;
+      this.targetConversationId = null;
     } catch (error) {
       if (version === this.selectionVersion && !this.destroyed) this.detailError = this.errorMessage(error, 'carregar esta conversa');
     } finally { if (version === this.selectionVersion) this.loadingDetail = false; }
