@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment.development';
@@ -80,7 +80,9 @@ export interface DashboardHomeResponse {
 
 @Injectable({ providedIn: 'root' })
 export class DashboardHomeService {
+  private readonly CLINIC_NAME_KEY = 'ch_clinic_name';
   private readonly url = `${environment.apiBaseUrl}/api/v1/dashboard/home`;
+  readonly clinicName = signal<string | null>(this.loadClinicName());
 
   constructor(private http: HttpClient, private auth: AuthService) {}
 
@@ -88,7 +90,16 @@ export class DashboardHomeService {
     return { headers: { Authorization: `Bearer ${this.auth.getToken()}` } };
   }
 
-  getHome(): Promise<DashboardHomeResponse> {
-    return firstValueFrom(this.http.get<DashboardHomeResponse>(this.url, this.options));
+  async getHome(): Promise<DashboardHomeResponse> {
+    const home = await firstValueFrom(this.http.get<DashboardHomeResponse>(this.url, this.options));
+    this.clinicName.set(home.clinic.name);
+    if (home.clinic.name) {
+      sessionStorage.setItem(this.CLINIC_NAME_KEY, home.clinic.name);
+    }
+    return home;
+  }
+
+  private loadClinicName(): string | null {
+    return sessionStorage.getItem(this.CLINIC_NAME_KEY);
   }
 }

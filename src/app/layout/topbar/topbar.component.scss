@@ -296,3 +296,53 @@
     &:hover { color: #ef4444; i { color: #ef4444; } }
   }
 }
+
+@media (max-width: 760px) {
+  .topbar {
+    height: 56px;
+    padding: 0 0.75rem;
+    gap: 0.5rem;
+  }
+
+  .topbar-left,
+  .topbar-right {
+    min-width: 0;
+  }
+
+  .topbar-center,
+  .search-box,
+  .user-name {
+    display: none;
+  }
+
+  .clinic-selector {
+    padding: 0.35rem 0.45rem;
+    min-width: 0;
+
+    .clinic-name {
+      max-width: 42vw;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 0.78rem;
+    }
+  }
+
+  .user-menu {
+    padding: 0.25rem;
+    gap: 0.25rem;
+  }
+
+  .user-dropdown {
+    position: fixed;
+    top: 64px;
+    right: 0.75rem;
+    width: min(240px, calc(100vw - 1.5rem));
+  }
+}
+
+@media (max-width: 380px) {
+  .clinic-selector .clinic-name {
+    max-width: 34vw;
+  }
+}

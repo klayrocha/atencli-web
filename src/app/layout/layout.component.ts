@@ -1,5 +1,4 @@
-import { OnboardingProgressService } from '../pages/wizard-shared/onboarding-progress.service';
-import { Component, inject } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { SidebarComponent } from './sidebar/sidebar.component';
@@ -21,7 +20,21 @@ import { TopbarComponent } from './topbar/topbar.component';
     </div>
   `
 })
-export class LayoutComponent {
-  private readonly onboarding = inject(OnboardingProgressService);
+export class LayoutComponent implements OnInit {
   sidebarCollapsed = false;
+
+  ngOnInit(): void {
+    this.applyMobileSidebarState();
+  }
+
+  @HostListener('window:resize')
+  onWindowResize(): void {
+    this.applyMobileSidebarState();
+  }
+
+  private applyMobileSidebarState(): void {
+    if (window.innerWidth <= 760) {
+      this.sidebarCollapsed = true;
+    }
+  }
 }

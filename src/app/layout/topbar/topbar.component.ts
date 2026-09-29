@@ -5,6 +5,7 @@ import { BadgeModule } from 'primeng/badge';
 import { TooltipModule } from 'primeng/tooltip';
 import { AuthService } from '../../auth/auth.service';
 import { UserPanelComponent } from '../user-panel/user-panel.component';
+import { DashboardHomeService } from '../../pages/dashboard/dashboard-home.service';
 
 interface Clinic {
   id: string;
@@ -25,7 +26,7 @@ interface Clinic {
       <div class="topbar-left">
         <div class="clinic-selector">
           <div class="clinic-dot"></div>
-          <span class="clinic-name">{{ selectedClinic.name }}</span>
+          <span class="clinic-name">{{ clinicName() }}</span>
         </div>
       </div>
 
@@ -99,13 +100,19 @@ export class TopbarComponent {
   clinicMenuOpen = false;
   userPanelOpen  = false;
 
-  clinics: Clinic[] = [
-    { id: 'harmonia', name: 'Clínica Harmonia' },
-    { id: 'jardim',   name: 'Clínica Jardim'   },
-  ];
-  selectedClinic: Clinic = this.clinics[0];
 
   private auth = inject(AuthService);
+  private dashboardHome = inject(DashboardHomeService);
+
+  clinics: Clinic[] = [
+    { id: 'current', name: '' }
+  ];
+
+  selectedClinic: Clinic = this.clinics[0];
+
+  readonly clinicName = computed(() =>
+    this.dashboardHome.clinicName() ?? 'Clínica'
+  );
 
   readonly userName  = computed(() =>
     this.auth.currentProfile()?.fullName ?? this.auth.currentUser()?.name ?? 'Usuário'

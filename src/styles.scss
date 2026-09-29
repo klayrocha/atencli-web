@@ -140,16 +140,29 @@ app-topbar {
   background: #f5f6f8;
 }
 @media (max-width: 760px) {
-  .layout-wrapper:has(app-conversations) {
+  .layout-wrapper {
     .sidebar { width: 60px; min-width: 60px; }
     .sidebar .logo-text, .sidebar .menu-label, .sidebar .collapse-btn span { display: none; }
     .sidebar .sidebar-logo { padding: 18px 12px; }
     .sidebar .menu-list { padding: 0 6px; }
     .sidebar .menu-item { padding: 12px; justify-content: center; }
     .sidebar .sidebar-footer { padding: 6px; }
+    .layout-content { padding: 1rem; }
+  }
+
+  .layout-wrapper:has(app-conversations) {
     .topbar { padding: 0 10px; }
     .topbar-center, .search-box, .user-name { display: none; }
     .clinic-name { font-size: 12px; }
     .layout-content { padding: 8px; }
+  }
+}
+
+@media (max-width: 480px) {
+  .layout-wrapper {
+    .sidebar { width: 54px; min-width: 54px; }
+    .sidebar .menu-list { padding: 0 5px; }
+    .sidebar .menu-item { padding: 11px; }
+    .layout-content { padding: 0.75rem; }
   }
 }
