@@ -3,6 +3,7 @@ import { LayoutComponent } from './layout/layout.component';
 import { AcompanhamentoAutomaticoComponent } from './pages/acompanhamento-automatico/acompanhamento-automatico.component';
 import { ConversationsComponent } from './pages/conversations/conversations.component';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
+import { EtapasComponent } from './pages/etapas/etapas.component';
 import { LoginComponent } from './pages/login/login.component';
 import { RegisterComponent } from './pages/register/register.component';
 import { WizardStep1AboutComponent } from './pages/wizard-step-1-about/wizard-step-1-about.component';
@@ -46,7 +47,7 @@ export const routes: Routes = [
       { path: 'configuracoes/whatsapp', component: WizardStep6WhatsappComponent },
       { path: 'conversas', component: ConversationsComponent },
       { path: 'contatos', component: DashboardComponent },
-      { path: 'etapas', component: DashboardComponent },
+      { path: 'etapas', component: EtapasComponent },
       { path: 'agenda', component: DashboardComponent },
       { path: 'ac', component: AcompanhamentoAutomaticoComponent },
       { path: 'tarefas', component: DashboardComponent },

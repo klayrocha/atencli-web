@@ -1,0 +1,119 @@
+<main class="stages-board-page">
+  <header class="topbar">
+    <div>
+      <span class="clinic-name">Clínica Atenclin</span>
+      <h1>Etapas do atendimento</h1>
+      <p>Acompanhe cada contato por etapa e avance as conversas com organização.</p>
+    </div>
+    <div class="toolbar">
+      <label class="search-box">
+        <i class="pi pi-search"></i>
+        <input type="search" name="search" [(ngModel)]="search" placeholder="Buscar conversa">
+      </label>
+      <button type="button" class="soft-button" (click)="loadBoard()" [disabled]="loading">
+        <i class="pi pi-refresh" [class.pi-spin]="loading"></i>
+        Atualizar
+      </button>
+    </div>
+  </header>
+
+  <div class="feedback error" *ngIf="error" role="alert">{{ error }}</div>
+  <div class="feedback success" *ngIf="success" role="status">{{ success }}</div>
+
+  <section class="metrics" aria-label="Resumo do atendimento">
+    <article *ngFor="let metric of metrics" class="metric-card">
+      <span class="metric-icon"><i [class]="metric.icon"></i></span>
+      <div>
+        <strong>{{ metric.value }}</strong>
+        <span>{{ metric.label }}</span>
+        <small>{{ metric.helper }}</small>
+      </div>
+    </article>
+  </section>
+
+  <section class="board" aria-label="Conversas organizadas por etapa">
+    <article
+      *ngFor="let column of columns"
+      class="stage-column"
+      (dragover)="dragOver($event)"
+      (drop)="dropOnColumn($event, column)">
+      <header class="column-header">
+        <div>
+          <span class="stage-dot" [ngClass]="stageTone(column.stage)"></span>
+          <h2>{{ column.stage.name }}</h2>
+        </div>
+        <span class="count">{{ column.total }}</span>
+      </header>
+      <p class="column-subtitle">{{ stageDescription(column.stage) }}</p>
+
+      <div class="column-error" *ngIf="column.error">{{ column.error }}</div>
+
+      <div class="cards">
+        <article
+          *ngFor="let conversation of visibleConversations(column)"
+          class="conversation-card"
+          draggable="true"
+          [class.moving]="movingConversationId === conversation.id"
+          (dragstart)="dragStart($event, conversation, column)"
+          (dragend)="dragEnd()">
+          <div class="card-heading">
+            <span class="avatar">{{ initials(conversation.profileName) }}</span>
+            <div>
+              <h3>{{ conversation.profileName || 'Contato sem nome' }}</h3>
+              <p>{{ stageDescription(column.stage) }}</p>
+            </div>
+          </div>
+
+          <div class="card-row">
+            <span>Atualizado</span>
+            <strong>{{ formatDate(conversation.updatedAt) }}</strong>
+          </div>
+          <p class="last-message">{{ conversation.lastMessageText || 'Sem mensagem recente.' }}</p>
+
+          <div class="card-footer">
+            <span class="priority" [ngClass]="priorityClass(cardPriority(conversation, column.stage))">
+              {{ cardPriority(conversation, column.stage) }}
+            </span>
+            <a [routerLink]="['/conversas']" [queryParams]="{ conversationId: conversation.id }" title="Abrir conversa">
+              <i class="pi pi-comments"></i>
+            </a>
+          </div>
+
+          <div class="drag-hint">
+            <i class="pi pi-arrows-alt"></i>
+            Arraste para alterar etapa
+          </div>
+        </article>
+
+        <div class="empty-column" *ngIf="!column.loading && !visibleConversations(column).length">
+          <i class="pi pi-inbox"></i>
+          <strong>Nenhuma conversa</strong>
+          <span>{{ search ? 'Nenhum resultado para a busca nesta etapa.' : 'Esta etapa ainda não tem conversas.' }}</span>
+        </div>
+
+        <div class="loading-column" *ngIf="column.loading">
+          <i class="pi pi-spin pi-spinner"></i>
+          Carregando...
+        </div>
+      </div>
+
+      <button
+        type="button"
+        class="more-button"
+        *ngIf="column.page + 1 < column.totalPages"
+        (click)="loadMore(column)"
+        [disabled]="column.loading">
+        <i class="pi pi-plus"></i>
+        Ver mais {{ column.total - column.conversations.length }}
+      </button>
+    </article>
+  </section>
+
+  <footer class="hint-bar">
+    <div>
+      <i class="pi pi-sparkles"></i>
+      <span>Arraste um card para outra coluna para alterar a etapa. O histórico da mudança fica disponível na conversa.</span>
+    </div>
+    <button type="button" (click)="success = ''" *ngIf="success"><i class="pi pi-times"></i></button>
+  </footer>
+</main>
