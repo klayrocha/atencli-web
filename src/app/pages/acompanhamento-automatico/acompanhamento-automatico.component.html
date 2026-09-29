@@ -1,0 +1,248 @@
+<main class="follow-up-page">
+  <header class="page-header">
+    <div>
+      <span class="eyebrow"><i class="pi pi-sparkles"></i>Acompanhamento automático</span>
+      <h1>Modelos para retomar contatos no momento certo</h1>
+      <p>Configure atrasos, janelas de envio e mensagens seguras sem abrir um editor livre de fluxos.</p>
+    </div>
+    <div class="summary-strip" aria-label="Resumo do acompanhamento automático">
+      <span><strong>{{ activeTemplates }}</strong> ativos</span>
+      <span><strong>{{ templates.length }}</strong> modelos</span>
+      <span><strong>{{ scheduledExecutions }}</strong> em andamento</span>
+    </div>
+  </header>
+
+  <nav class="tabs" aria-label="Seções">
+    <button type="button" [class.active]="activeTab === 'templates'" (click)="activeTab = 'templates'">
+      <i class="pi pi-sliders-h"></i>Modelos
+    </button>
+    <button type="button" [class.active]="activeTab === 'executions'" (click)="openExecutions()">
+      <i class="pi pi-list-check"></i>Execuções
+    </button>
+  </nav>
+
+  <section *ngIf="activeTab === 'templates'" class="templates-layout">
+    <aside class="template-list" aria-label="Modelos de acompanhamento">
+      <button
+        type="button"
+        *ngFor="let template of templates"
+        class="template-item"
+        [class.selected]="template.code === selectedCode"
+        (click)="selectTemplate(template)">
+        <span class="status-dot" [class.enabled]="template.enabled"></span>
+        <span>
+          <strong>{{ template.name }}</strong>
+          <small>{{ templateDescriptions[template.code] }}</small>
+        </span>
+        <i class="pi pi-chevron-right"></i>
+      </button>
+      <div class="state" *ngIf="loadingTemplates"><i class="pi pi-spin pi-spinner"></i>Carregando modelos...</div>
+      <div class="state error" *ngIf="error && !form">{{ error }}</div>
+    </aside>
+
+    <form *ngIf="form" class="template-form" (ngSubmit)="saveTemplate()">
+      <section class="panel intro-panel">
+        <div>
+          <h2>{{ form.name }}</h2>
+          <p>{{ templateDescriptions[form.code] }}</p>
+        </div>
+        <button type="button" class="toggle-button" [class.enabled]="form.enabled" (click)="toggleTemplate(selectedTemplate!)" [disabled]="savingTemplate || !selectedTemplate">
+          <i class="pi" [class.pi-pause]="form.enabled" [class.pi-play]="!form.enabled"></i>
+          {{ form.enabled ? 'Pausar' : 'Ativar' }}
+        </button>
+      </section>
+
+      <fieldset class="panel controls-panel" [disabled]="savingTemplate">
+        <legend>Regras de envio</legend>
+        <div class="fields-grid">
+          <label class="field">
+            Aguardar antes do primeiro envio, em minutos
+            <span class="input-with-unit">
+              <input type="number" name="firstDelayMinutes" min="5" max="43200" [(ngModel)]="form.firstDelayMinutes" required>
+              <span>minutos</span>
+            </span>
+            <small>{{ minutesHint(form.firstDelayMinutes) }} após a conversa entrar neste modelo. Mínimo: 5 minutos. Máximo: 43200 minutos = 30 dias.</small>
+          </label>
+          <label class="field">
+            Máximo de mensagens
+            <select name="maxMessages" [(ngModel)]="form.maxMessages">
+              <option [ngValue]="1">1 mensagem</option>
+              <option [ngValue]="2">2 mensagens</option>
+              <option [ngValue]="3">3 mensagens</option>
+            </select>
+            <small>&nbsp;</small>
+          </label>
+          <label class="field">
+            Intervalo entre mensagens, em minutos
+            <span class="input-with-unit">
+              <input type="number" name="intervalMinutes" min="15" max="43200" [(ngModel)]="form.intervalMinutes" required>
+              <span>minutos</span>
+            </span>
+            <small>{{ minutesHint(form.intervalMinutes) }}. Usado a partir da segunda tentativa.</small>
+          </label>
+        </div>
+
+        <div class="fields-grid">
+          <label class="field">
+            Janela diária de envio: a partir de
+            <input type="time" name="allowedStartTime" [(ngModel)]="form.allowedStartTime">
+          </label>
+          <label class="field">
+            Janela diária de envio: até
+            <input type="time" name="allowedEndTime" [(ngModel)]="form.allowedEndTime">
+          </label>
+          <!--label class="field">
+            Responsável padrão
+            <input type="text" name="responsibleUserUuid" [(ngModel)]="form.responsibleUserUuid" placeholder="UUID do usuário">
+          </label -->
+        </div>
+        <p class="timing-note">
+          Se o tempo de espera terminar fora da janela diária, o envio será feito no próximo horário permitido.
+        </p>
+
+        <fieldset class="days-field">
+          <legend>Dias ativos</legend>
+          <div class="days">
+            <label *ngFor="let day of days" class="day">
+              <input type="checkbox" [checked]="form.activeDays.includes(day.value)" (change)="toggleDay(day.value, $any($event.target).checked)">
+              <span>{{ day.label }}</span>
+            </label>
+          </div>
+          <small>Sem dias selecionados significa todos os dias.</small>
+        </fieldset>
+
+        <label class="check-row">
+          <input type="checkbox" name="createTaskOnFinish" [(ngModel)]="form.createTaskOnFinish">
+          <span>
+            <strong>Criar tarefa humana ao finalizar sem sucesso</strong>
+            <small>A criação efetiva depende do módulo de Tarefas.</small>
+          </span>
+        </label>
+      </fieldset>
+
+      <section class="panel messages-panel">
+        <div class="section-heading">
+          <div>
+            <h2>Mensagens</h2>
+            <p>Variáveis disponíveis: <code>{{ '{' }}{{ '{' }}nome{{ '}' }}{{ '}' }}</code>, <code>{{ '{' }}{{ '{' }}clinica{{ '}' }}{{ '}' }}</code> e <code>{{ '{' }}{{ '{' }}interesse{{ '}' }}{{ '}' }}</code>.</p>
+          </div>
+        </div>
+
+        <label class="message-field">
+          Primeira mensagem
+          <textarea name="messageOne" rows="4" maxlength="1000" [(ngModel)]="form.messageOne" required></textarea>
+          <small>{{ form.messageOne.length || 0 }}/1000</small>
+        </label>
+        <label class="message-field" *ngIf="form.maxMessages > 1">
+          Segunda mensagem
+          <textarea name="messageTwo" rows="4" maxlength="1000" [(ngModel)]="form.messageTwo" required></textarea>
+          <small>{{ form.messageTwo?.length || 0 }}/1000</small>
+        </label>
+        <label class="message-field" *ngIf="form.maxMessages > 2">
+          Terceira mensagem
+          <textarea name="messageThree" rows="4" maxlength="1000" [(ngModel)]="form.messageThree" required></textarea>
+          <small>{{ form.messageThree?.length || 0 }}/1000</small>
+        </label>
+
+        <div class="preview-box" aria-label="Prévia da primeira mensagem">
+          <span>Prévia</span>
+          <p>{{ messagePreview(form.messageOne) || 'A prévia aparece enquanto você escreve.' }}</p>
+        </div>
+      </section>
+
+      <div class="feedback error" *ngIf="error" role="alert">{{ error }}</div>
+      <div class="feedback success" *ngIf="success" role="status">{{ success }}</div>
+      <div class="form-actions">
+        <button type="button" class="secondary-button" (click)="loadTemplates()" [disabled]="savingTemplate">
+          <i class="pi pi-refresh"></i>Recarregar
+        </button>
+        <button type="submit" class="primary-button" [disabled]="savingTemplate">
+          <i class="pi" [class.pi-spin]="savingTemplate" [class.pi-spinner]="savingTemplate" [class.pi-save]="!savingTemplate"></i>
+          {{ savingTemplate ? 'Salvando...' : 'Salvar modelo' }}
+        </button>
+      </div>
+    </form>
+  </section>
+
+  <section *ngIf="activeTab === 'executions'" class="executions-panel">
+    <form class="filters-panel" (ngSubmit)="loadExecutions()">
+      <label>
+        Status
+        <select name="status" [(ngModel)]="executionFilters.status">
+          <option value="">Todos</option>
+          <option *ngFor="let status of statuses" [value]="status">{{ statusLabel(status) }}</option>
+        </select>
+      </label>
+      <label>
+        Modelo
+        <select name="templateCode" [(ngModel)]="executionFilters.templateCode">
+          <option value="">Todos</option>
+          <option *ngFor="let template of templates" [value]="template.code">{{ template.name }}</option>
+        </select>
+      </label>
+      <!--label>
+        Conversa
+        <input type="number" name="conversationId" min="1" [(ngModel)]="executionFilters.conversationId" placeholder="ID">
+      </label>
+      <label>
+        Responsável
+        <input type="text" name="assigneeUserUuid" [(ngModel)]="executionFilters.assigneeUserUuid" placeholder="UUID">
+      </label -->
+      <button type="submit" class="primary-button" [disabled]="loadingExecutions">
+        <i class="pi" [class.pi-spin]="loadingExecutions" [class.pi-spinner]="loadingExecutions" [class.pi-filter]="!loadingExecutions"></i>
+        Filtrar
+      </button>
+    </form>
+
+    <div class="feedback error" *ngIf="executionError" role="alert">{{ executionError }}</div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Contato</th>
+            <th>Modelo</th>
+            <th>Status</th>
+            <th>Próxima tentativa</th>
+            <th>Tentativas</th>
+            <th>Responsável</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let execution of executions">
+            <td>
+              <strong>{{ execution.contactName || 'Contato sem nome' }}</strong>
+              <small>#{{ execution.conversationId }} · {{ execution.currentStage || 'Sem etapa' }}</small>
+            </td>
+            <td>{{ execution.templateName }}</td>
+            <td><span class="status-pill" [ngClass]="statusClass(execution.status)">{{ statusLabel(execution.status) }}</span></td>
+            <td>{{ formatDate(execution.nextAttemptAt) }}</td>
+            <td>{{ execution.attemptCount }}/{{ execution.maxAttempts }}</td>
+            <td>{{ execution.assigneeUserName || 'Sem responsável' }}</td>
+            <td class="row-actions">
+              <button type="button" *ngIf="execution.status === 'SCHEDULED' || execution.status === 'PROCESSING'" (click)="setExecutionAction(execution, 'pause')" [disabled]="actionId === execution.id" title="Pausar">
+                <i class="pi pi-pause"></i>
+              </button>
+              <button type="button" *ngIf="execution.status === 'PAUSED'" (click)="setExecutionAction(execution, 'resume')" [disabled]="actionId === execution.id" title="Retomar">
+                <i class="pi pi-play"></i>
+              </button>
+              <button type="button" *ngIf="execution.status === 'SCHEDULED' || execution.status === 'PROCESSING' || execution.status === 'PAUSED'" (click)="setExecutionAction(execution, 'cancel')" [disabled]="actionId === execution.id" title="Cancelar">
+                <i class="pi pi-times"></i>
+              </button>
+              <a [routerLink]="['/conversas']" [queryParams]="{ conversationId: execution.conversationId }" title="Abrir conversa">
+                <i class="pi pi-comments"></i>
+              </a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="empty-state" *ngIf="!loadingExecutions && !executions.length">
+        <i class="pi pi-inbox"></i>
+        <strong>Nenhuma execução encontrada</strong>
+        <span>Use os filtros acima para consultar acompanhamentos recentes.</span>
+      </div>
+      <div class="state" *ngIf="loadingExecutions"><i class="pi pi-spin pi-spinner"></i>Carregando execuções...</div>
+    </div>
+  </section>
+</main>

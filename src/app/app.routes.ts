@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { LayoutComponent } from './layout/layout.component';
+import { AcompanhamentoAutomaticoComponent } from './pages/acompanhamento-automatico/acompanhamento-automatico.component';
 import { ConversationsComponent } from './pages/conversations/conversations.component';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { LoginComponent } from './pages/login/login.component';
@@ -47,6 +48,7 @@ export const routes: Routes = [
       { path: 'contatos', component: DashboardComponent },
       { path: 'etapas', component: DashboardComponent },
       { path: 'agenda', component: DashboardComponent },
+      { path: 'ac', component: AcompanhamentoAutomaticoComponent },
       { path: 'tarefas', component: DashboardComponent },
       { path: 'resultados', component: DashboardComponent },
       { path: 'ia', component: WizardStep7AiComponent },
