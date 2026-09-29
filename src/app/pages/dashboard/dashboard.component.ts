@@ -225,6 +225,25 @@ export class DashboardComponent implements OnInit {
     return card.available ? (card.helper ?? '') : (card.unavailableReason ?? 'Dados insuficientes');
   }
 
+  aiSavingsAmount(): string {
+    const savings = this.home?.aiSavings;
+    if (!savings) return this.formatCurrency(0, 'BRL');
+    return this.formatCurrency(savings.estimatedAmount, savings.currency || 'BRL');
+  }
+
+  aiSavingsHours(): string {
+    const minutes = this.home?.aiSavings?.estimatedMinutesSaved ?? 0;
+    if (minutes < 60) return `${minutes} min`;
+    const hours = minutes / 60;
+    return `${new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 }).format(hours)} h`;
+  }
+
+  aiSavingsFormula(): string {
+    const savings = this.home?.aiSavings;
+    if (!savings) return '';
+    return `${savings.assistedContacts} contatos x ${savings.minutesSavedPerAssistedContact} min + ${savings.aiScheduledAppointments} agendamentos x ${savings.minutesSavedPerScheduledAppointment} min`;
+  }
+
   formatPeriod(): string {
     if (!this.home?.period) return '';
     return `${this.formatDate(this.home.period.from)} até ${this.formatDate(this.home.period.to)}`;
@@ -341,6 +360,15 @@ export class DashboardComponent implements OnInit {
       year: 'numeric',
       timeZone: this.home?.period.timeZone
     }).format(new Date(value));
+  }
+
+  private formatCurrency(value: number, currency: string): string {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(value);
   }
 
   private initials(name: string): string {

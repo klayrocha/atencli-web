@@ -61,6 +61,17 @@ export interface DashboardHomeResponse {
     needsReview: number;
     transferredToHuman: number;
   };
+  aiSavings: {
+    estimatedAmount: number;
+    currency: string;
+    estimatedMinutesSaved: number;
+    assistedContacts: number;
+    aiScheduledAppointments: number;
+    hourlyCost: number;
+    minutesSavedPerAssistedContact: number;
+    minutesSavedPerScheduledAppointment: number;
+    helper: string;
+  };
   teamToday: Array<{
     userUuid: string;
     userName: string;

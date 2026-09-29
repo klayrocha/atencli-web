@@ -295,6 +295,46 @@
           </div>
         </div>
 
+        <!-- Economia com IA -->
+        <div class="card ai-savings-card">
+          <div class="card-header-row">
+            <div>
+              <h3 class="card-title">Economia com IA</h3>
+              <p class="card-sub">Estimativa para o período: {{ formatPeriod() }}.</p>
+            </div>
+          </div>
+
+          <div class="savings-highlight">
+            <div class="savings-icon">
+              <i class="pi pi-wallet"></i>
+            </div>
+            <div class="savings-main">
+              <span class="savings-value">{{ aiSavingsAmount() }}</span>
+              <span class="savings-label">economizados em atendimento</span>
+            </div>
+          </div>
+
+          <div class="savings-details">
+            <div class="savings-detail">
+              <span class="detail-value">{{ aiSavingsHours() }}</span>
+              <span class="detail-label">tempo poupado</span>
+            </div>
+            <div class="savings-detail">
+              <span class="detail-value">{{ home?.aiSavings?.assistedContacts || 0 }}</span>
+              <span class="detail-label">contatos atendidos</span>
+            </div>
+            <div class="savings-detail">
+              <span class="detail-value">{{ home?.aiSavings?.aiScheduledAppointments || 0 }}</span>
+              <span class="detail-label">agendados pela IA</span>
+            </div>
+          </div>
+
+          <div class="savings-note" [pTooltip]="aiSavingsFormula()" tooltipPosition="top">
+            <i class="pi pi-info-circle"></i>
+            <span>{{ home?.aiSavings?.helper || 'Estimativa baseada nos atendimentos e agendamentos da IA.' }}</span>
+          </div>
+        </div>
+
         <!-- Equipe hoje -->
         <div class="card team-card">
           <div class="card-header-row">
