@@ -59,13 +59,13 @@ export class SidebarComponent {
   menuItems: MenuItem[] = [
     { label: 'Início', icon: 'pi pi-home', route: '/' },
     { label: 'Conversas', icon: 'pi pi-comments', route: '/conversas' },
-    { label: 'Novos contatos', icon: 'pi pi-users', route: '/contatos' },
+    //{ label: 'Novos contatos', icon: 'pi pi-users', route: '/contatos' },
     { label: 'Etapas do atendimento', icon: 'pi pi-th-large', route: '/etapas' },
     { label: 'Agenda', icon: 'pi pi-calendar', route: '/agenda' },
     { label: 'Tarefas', icon: 'pi pi-check-square', route: '/tarefas' },
-    { label: 'Resultados', icon: 'pi pi-chart-bar', route: '/resultados' },
-    { label: 'Inteligência artificial', icon: 'pi pi-sparkles', route: '/ia' },
-    { label: 'Equipe', icon: 'pi pi-cog', route: '/equipe' },
+    //{ label: 'Resultados', icon: 'pi pi-chart-bar', route: '/resultados' },
+    { label: 'Acompanhamento automático', icon: 'pi pi-sparkles', route: '/ac' },
+    //{ label: 'Equipe', icon: 'pi pi-cog', route: '/equipe' },
     { label: 'Configurações', icon: 'pi pi-sliders-h', route: '/wizard-step-8-review', queryParams: { source: 'menu' } },
     { label: 'Ajuda', icon: 'pi pi-question-circle', route: '/ajuda' },
   ];
