@@ -13,8 +13,7 @@
         <section class="ai-card" aria-labelledby="behavior-title">
           <div class="card-heading"><div class="section-icon"><i class="pi pi-comments"></i></div><div><h2 id="behavior-title">Como a IA atende</h2><p>Escolha o nível de autonomia e o estilo das respostas.</p></div></div>
           <div class="options-grid">
-            <label class="option"><input type="radio" name="mode" value="ASSISTANT" [(ngModel)]="model.mode"><span><strong>Modo assistente</strong><small>Gera uma sugestão para aprovação humana.</small></span></label>
-            <label class="option"><input type="radio" name="mode" value="LIMITED_AUTOMATIC" [(ngModel)]="model.mode"><span><strong>Automático limitado</strong><small>Responde somente assuntos autorizados.</small></span></label>
+            <div class="option fixed-option" aria-live="polite"><i class="pi pi-check-circle" aria-hidden="true"></i><span><strong>Automático limitado</strong><small>Responde somente assuntos autorizados.</small></span></div>
           </div>
           <div class="fields-grid">
             <label class="field">Tom de voz<input type="text" name="tone" [(ngModel)]="model.tone" maxlength="80" required placeholder="Acolhedor e profissional"></label>

@@ -17,6 +17,7 @@ import { WizardSummaryComponent } from '../wizard-shared/wizard-summary/wizard-s
   styleUrls: ['./wizard-step-7-ai.component.scss'],
 })
 export class WizardStep7AiComponent implements OnInit {
+  private readonly automaticMode: AiConfigurationPayload['mode'] = 'LIMITED_AUTOMATIC';
   steps = WIZARD_STEPS_DEFAULT.map(step => ({ ...step, current: step.id === 7, completed: step.id < 7 }));
   readonly topics = [
     ['SERVICES', 'Serviços e procedimentos', 'Somente informações cadastradas.'],
@@ -42,7 +43,7 @@ export class WizardStep7AiComponent implements OnInit {
   ];
   readonly days = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
   model: AiConfigurationPayload = {
-    mode: 'ASSISTANT', tone: 'Acolhedor e profissional', responseLength: 'SHORT',
+    mode: this.automaticMode, tone: 'Acolhedor e profissional', responseLength: 'SHORT',
     schedulePolicy: 'FOLLOW_CLINIC_HOURS', serviceStartTime: '07:00', serviceEndTime: '22:00',
     activeDays: [1, 2, 3, 4, 5], introductionMessage: '', outsideHoursMessage: '',
     allowedTopics: [], handoffTriggers: [...this.requiredTriggers],
@@ -70,7 +71,7 @@ export class WizardStep7AiComponent implements OnInit {
   }
   private fill(data: AiConfiguration) {
     this.model = {
-      mode: data.mode, tone: data.tone, responseLength: data.responseLength,
+      mode: this.automaticMode, tone: data.tone, responseLength: data.responseLength,
       schedulePolicy: data.schedulePolicy,
       serviceStartTime: data.serviceStartTime?.slice(0, 5) || '07:00',
       serviceEndTime: data.serviceEndTime?.slice(0, 5) || '22:00',
@@ -105,7 +106,7 @@ export class WizardStep7AiComponent implements OnInit {
       this.error = 'As mensagens devem ter até 500 caracteres.'; return;
     }
     const payload: AiConfigurationPayload = {
-      ...this.model, tone: this.model.tone.trim(),
+      ...this.model, mode: this.automaticMode, tone: this.model.tone.trim(),
       serviceStartTime: custom ? this.model.serviceStartTime : null,
       serviceEndTime: custom ? this.model.serviceEndTime : null,
       activeDays: custom ? [...this.model.activeDays] : [],

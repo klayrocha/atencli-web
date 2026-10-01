@@ -28,6 +28,22 @@ describe('Wizard AI configuration', () => {
     expect(payload.handoffTriggers).toEqual(component.requiredTriggers);
     expect(api.setEnabled).not.toHaveBeenCalled();
   });
+  it('starts new AI rules in limited automatic mode', () => {
+    expect(component.model.mode).toBe('LIMITED_AUTOMATIC');
+  });
+  it('uses limited automatic mode when backend returns default assistant rules', async () => {
+    api.getConfiguration.and.resolveTo({ ...data, mode: 'ASSISTANT', usingDefaults: true });
+    await component.load();
+    expect(component.model.mode).toBe('LIMITED_AUTOMATIC');
+  });
+  it('normalizes saved assistant rules to limited automatic mode in this wizard', async () => {
+    api.getConfiguration.and.resolveTo({ ...data, mode: 'ASSISTANT', usingDefaults: false });
+    await component.load();
+    await component.save();
+    const payload = api.save.calls.mostRecent().args[0];
+    expect(component.model.mode).toBe('LIMITED_AUTOMATIC');
+    expect(payload.mode).toBe('LIMITED_AUTOMATIC');
+  });
   it('rejects empty days and reversed custom times before saving', async () => {
     component.model.schedulePolicy = 'CUSTOM_SCHEDULE';
     await component.save();

@@ -109,6 +109,7 @@
 .options-grid, .fields-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 1rem; }
 .options-stack { display: grid; gap: .65rem; }
 .option { display: flex; align-items: flex-start; gap: .7rem; padding: .9rem 1rem; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; background: #fff; input { margin-top: .2rem; flex-shrink: 0; accent-color: #65a30d; width: 16px; height: 16px; } strong { display: block; color: #334155; font-size: .85rem; line-height: 1.5; } small { display: block; color: #64748b; font-size: .78rem; line-height: 1.5; margin-top: .15rem; } &:has(input:checked) { border-color: #a3d65c; background: #f7fee7; } &:has(input:focus-visible) { outline: 2px solid #65a30d; outline-offset: 2px; } }
+.fixed-option { cursor: default; border-color: #a3d65c; background: #f7fee7; i { margin-top: .15rem; color: #65a30d; flex-shrink: 0; } }
 .mandatory { cursor: default; }
 .required-badge { display: inline-block; margin-left: .35rem; padding: .1rem .35rem; color: #716016; background: #fef9c3; border-radius: 4px; font-size: .62rem; font-weight: 700; text-transform: uppercase; }
 .fields-grid { margin-top: 1.25rem; }
