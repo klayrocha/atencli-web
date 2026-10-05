@@ -22,6 +22,14 @@ interface MetricCard {
   helper: string;
 }
 
+interface StageGroup {
+  id: string;
+  title: string;
+  helper: string;
+  icon: string;
+  codes: string[];
+}
+
 @Component({
   selector: 'app-etapas',
   standalone: true,
@@ -43,8 +51,32 @@ export class EtapasComponent implements OnInit {
     'LOST',
     'FUTURE_REACTIVATION',
   ];
+  readonly stageGroups: StageGroup[] = [
+    {
+      id: 'attendance',
+      title: 'Atendimento',
+      helper: 'Da entrada até a qualificação do contato',
+      icon: 'pi pi-comments',
+      codes: ['NEW_CONTACT', 'IN_SERVICE', 'AWAITING_RESPONSE', 'QUALIFIED'],
+    },
+    {
+      id: 'appointments',
+      title: 'Agenda',
+      helper: 'Consulta marcada, confirmação, comparecimento e falta',
+      icon: 'pi pi-calendar',
+      codes: ['APPOINTMENT_SCHEDULED', 'APPOINTMENT_CONFIRMED', 'ATTENDED', 'NO_SHOW'],
+    },
+    {
+      id: 'outcomes',
+      title: 'Fechamento',
+      helper: 'Resultado final ou retomada futura',
+      icon: 'pi pi-flag',
+      codes: ['PATIENT_WON', 'LOST', 'FUTURE_REACTIVATION'],
+    },
+  ];
   stages: AttendanceStage[] = [];
   columns: StageColumn[] = [];
+  collapsedGroups = new Set<string>();
   search = '';
   movingConversationId: number | null = null;
   dragged: { conversation: ConversationSummary; sourceColumn: StageColumn } | null = null;
@@ -133,6 +165,26 @@ export class EtapasComponent implements OnInit {
   async loadMore(column: StageColumn): Promise<void> {
     if (column.loading || column.page + 1 >= column.totalPages) return;
     await this.loadColumn(column, column.page + 1, true);
+  }
+
+  columnsForGroup(group: StageGroup): StageColumn[] {
+    return this.columns.filter(column => group.codes.includes(column.stage.systemCode));
+  }
+
+  groupTotal(group: StageGroup): number {
+    return this.columnsForGroup(group).reduce((sum, column) => sum + column.total, 0);
+  }
+
+  isGroupOpen(group: StageGroup): boolean {
+    return !this.collapsedGroups.has(group.id);
+  }
+
+  toggleGroup(group: StageGroup): void {
+    if (this.collapsedGroups.has(group.id)) {
+      this.collapsedGroups.delete(group.id);
+    } else {
+      this.collapsedGroups.add(group.id);
+    }
   }
 
   async changeConversationStage(conversation: ConversationSummary, sourceColumn: StageColumn, targetStageId: number): Promise<void> {
