@@ -1,0 +1,83 @@
+<section class="tasks-page">
+  <header class="page-heading"><div><h1>Tarefas</h1><p>Acompanhe o que precisa ser feito hoje para não perder oportunidades.</p></div>
+    <button class="refresh" (click)="load()" [disabled]="loading || busy"><i class="pi pi-refresh" aria-hidden="true"></i> Atualizar</button>
+  </header>
+  <div class="summary-grid" aria-label="Resumo da clínica">
+    <article class="summary-card"><span class="summary-icon"><i class="pi pi-calendar-plus" aria-hidden="true"></i></span><div><strong>{{ summary?.dueToday ?? '—' }}</strong><h2>para hoje</h2><p>{{ summary ? summary.highPriorityToday + ' de alta prioridade' : 'Carregando resumo' }}</p></div><span class="accent"></span></article>
+    <article class="summary-card overdue"><span class="summary-icon"><i class="pi pi-clock" aria-hidden="true"></i></span><div><strong>{{ summary?.overdue ?? '—' }}</strong><h2>atrasadas</h2><p>Requerem atenção</p></div><span class="accent"></span></article>
+    <article class="summary-card week"><span class="summary-icon"><i class="pi pi-calendar" aria-hidden="true"></i></span><div><strong>{{ summary?.dueThisWeek ?? '—' }}</strong><h2>desta semana</h2><p>Até domingo</p></div><span class="accent"></span></article>
+    <article class="summary-card ai"><span class="summary-icon"><i class="pi pi-sparkles" aria-hidden="true"></i></span><div><strong>{{ summary?.aiLinkedOpen ?? '—' }}</strong><h2>ligadas à IA</h2><p>Revisão necessária</p></div><span class="accent"></span></article>
+  </div>
+  <p class="feedback success" role="status" *ngIf="notice">{{ notice }}</p>
+  <div class="feedback error" role="alert" *ngIf="error">{{ error }} <button (click)="load()" [disabled]="busy || loading">Tentar novamente</button></div>
+  <p class="feedback" role="status" *ngIf="referenceWarning">{{ referenceWarning }}</p>
+  <div class="bulk-toolbar" *ngIf="bulkMode"><span>Selecione as tarefas abertas · <b>{{ selected.size }} selecionada(s)</b></span><button class="primary" [disabled]="!selected.size || busy || loading" (click)="completeSelected()">Concluir selecionadas</button><button (click)="toggleBulk()" [disabled]="busy">Sair da seleção</button></div>
+  <div class="tasks-layout">
+    <div class="board" [attr.aria-busy]="loading">
+      <section class="task-column" *ngFor="let column of columns" [attr.data-bucket]="column.bucket" [attr.aria-label]="column.label">
+        <header class="column-heading"><i class="pi" [ngClass]="column.icon" aria-hidden="true"></i><h2>{{ column.label }}</h2><span class="count">{{ loading ? '…' : tasks[column.bucket].length }}{{ !loading && tasks[column.bucket].length === 200 ? '+' : '' }}</span></header>
+        <ng-container *ngIf="!loading; else skeleton">
+          <div class="task-list" *ngIf="!error">
+            <article class="task-card" *ngFor="let task of visible(column.bucket)" [class.selected]="selected.has(task.id)">
+              <div class="task-title">
+                <input *ngIf="bulkMode && task.status === 'OPEN'; else statusButton" type="checkbox" [checked]="selected.has(task.id)" (change)="select(task)" [disabled]="busy" [attr.aria-label]="'Selecionar ' + task.title">
+                <ng-template #statusButton><button class="task-check" [class.checked]="task.status === 'COMPLETED'" [disabled]="busy" (click)="action(task, task.status === 'COMPLETED' ? 'reopen' : 'complete')" [attr.aria-label]="(task.status === 'COMPLETED' ? 'Reabrir ' : 'Concluir ') + task.title" [title]="task.status === 'COMPLETED' ? 'Reabrir tarefa' : 'Concluir tarefa'"><i *ngIf="task.status === 'COMPLETED'" class="pi pi-check" aria-hidden="true"></i></button></ng-template>
+                <div><h3><button class="title-button" *ngIf="task.status === 'OPEN'; else completedTitle" (click)="openEditor(task)" [disabled]="busy">{{ task.title }}</button><ng-template #completedTitle>{{ task.title }}</ng-template></h3><p>{{ task.contactName || task.contactPhone || 'Sem contato vinculado' }}</p></div>
+              </div>
+              <div class="assignee"><span class="avatar" aria-hidden="true">{{ initials(task.assigneeUserName) }}</span><span>{{ task.assigneeUserName || 'Sem responsável' }}</span><i *ngIf="task.aiLinked" class="pi pi-sparkles ai-mark" title="Ligada à inteligência artificial" aria-label="Ligada à IA"></i></div>
+              <p class="due">{{ dateLabel(task, column.bucket) }}</p>
+              <p class="stage" *ngIf="task.currentStage">{{ task.currentStage }}</p>
+              <p class="source" *ngIf="task.source === 'FOLLOW_UP'">Criada pelo acompanhamento automático</p>
+              <footer class="task-footer"><span class="priority" [attr.data-priority]="task.priority">{{ priorityLabel(task.priority) }}</span><span class="card-actions">
+                <a *ngIf="task.conversationId" class="icon-button" [routerLink]="['/conversas']" [queryParams]="{ conversationId: task.conversationId }" [attr.aria-label]="'Ver conversa de ' + (task.contactName || 'contato')" title="Ver contato e conversa"><i class="pi pi-comment" aria-hidden="true"></i></a>
+                <details class="task-menu"><summary aria-label="Mais ações" title="Mais ações"><i class="pi pi-ellipsis-v" aria-hidden="true"></i></summary><div class="menu-items"><button *ngIf="task.status === 'OPEN'" [disabled]="busy" (click)="openEditor(task)">Editar tarefa</button><button *ngIf="task.status === 'OPEN'" [disabled]="busy" (click)="action(task, 'complete')">Concluir</button><button *ngIf="task.status === 'OPEN'" class="danger" [disabled]="busy" (click)="action(task, 'cancel')">Cancelar tarefa</button><button *ngIf="task.status === 'COMPLETED'" [disabled]="busy" (click)="action(task, 'reopen')">Reabrir tarefa</button></div></details>
+              </span></footer>
+            </article>
+            <div class="empty" *ngIf="!tasks[column.bucket].length"><i class="pi" [ngClass]="column.icon" aria-hidden="true"></i><p>{{ column.empty }}</p><small>As tarefas que correspondem aos filtros aparecem aqui.</small></div>
+          </div>
+          <button class="show-all" *ngIf="!error && tasks[column.bucket].length > 3" (click)="toggleExpanded(column.bucket)">{{ expanded.has(column.bucket) ? 'Mostrar menos' : 'Ver ' + tasks[column.bucket].length + ' tarefas' }} <i class="pi" [ngClass]="expanded.has(column.bucket) ? 'pi-arrow-up' : 'pi-arrow-right'" aria-hidden="true"></i></button>
+          <p class="limit-note" *ngIf="tasks[column.bucket].length === 200">Limite de 200 resultados. Refine os filtros.</p>
+        </ng-container>
+        <ng-template #skeleton><div class="skeleton" *ngFor="let n of [1,2,3]" aria-label="Carregando tarefas"></div></ng-template>
+      </section>
+    </div>
+    <aside class="side-panel">
+      <section class="panel filters"><header><h2><i class="pi pi-filter" aria-hidden="true"></i> Filtros</h2><button class="text-button" (click)="clearFilters()" [disabled]="busy">Limpar filtros</button></header>
+        <label>Responsável<select [(ngModel)]="filters.assigneeUserUuid" (ngModelChange)="load()" [disabled]="busy"><option [ngValue]="undefined">Todos</option><option *ngFor="let member of team" [value]="member.userUuid">{{ member.fullName }}</option></select></label>
+        <label>Prioridade<select [(ngModel)]="filters.priority" (ngModelChange)="load()" [disabled]="busy"><option [ngValue]="undefined">Todas</option><option *ngFor="let priority of priorities" [value]="priority.value">{{ priority.label }}</option></select></label>
+        <label>Tipo de tarefa<select [(ngModel)]="filters.type" (ngModelChange)="load()" [disabled]="busy"><option [ngValue]="undefined">Todos</option><option *ngFor="let type of types" [value]="type.value">{{ type.label }}</option></select></label>
+        <label>Etapa do atendimento<select [(ngModel)]="filters.stageId" (ngModelChange)="load()" [disabled]="busy"><option [ngValue]="undefined">Todas</option><option *ngFor="let stage of stages" [ngValue]="stage.id">{{ stage.name }}</option></select></label>
+        <label class="check-label"><input type="checkbox" [(ngModel)]="filters.mine" (ngModelChange)="load()" [disabled]="busy"> Somente minhas tarefas</label>
+        <small>Os filtros se aplicam às listas. O resumo mostra toda a clínica.</small>
+      </section>
+      <section class="panel quick-actions"><h2>Ações rápidas</h2>
+        <button (click)="openEditor()" [disabled]="busy"><span class="quick-icon"><i class="pi pi-plus-circle" aria-hidden="true"></i></span><span><b>Nova tarefa</b><small>Criar uma tarefa manualmente</small></span><i class="pi pi-arrow-right" aria-hidden="true"></i></button>
+        <button (click)="toggleBulk()" [disabled]="busy || loading"><span class="quick-icon"><i class="pi pi-check-circle" aria-hidden="true"></i></span><span><b>{{ bulkMode ? 'Sair da seleção' : 'Concluir em massa' }}</b><small>Marcar várias tarefas como concluídas</small></span><i class="pi pi-arrow-right" aria-hidden="true"></i></button>
+        <button (click)="contactsDialog.showModal()" [disabled]="loading || !!error"><span class="quick-icon"><i class="pi pi-users" aria-hidden="true"></i></span><span><b>Ver contato</b><small>Abrir contato vinculado a uma tarefa</small></span><i class="pi pi-arrow-right" aria-hidden="true"></i></button>
+      </section>
+      <p class="timezone">Horários das listas: {{ timeZone }}</p>
+    </aside>
+  </div>
+</section>
+<dialog #editor class="editor" aria-labelledby="editor-title" (cancel)="busy && $event.preventDefault()">
+  <form #taskForm="ngForm" (ngSubmit)="taskForm.valid && save()">
+    <header><div><h2 id="editor-title">{{ editing ? 'Editar tarefa' : 'Nova tarefa' }}</h2><p>Organize o próximo passo do atendimento.</p></div><button type="button" class="icon-button" aria-label="Fechar" (click)="closeEditor()" [disabled]="busy"><i class="pi pi-times" aria-hidden="true"></i></button></header>
+    <fieldset [disabled]="busy">
+      <label>Título *<input name="title" [(ngModel)]="form.title" required maxlength="180" autofocus placeholder="Ex.: confirmar consulta de amanhã"></label>
+      <label>Descrição<textarea name="description" [(ngModel)]="form.description" maxlength="1000" rows="3" placeholder="Informações que ajudam a realizar a tarefa"></textarea></label>
+      <div class="form-grid"><label>Tipo *<select name="type" [(ngModel)]="form.type" required><option *ngFor="let type of types" [value]="type.value">{{ type.label }}</option></select></label><label>Prioridade *<select name="priority" [(ngModel)]="form.priority" required><option *ngFor="let priority of priorities" [value]="priority.value">{{ priority.label }}</option></select></label></div>
+      <div class="form-grid"><label>Responsável<select name="assignee" [(ngModel)]="form.assigneeUserUuid"><option value="">Sem responsável</option><option *ngIf="editing?.assigneeUserUuid" [value]="editing!.assigneeUserUuid">{{ editing!.assigneeUserName }} (atual)</option><option *ngFor="let member of team" [value]="member.userUuid">{{ member.fullName }}</option></select></label><label>Prazo<input name="dueAt" type="datetime-local" [(ngModel)]="form.dueAt" [required]="!!editing?.dueAt"><small>Fuso do dispositivo: {{ inputTimeZone }}</small></label></div>
+      <label *ngIf="!editing">Contato (opcional)<select name="conversationId" [(ngModel)]="form.conversationId"><option [ngValue]="null">Sem contato vinculado</option><option *ngFor="let contact of contacts" [ngValue]="contact.id">{{ contact.profileName || 'Contato sem nome' }}{{ contact.stage ? ' · ' + contact.stage : '' }}</option></select><small *ngIf="contactWarning">{{ contactWarning }}</small></label>
+      <p *ngIf="editing?.conversationId" class="linked-contact">Contato vinculado: {{ editing!.contactName || editing!.contactPhone || 'Conversa #' + editing!.conversationId }}</p>
+      <label class="check-label"><input type="checkbox" name="aiLinked" [(ngModel)]="form.aiLinked"> Ligada à inteligência artificial</label>
+    </fieldset>
+    <p *ngIf="formError" class="feedback error" role="alert">{{ formError }}</p>
+    <footer><button type="button" (click)="closeEditor()" [disabled]="busy">Voltar</button><button type="submit" class="primary" [disabled]="busy || !taskForm.valid || !form.title.trim()">{{ busy ? 'Salvando…' : 'Salvar tarefa' }}</button></footer>
+  </form>
+</dialog>
+
+<dialog #contactsDialog class="editor" aria-labelledby="contacts-title">
+  <header><div><h2 id="contacts-title">Ver contato</h2><p>Contatos das tarefas exibidas no quadro.</p></div><button class="icon-button" aria-label="Fechar contatos" (click)="contactsDialog.close()"><i class="pi pi-times" aria-hidden="true"></i></button></header>
+  <div class="contact-list"><a *ngFor="let task of linkedContacts" [routerLink]="['/conversas']" [queryParams]="{ conversationId: task.conversationId }" (click)="contactsDialog.close()"><span><b>{{ task.contactName || task.contactPhone || 'Contato sem nome' }}</b><small>{{ task.currentStage || 'Abrir conversa e dados do contato' }}</small></span><i class="pi pi-arrow-right" aria-hidden="true"></i></a></div>
+  <p *ngIf="!linkedContacts.length" class="feedback">Nenhum contato vinculado às tarefas destes filtros.</p>
+</dialog>

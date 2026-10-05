@@ -51,7 +51,7 @@ export const routes: Routes = [
       { path: 'agenda', loadComponent: () => import('./pages/agenda/agenda.component').then(m => m.AgendaComponent) },
       { path: 'calendar', redirectTo: 'agenda', pathMatch: 'full' },
       { path: 'ac', component: AcompanhamentoAutomaticoComponent },
-      { path: 'tarefas', component: DashboardComponent },
+      { path: 'tarefas', loadComponent: () => import('./pages/tarefas/tarefas.component').then(m => m.TarefasComponent) },
       { path: 'resultados', component: DashboardComponent },
       { path: 'ia', component: WizardStep7AiComponent },
       { path: 'wizard-step-7-ai', redirectTo: 'ia', pathMatch: 'full' },
