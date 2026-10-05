@@ -32,10 +32,16 @@ interface MetricCard {
 export class EtapasComponent implements OnInit {
   readonly visibleStageCodes = [
     'NEW_CONTACT',
+    'IN_SERVICE',
+    'AWAITING_RESPONSE',
     'QUALIFIED',
     'APPOINTMENT_SCHEDULED',
     'APPOINTMENT_CONFIRMED',
+    'ATTENDED',
     'NO_SHOW',
+    'PATIENT_WON',
+    'LOST',
+    'FUTURE_REACTIVATION',
   ];
   stages: AttendanceStage[] = [];
   columns: StageColumn[] = [];
