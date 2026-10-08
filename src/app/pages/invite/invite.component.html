@@ -1,0 +1,33 @@
+<main class="invite-page">
+  <section class="invite-card" aria-labelledby="invite-title" [attr.aria-busy]="loading || submitting">
+    <div class="brand"><i class="pi pi-heart" aria-hidden="true"></i> Atenclin</div>
+    <span class="eyebrow">SUA EQUIPE, MAIS CONECTADA</span>
+    <h1 id="invite-title">{{ accepted ? 'Convite confirmado!' : 'Você recebeu um convite' }}</h1>
+    <p *ngIf="loading" role="status"><i class="pi pi-spin pi-spinner" aria-hidden="true"></i> Validando seu convite…</p>
+    <div *ngIf="error" class="message error" role="alert">{{ error }}</div>
+    <button *ngIf="error && !accepted" type="button" class="secondary" (click)="load()" [disabled]="loading || submitting">Atualizar convite</button>
+    <ng-container *ngIf="!loading && invitation as invite">
+      <ng-container *ngIf="!accepted">
+        <p class="intro">Olá, <strong>{{ invite.invitedName }}</strong>! Você foi convidado para fazer parte da equipe de <strong>{{ invite.clinicName }}</strong>.</p>
+        <dl><div><dt>E-mail</dt><dd>{{ invite.maskedEmail }}</dd></div><div><dt>Perfil de acesso</dt><dd>{{ roles[invite.role] }}</dd></div><div><dt>Validade</dt><dd>{{ invite.expiresAt | date:'dd/MM/yyyy HH:mm' }}</dd></div></dl>
+        <p *ngIf="statusMessage" class="message" role="status">{{ statusMessage }}</p>
+        <form *ngIf="pending && invite.authProvider === 'LOCAL'" (ngSubmit)="accept()">
+          <p>Crie sua senha para confirmar o convite.</p>
+          <label for="invite-password">Senha</label>
+          <input id="invite-password" type="password" name="password" [(ngModel)]="password" minlength="8" maxlength="72" required autocomplete="new-password" aria-describedby="password-help" [disabled]="submitting">
+          <small id="password-help">Use de 8 a 72 caracteres, com maiúscula, minúscula e número, sem espaços.</small>
+          <label for="invite-confirmation">Confirmar senha</label>
+          <input id="invite-confirmation" type="password" name="confirmation" [(ngModel)]="confirmation" required maxlength="72" autocomplete="new-password" [disabled]="submitting" [attr.aria-invalid]="!!confirmation && password !== confirmation">
+          <small class="mismatch" *ngIf="confirmation && password !== confirmation">As senhas precisam ser iguais.</small>
+          <button class="primary" type="submit" [disabled]="submitting || !passwordValid || password !== confirmation">{{ submitting ? 'Confirmando…' : 'Confirmar convite' }}</button>
+        </form>
+        <div *ngIf="pending && invite.authProvider === 'GOOGLE'">
+          <p>Use a conta Google correspondente ao e-mail convidado.</p>
+          <button type="button" class="primary" (click)="acceptGoogle()" [disabled]="submitting"><i class="pi pi-google" aria-hidden="true"></i> {{ submitting ? 'Redirecionando…' : 'Confirmar com Google' }}</button>
+        </div>
+      </ng-container>
+      <p *ngIf="accepted" class="message success" role="status">Seu acesso à equipe de {{ invite.clinicName }} foi criado. Entre usando o e-mail convidado e a senha que você definiu.</p>
+    </ng-container>
+    <a routerLink="/login" class="login-link">Ir para o login <i class="pi pi-arrow-right" aria-hidden="true"></i></a>
+  </section>
+</main>

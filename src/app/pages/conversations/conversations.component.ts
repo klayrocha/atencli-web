@@ -3,13 +3,65 @@ import { AfterViewChecked, Component, ElementRef, OnDestroy, OnInit, ViewChild }
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
-import { ConversationDetail, ConversationFilter, ConversationMessage, ConversationSummary, ConversationsService } from '../../whatsapp/conversations.service';
+import { AuthService } from '../../auth/auth.service';
+import { ConversationAssignee, ConversationDetail, ConversationFilter, ConversationMessage, ConversationSummary, ConversationsService } from '../../whatsapp/conversations.service';
 
 @Component({
   selector: 'app-conversations', standalone: true, imports: [CommonModule, FormsModule],
   templateUrl: './conversations.component.html', styleUrls: ['./conversations.component.scss'],
 })
 export class ConversationsComponent implements OnInit, OnDestroy, AfterViewChecked {
+  @ViewChild('assignmentDialog', { static: true }) assignmentDialog!: ElementRef<HTMLDialogElement>;
+  assignees: ConversationAssignee[] = [];
+  loadingAssignees = false;
+  assigning = false;
+  assignmentError = '';
+  private assignmentConversationId: number | null = null;
+  private assigneeRequest = 0;
+  private failedAvatars = new Set<string>();
+
+  get currentUserUuid() { return this.auth.currentProfile()?.userUuid ?? this.auth.currentUser()?.id; }
+  avatar(person: ConversationAssignee | null | undefined): string | null {
+    if (!person || this.failedAvatars.has(person.userUuid)) return null;
+    return person.avatarUrl || (person.userUuid === this.currentUserUuid ? this.auth.currentUser()?.avatar : null) || null;
+  }
+  avatarFailed(person: ConversationAssignee) { this.failedAvatars.add(person.userUuid); }
+  initials(name: string) { return name.split(' ').filter(Boolean).slice(0, 2).map(part => part[0]).join('').toUpperCase(); }
+  async openAssignment() {
+    if (!this.detail || this.loadingDetail || this.assigning) return;
+    this.assignmentConversationId = this.detail.id;
+    this.assignmentDialog.nativeElement.showModal();
+    const request = ++this.assigneeRequest;
+    this.loadingAssignees = true; this.assignmentError = ''; this.assignees = [];
+    try {
+      const people = await this.api.assignees();
+      if (this.destroyed || request !== this.assigneeRequest) return;
+      this.assignees = people.sort((a, b) => Number(b.userUuid === this.currentUserUuid) - Number(a.userUuid === this.currentUserUuid) || a.fullName.localeCompare(b.fullName));
+    } catch { if (request === this.assigneeRequest) this.assignmentError = 'Não foi possível carregar os atendentes. Tente novamente.'; }
+    finally { if (request === this.assigneeRequest) this.loadingAssignees = false; }
+  }
+  closeAssignment() { if (!this.assigning) this.assignmentDialog.nativeElement.close(); }
+  async assignTo(person: ConversationAssignee) {
+    const id = this.assignmentConversationId;
+    if (!id || this.assigning || this.loadingAssignees) return;
+    const version = this.selectionVersion;
+    this.assigning = true; this.assignmentError = '';
+    try {
+      const result = await this.api.assign(id, person.userUuid);
+      if (this.destroyed) return;
+      if (version === this.selectionVersion && this.detail?.id === id) {
+        this.detail = { ...this.detail, assignee: result.assignee };
+      }
+      this.assignmentDialog.nativeElement.close();
+      if (this.filter !== 'all') await this.load();
+    } catch (error) {
+      const status = (error as { status?: number })?.status;
+      this.assignmentError = status === 403 ? 'Você não tem permissão para atribuir esta conversa.'
+        : status === 400 || status === 409 ? 'Não foi possível atribuir. Confira se a conversa está aberta e o atendente está habilitado.'
+        : 'Não foi possível atribuir o atendimento. Tente novamente.';
+    } finally { this.assigning = false; }
+  }
+
   filter: ConversationFilter = 'all';
   query = '';
   ascending = false;
@@ -48,7 +100,7 @@ export class ConversationsComponent implements OnInit, OnDestroy, AfterViewCheck
     }
   }
 
-  constructor(private api: ConversationsService, private route: ActivatedRoute) {}
+  constructor(private api: ConversationsService, private route: ActivatedRoute, private auth: AuthService) {}
   ngOnInit(): void {
     const queryFilter = this.route.snapshot.queryParamMap.get('filter');
     if (queryFilter === 'unassigned') this.filter = 'unassigned';

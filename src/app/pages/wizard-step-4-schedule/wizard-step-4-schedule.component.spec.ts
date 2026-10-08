@@ -93,4 +93,42 @@ describe('Schedule appointment intervals', () => {
     expect(api.deleteAvailability).toHaveBeenCalledOnceWith(2);
     expect(router.navigate).toHaveBeenCalled();
   });
+  it('blocks both exception types on a weekday without standard hours', async () => {
+    await component.ngOnInit();
+    component.newException.date = '2026-10-11'; // Sunday; only Monday is configured.
+    for (const type of ['CLOSED', 'WORKING_HOURS'] as const) {
+      component.newException.type = type;
+      component.addException();
+      expect(component.exceptions).toEqual([]);
+      expect(component.exceptionDateError).toBe('Exceções só são permitidas para dias de atendimento.');
+    }
+  });
+  it('allows exceptions on a configured weekday without timezone shifts', async () => {
+    await component.ngOnInit();
+    for (const type of ['CLOSED', 'WORKING_HOURS'] as const) {
+      component.newException = { date: '2026-10-12', type, start: '09:00', end: '12:00', description: '' };
+      expect(component.exceptionDateError).toBe('');
+      component.addException();
+    }
+    expect(component.exceptions.length).toBe(2);
+    expect(component.exceptions.every(item => item.date === '2026-10-12')).toBeTrue();
+  });
+  it('rechecks the current standard hours and rejects empty or invalid dates', async () => {
+    await component.ngOnInit();
+    component.newException.date = '2026-10-12';
+    component.toggleDay(component.days[0]);
+    component.addException();
+    expect(component.exceptions.length).toBe(0);
+    component.toggleDay(component.days[0]);
+    expect(component.exceptionDateError).toBe('');
+    component.days[0].start = '';
+    component.addException();
+    expect(component.exceptions.length).toBe(0);
+    for (const date of ['', '2026-02-30']) {
+      component.newException.date = date;
+      component.addException();
+      expect(component.exceptionDateError).toContain('data válida');
+    }
+    expect(component.exceptions.length).toBe(0);
+  });
 });

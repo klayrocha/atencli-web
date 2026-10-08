@@ -17,3 +17,9 @@ button, input, textarea { font: inherit; } button { cursor: pointer; color: inhe
 .failed-message { border-color: #fca5a5 !important; }
 button:disabled { cursor: not-allowed; opacity: .55; }
 .details-card p + h4 { margin-top: 12px; }
+
+.attendant-avatar { display: inline-grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: #e8f2de; color: #527647; font-size: 11px; font-weight: 600; object-fit: cover; flex-shrink: 0; }
+.assignment-trigger img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
+.assignment-dialog { border: 1px solid #e7ece3; border-radius: 18px; padding: 24px; width: min(430px,calc(100vw - 32px)); max-height: 85vh; overflow-y: auto; color: #344232; box-shadow: 0 20px 70px #24312533; &::backdrop { background: #24312555; } header { display: flex; gap: 15px; justify-content: space-between; margin-bottom: 20px; } h2 { font-size: 18px; } p { font-size: 12px; color: #6d7869; margin-top: 9px; } button:disabled { opacity: .5; cursor: not-allowed; } }
+.assignee-list { display: grid; gap: 6px; > button { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid #e8eee4; border-radius: 10px; text-align: left; width: 100%; font-size: 13px; &:hover,.current { background: #f2f7ed; } &.current { border-color: #a6c18d; } small { display: block; color: #7b876f; margin-top: 3px; } > i { margin-left: auto; } } }
+@media(max-width:760px) { .chat-tools .icon-button.contact-toggle { display: inline-grid; } }

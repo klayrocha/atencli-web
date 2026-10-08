@@ -42,7 +42,10 @@
       <div class="chat-person"><h2>{{ detail?.name || detail?.profileName || current.profileName || 'Contato sem nome' }}</h2><p>{{ detail?.origin || 'Origem não informada' }} <span *ngIf="detail?.stage">· {{ detail?.stage }}</span></p></div>
       <div class="tools chat-tools">
         <button class="icon-button" (click)="select(current, false)" [disabled]="loadingDetail || sending" aria-label="Atualizar mensagens"><i class="pi pi-refresh"></i></button>
-        <button class="icon-button" (click)="contactOpen = !contactOpen" [disabled]="!detail" aria-label="Mostrar dados do contato"><i class="pi pi-user"></i></button>
+        <button class="icon-button assignment-trigger" (click)="openAssignment()" [disabled]="!detail || loadingDetail || assigning" aria-label="Atribuir atendimento humano" aria-haspopup="dialog" [title]="detail?.assignee?.fullName || 'Atribuir atendimento humano'">
+          <ng-container *ngIf="detail?.assignee as owner; else noOwner"><img *ngIf="avatar(owner) as photo; else ownerInitials" [src]="photo" [alt]="owner.fullName" (error)="avatarFailed(owner)"><ng-template #ownerInitials><span class="attendant-avatar">{{ initials(owner.fullName) }}</span></ng-template></ng-container><ng-template #noOwner><i class="pi pi-user"></i></ng-template>
+        </button>
+        <button class="icon-button contact-toggle" (click)="contactOpen = !contactOpen" [disabled]="!detail" aria-label="Mostrar dados do contato"><i class="pi pi-id-card"></i></button>
       </div>
     </header>
     <div class="chat-body">
@@ -89,3 +92,15 @@
     <ng-template #noContact><p class="empty">{{ loadingDetail ? 'Carregando dados...' : 'Selecione uma conversa para ver os dados do contato.' }}</p></ng-template>
   </aside>
 </div>
+
+<dialog #assignmentDialog class="assignment-dialog" aria-labelledby="assignment-title" (cancel)="assigning && $event.preventDefault()">
+  <header><div><h2 id="assignment-title">Atribuir atendimento humano</h2><p>Selecione quem vai atender esta conversa.</p></div><button class="icon-button" (click)="closeAssignment()" [disabled]="assigning" aria-label="Fechar seleção de atendente"><i class="pi pi-times"></i></button></header>
+  <p *ngIf="loadingAssignees" role="status">Carregando atendentes…</p>
+  <p *ngIf="assignmentError" class="api-error" role="alert">{{ assignmentError }} <button *ngIf="!assignees.length" (click)="openAssignment()">Tentar novamente</button></p>
+  <div class="assignee-list"><button *ngFor="let person of assignees" (click)="assignTo(person)" [disabled]="assigning" [class.current]="person.userUuid === detail?.assignee?.userUuid">
+    <img *ngIf="avatar(person) as photo; else initialsAvatar" class="attendant-avatar" [src]="photo" alt="" (error)="avatarFailed(person)"><ng-template #initialsAvatar><span class="attendant-avatar">{{ initials(person.fullName) }}</span></ng-template>
+    <span>{{ person.fullName }} <small *ngIf="person.userUuid === currentUserUuid">Você</small></span><i *ngIf="person.userUuid === detail?.assignee?.userUuid" class="pi pi-check" aria-label="Responsável atual"></i>
+  </button></div>
+  <p *ngIf="!loadingAssignees && !assignmentError && !assignees.length">Nenhum atendente habilitado para receber conversas.</p>
+  <p *ngIf="assigning" role="status">Atribuindo atendimento…</p>
+</dialog>

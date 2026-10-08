@@ -121,8 +121,8 @@ export interface TeamResponse {
 }
 
 export interface InvitationDetailsResponse {
-  clientName: string;
-  fullName: string;
+  clinicName: string;
+  invitedName: string;
   maskedEmail: string;
   role: TeamRole;
   authProvider: AuthProvider;
@@ -257,7 +257,7 @@ export class WizardService {
   async saveServices(services: Array<{
     serviceId: number;
     price: number;
-    planPrice: number;
+    planPrice: number | null;
     durationMinutes: number;
   }>): Promise<void> {
     await firstValueFrom(
@@ -391,7 +391,7 @@ export class WizardService {
   async getInvitationDetails(token: string): Promise<InvitationDetailsResponse> {
     return firstValueFrom(
       this.http.get<InvitationDetailsResponse>(
-        `${environment.apiBaseUrl}/api/v1/invitations/${token}`
+        `${environment.apiBaseUrl}/api/v1/invitations/${encodeURIComponent(token)}`
       )
     );
   }
@@ -399,14 +399,14 @@ export class WizardService {
   async acceptLocalInvitation(token: string, password: string): Promise<void> {
     await firstValueFrom(
       this.http.post(
-        `${environment.apiBaseUrl}/api/v1/invitations/${token}/accept-local`,
+        `${environment.apiBaseUrl}/api/v1/invitations/${encodeURIComponent(token)}/accept-local`,
         { password }
       )
     );
   }
 
   startGoogleInvitation(token: string): void {
-    window.location.href = `${environment.apiBaseUrl}/api/v1/invitations/${token}/google/start`;
+    window.location.href = `${environment.apiBaseUrl}/api/v1/invitations/${encodeURIComponent(token)}/google/start`;
   }
 
   async saveHealthPlans(healthPlanIds: number[]): Promise<void> {

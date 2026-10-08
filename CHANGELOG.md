@@ -2,6 +2,33 @@
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-10-08
+
+### Adicionado
+
+- Tela de Tarefas integrada à API, com resumo, filtros, criação, edição, conclusão individual e em massa, cancelamento, reabertura e acesso à conversa vinculada.
+- Agenda e acompanhamento automático integrados ao atendimento.
+- Rota pública `/invite/:token`, sem guard de autenticação, para consultar e confirmar convites com senha ou Google, incluindo tratamento de convites expirados, cancelados e já aceitos.
+- Modal de atribuição de atendimento humano em Conversas, com atendentes habilitados da clínica, destaque para o usuário logado e avatar com iniciais quando não há foto.
+- Seletor de 10, 25, 50 ou 100 serviços por página no onboarding.
+
+### Alterado
+
+- Aceitar sugestões preenche os valores praticado e de convênio dos serviços habilitados em todas as páginas.
+- Valor de convênio oculto e enviado como `null` quando a clínica não aceita plano de saúde.
+- Exceções de horário só podem ser adicionadas em dias com atendimento padrão válido, com mensagem explicativa e botão desabilitado.
+
+### Corrigido
+
+- Erros de convite, incluindo HTTP 409 por e-mail cadastrado ou convite pendente, exibidos no formulário sem apagar os dados preenchidos.
+- Paginação dos serviços recalculada ao carregar o catálogo e alterar a quantidade por página, incluindo lista vazia.
+- Contrato dos detalhes de convite alinhado aos campos `clinicName` e `invitedName` retornados pela API.
+- Proteção contra respostas atrasadas e falhas ao atribuir responsáveis às conversas.
+
+### Integração
+
+- Requer a API com `GET /api/v1/whatsapp/conversation-assignees` e suporte a `planPrice` nulo para clínicas sem plano de saúde, incluindo a migração V28.
+
 ## [0.4.0] - 2026-09-28
 
 ### Adicionado

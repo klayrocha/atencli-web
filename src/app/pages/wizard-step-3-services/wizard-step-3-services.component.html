@@ -24,7 +24,7 @@
       <div class="step-card-header">
         <div class="header-info">
           <h2 class="step-title">3. Serviços</h2>
-          <p class="step-desc">Habilite os serviços e ajuste os valores praticados e de convênio.</p>
+          <p class="step-desc">Habilite os serviços e ajuste os valores praticados{{ acceptsHealthPlan ? ' e de convênio' : '' }}.</p>
         </div>
         <div class="selected-counter">
           <i class="pi pi-check-circle"></i>
@@ -56,7 +56,7 @@
               <th class="col-name">Serviço</th>
               <th class="col-suggested">Sugestão</th>
               <th class="col-practice">Valor Praticado</th>
-              <th class="col-insurance">Valor Convênio</th>
+              <th class="col-insurance" *ngIf="acceptsHealthPlan">Valor Convênio</th>
               <th class="col-duration">Duração</th>
             </tr>
           </thead>
@@ -117,7 +117,7 @@
               </td>
 
               <!-- Valor Convênio (editável) -->
-              <td class="col-insurance">
+              <td class="col-insurance" *ngIf="acceptsHealthPlan">
                 <div class="price-input-wrap" [class.disabled]="!service.enabled" [class.input-error]="submitAttempted() && service.enabled && service.insurancePrice === null">
                   <span class="currency-prefix">R$</span>
                   <input
@@ -171,7 +171,7 @@
             type="button"
             class="bulk-btn bulk-btn--primary"
             (click)="acceptSuggestions()"
-            title="Copia o valor sugerido para o valor praticado em todos os serviços selecionados"
+            [title]="acceptsHealthPlan ? 'Copia o valor sugerido para os valores praticado e de convênio em todos os serviços selecionados, em todas as páginas' : 'Copia o valor sugerido para o valor praticado em todos os serviços selecionados, em todas as páginas'"
           >
             <i class="pi pi-check"></i>
             <span>Aceitar Sugestões</span>
@@ -179,6 +179,12 @@
         </div>
 
         <div class="pagination-area">
+          <label class="page-size-select">
+            Serviços por página
+            <select [ngModel]="pageSize" (ngModelChange)="changePageSize($event)" [disabled]="loadingServices()">
+              <option *ngFor="let size of pageSizeOptions" [ngValue]="size">{{ size }}</option>
+            </select>
+          </label>
           <button class="page-btn" [disabled]="currentPage() === 1" (click)="currentPage.set(1)">
             <i class="pi pi-angle-double-left"></i>
           </button>
@@ -201,7 +207,7 @@
           </button>
 
           <span class="pagination-info">
-            Mostrando {{ (currentPage() - 1) * pageSize + 1 }}–{{ Math.min(currentPage() * pageSize, allServices.length) }} de {{ allServices.length }} serviços
+            Mostrando {{ allServices.length ? (currentPage() - 1) * pageSize + 1 : 0 }}–{{ Math.min(currentPage() * pageSize, allServices.length) }} de {{ allServices.length }} serviços
           </span>
         </div>
       </div>
@@ -211,7 +217,7 @@
         <i class="pi pi-exclamation-triangle"></i>
         <span>
           {{ invalidServices.length }} serviço{{ invalidServices.length === 1 ? '' : 's' }} habilitado{{ invalidServices.length === 1 ? '' : 's' }}
-          com valor praticado, valor convênio ou duração pendente. Campo obrigatório.
+          com {{ acceptsHealthPlan ? 'valor praticado, valor convênio ou duração' : 'valor praticado ou duração' }} pendente. Campo obrigatório.
         </span>
       </div>
 

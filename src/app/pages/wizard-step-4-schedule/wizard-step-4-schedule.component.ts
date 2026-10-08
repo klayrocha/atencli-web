@@ -145,7 +145,22 @@ export class WizardStep4ScheduleComponent implements OnInit {
     day.active = !day.active;
   }
 
+  get exceptionDateError(): string {
+    const value = this.newException.date;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return 'Selecione uma data válida para a exceção.';
+    // A data representa um dia do calendário, sem conversão para o fuso local.
+    const date = new Date(`${value}T00:00:00Z`);
+    if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== value) {
+      return 'Selecione uma data válida para a exceção.';
+    }
+    const day = this.days[(date.getUTCDay() + 6) % 7];
+    return day?.active && day.start && day.end && day.start < day.end
+      ? ''
+      : 'Exceções só são permitidas para dias de atendimento.';
+  }
+
   addException(): void {
+    if (this.loading() || this.saving() || this.loadFailed() || this.exceptionDateError) return;
     const id = Date.now();
     this.exceptions = [...this.exceptions, { id, ...this.newException }];
     this.newException = {

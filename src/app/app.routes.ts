@@ -19,6 +19,10 @@ import { authGuard, guestGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
   {
+    path: 'invite/:token',
+    loadComponent: () => import('./pages/invite/invite.component').then(m => m.InviteComponent),
+  },
+  {
     path: 'login',
     component: LoginComponent,
     canActivate: [guestGuard]

@@ -168,6 +168,8 @@
                 type="date"
                 class="field-input"
                 [(ngModel)]="newException.date"
+                [attr.aria-invalid]="!loading() && !!exceptionDateError"
+                [attr.aria-describedby]="!loading() && exceptionDateError ? 'exception-date-error' : null"
                 name="exc-date"
               />
               <i class="pi pi-calendar field-icon-right"></i>
@@ -244,13 +246,17 @@
           <!-- Botão Adicionar -->
           <div class="form-field form-field--btn">
             <label class="field-label">&nbsp;</label>
-            <button type="button" class="btn-add-exception" (click)="addException()">
+            <button type="button" class="btn-add-exception" (click)="addException()" [disabled]="loading() || saving() || loadFailed() || !!exceptionDateError">
               <i class="pi pi-plus"></i>
               <span>Adicionar</span>
             </button>
           </div>
 
         </div>
+
+        <p *ngIf="!loading() && !loadFailed() && exceptionDateError" id="exception-date-error" class="schedule-error" role="alert">
+          {{ exceptionDateError }}
+        </p>
 
         <!-- Lista de exceções já adicionadas -->
         <div class="exceptions-list" *ngIf="exceptions.length > 0">

@@ -4,6 +4,7 @@ import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import { environment } from '../../environments/environment.development';
 
+export interface ConversationAssignee { userUuid: string; fullName: string; avatarUrl?: string | null; }
 export type ConversationFilter = 'all' | 'mine' | 'unassigned';
 export interface ApiPage<T> {
   content: T[];
@@ -29,7 +30,7 @@ export interface ConversationDetail {
   interestTags: string[];
   origin: string | null;
   stage: string | null;
-  assignee: { userUuid: string; fullName: string } | null;
+  assignee: ConversationAssignee | null;
 }
 export interface ConversationMessage {
   id: number;
@@ -50,6 +51,13 @@ export class ConversationsService {
   constructor(private http: HttpClient, private auth: AuthService) {}
   private get headers() { return { Authorization: `Bearer ${this.auth.getToken()}` }; }
 
+  assignees(): Promise<ConversationAssignee[]> {
+    return firstValueFrom(this.http.get<ConversationAssignee[]>(`${this.url}/conversation-assignees`, { headers: this.headers }));
+  }
+  assign(id: number, assigneeUserUuid: string): Promise<{ assignee: ConversationAssignee; handlerType: string }> {
+    return firstValueFrom(this.http.patch<{ assignee: ConversationAssignee; handlerType: string }>(
+      `${this.url}/conversations/${id}/assignment`, { assigneeUserUuid }, { headers: this.headers }));
+  }
   list(filter: ConversationFilter, page = 0): Promise<ApiPage<ConversationSummary>> {
     let params = new HttpParams().set('page', page).set('size', 50);
     if (filter === 'mine') params = params.set('mine', true);

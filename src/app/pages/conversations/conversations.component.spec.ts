@@ -1,3 +1,5 @@
+import { AuthService } from '../../auth/auth.service';
+import { ActivatedRoute } from '@angular/router';
 import { ConversationsComponent } from './conversations.component';
 import { ApiPage, ConversationDetail, ConversationMessage, ConversationSummary, ConversationsService } from '../../whatsapp/conversations.service';
 
@@ -10,12 +12,12 @@ describe('Conversations API integration', () => {
   let component: ConversationsComponent;
   let api: jasmine.SpyObj<ConversationsService>;
   beforeEach(() => {
-    api = jasmine.createSpyObj('ConversationsService', ['list', 'detail', 'messages', 'send']);
+    api = jasmine.createSpyObj('ConversationsService', ['list', 'detail', 'messages', 'send', 'assignees', 'assign']);
     api.list.and.resolveTo(page([summary(1)]));
     api.detail.and.callFake(async id => detail(id));
     api.messages.and.resolveTo(page([message(1)]));
     api.send.and.resolveTo(message(2));
-    component = new ConversationsComponent(api);
+    component = new ConversationsComponent(api, {} as ActivatedRoute, { currentProfile: () => ({ userUuid: 'me' }), currentUser: () => null } as unknown as AuthService);
   });
   it('loads summaries, contact data and messages without mock contacts', async () => {
     expect(component.conversations).toEqual([]);
@@ -99,5 +101,37 @@ describe('Conversations API integration', () => {
     finish(message(99));
     await sending;
     expect(component.messages.some(m => m.id === 99)).toBeFalse();
+  });
+  it('lists the logged-in attendant first and persists the selected assignment', async () => {
+    await component.select(summary(1));
+    component.assignmentDialog = { nativeElement: { showModal: () => {}, close: () => {} } } as any;
+    const me = { userUuid: 'me', fullName: 'Atendente atual' };
+    api.assignees.and.resolveTo([{ userUuid: 'other', fullName: 'Colega' }, me]);
+    api.assign.and.resolveTo({ assignee: me, handlerType: 'HUMAN' });
+    await component.openAssignment();
+    expect(component.assignees[0]).toEqual(me);
+    await component.assignTo(me);
+    expect(api.assign).toHaveBeenCalledWith(1, 'me');
+    expect(component.detail?.assignee).toEqual(me);
+  });
+  it('preserves the assignee when assignment fails', async () => {
+    await component.select(summary(1));
+    component.assignmentDialog = { nativeElement: { showModal: () => {}, close: () => {} } } as any;
+    api.assignees.and.resolveTo([{ userUuid: 'me', fullName: 'Atendente' }]);
+    await component.openAssignment(); api.assign.and.rejectWith({ status: 403 });
+    await component.assignTo(component.assignees[0]);
+    expect(component.detail?.assignee).toBeNull();
+    expect(component.assignmentError).toContain('permissão');
+  });
+  it('does not change another conversation after a delayed assignment response', async () => {
+    await component.select(summary(1));
+    component.assignmentDialog = { nativeElement: { showModal: () => {}, close: () => {} } } as any;
+    const me = { userUuid: 'me', fullName: 'Atendente' };
+    api.assignees.and.resolveTo([me]); await component.openAssignment();
+    let finish!: (value: { assignee: typeof me; handlerType: string }) => void;
+    api.assign.and.returnValue(new Promise(resolve => finish = resolve));
+    const saving = component.assignTo(me);
+    await component.select(summary(2)); finish({ assignee: me, handlerType: 'HUMAN' }); await saving;
+    expect(component.detail?.id).toBe(2); expect(component.detail?.assignee).toBeNull();
   });
 });

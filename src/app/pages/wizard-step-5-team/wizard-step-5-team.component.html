@@ -95,6 +95,7 @@
             </button>
           </div>
         </div>
+        <p *ngIf="inviteError()" class="invite-error" role="alert">{{ inviteError() }}</p>
       </div>
 
       <!-- Tabela de membros -->

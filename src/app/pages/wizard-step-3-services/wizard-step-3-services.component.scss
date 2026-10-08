@@ -554,6 +554,31 @@
   }
 }
 
+.page-size-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-right: 0.5rem;
+  font-size: 0.775rem;
+  color: #64748b;
+
+  select {
+    min-height: 32px;
+    padding: 0.25rem 0.5rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 7px;
+    background: #fff;
+    color: #475569;
+    font: inherit;
+    cursor: pointer;
+
+    &:focus-visible {
+      outline: 2px solid #84cc16;
+      outline-offset: 2px;
+    }
+  }
+}
+
 .pagination-info {
   font-size: 0.775rem;
   color: #64748b;

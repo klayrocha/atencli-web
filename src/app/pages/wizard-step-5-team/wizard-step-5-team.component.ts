@@ -1,6 +1,7 @@
 import { WizardStepperComponent } from '../wizard-shared/wizard-stepper.component';
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
 import { WizardStep, WIZARD_STEPS_DEFAULT } from '../wizard-shared/wizard.models';
@@ -62,6 +63,7 @@ export class WizardStep5TeamComponent implements OnInit {
 
   loading = signal(true);
   saving = signal(false);
+  inviteError = signal('');
 
   steps: WizardStep[] = WIZARD_STEPS_DEFAULT.map(s => ({
     ...s,
@@ -96,6 +98,8 @@ export class WizardStep5TeamComponent implements OnInit {
   }
 
   toggleInviteForm(): void {
+    if (this.saving()) return;
+    this.inviteError.set('');
     this.showInviteForm.update(v => !v);
     this.inviteFullName = '';
     this.inviteEmail   = '';
@@ -104,7 +108,8 @@ export class WizardStep5TeamComponent implements OnInit {
   }
 
   async sendInvite(): Promise<void> {
-    if (!this.inviteFullName.trim() || !this.inviteEmail.trim()) return;
+    if (this.saving() || !this.inviteFullName.trim() || !this.inviteEmail.trim()) return;
+    this.inviteError.set('');
     this.saving.set(true);
     try {
       await this.wizardService.inviteMember({
@@ -117,8 +122,18 @@ export class WizardStep5TeamComponent implements OnInit {
       });
       await this.loadTeam();
       this.showInviteForm.set(false);
-    } catch {
-      // Erro silenciado — pode adicionar toast aqui no futuro
+    } catch (error) {
+      const message = error instanceof HttpErrorResponse && typeof error.error?.message === 'string'
+        ? error.error.message.trim() : '';
+      const translations: Record<string, string> = {
+        'Email already registered': 'Usuário já cadastrado com este e-mail.',
+        'There is already a pending invitation for this email': 'Já existe um convite pendente para este e-mail.',
+      };
+      this.inviteError.set(translations[message] || message || (
+        error instanceof HttpErrorResponse && error.status === 409
+          ? 'Não foi possível enviar o convite: já existe um cadastro ou convite para este e-mail.'
+          : 'Não foi possível enviar o convite. Tente novamente.'
+      ));
     } finally {
       this.saving.set(false);
     }

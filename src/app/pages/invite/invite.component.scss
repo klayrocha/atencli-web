@@ -1,0 +1,16 @@
+:host { display: block; color: #26342e; }
+.invite-page { min-height: 100dvh; padding: 32px 18px; display: grid; place-items: center; background: radial-gradient(ellipse at top left,#ecf3cb,transparent 55%),#f5f8f6; }
+.invite-card { width: 100%; max-width: 490px; background: white; border: 1px solid #e7ede8; border-radius: 24px; padding: 36px; box-shadow: 0 18px 65px #26342e0b; }
+.brand { font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 10px; margin-bottom: 35px; i { color: #6b997d; } }
+.eyebrow { font-size: 10px; letter-spacing: 1.5px; color: #7b927e; font-weight: 600; }
+h1 { font-size: 26px; letter-spacing: -.7px; margin: 10px 0 18px; }
+p { font-size: 14px; line-height: 1.65; color: #68766d; }
+dl { border: 1px solid #e8eee9; border-radius: 12px; padding: 15px; margin: 22px 0; div { display: flex; justify-content: space-between; gap: 15px; padding: 6px 0; font-size: 12px; } dt { color: #79847c; } dd { margin: 0; text-align: right; overflow-wrap: anywhere; } }
+label { display: block; margin: 18px 0 7px; font-size: 13px; font-weight: 600; }
+input { width: 100%; box-sizing: border-box; border: 1px solid #dfe7df; border-radius: 9px; padding: 12px; font: inherit; }
+small { display: block; color: #778578; font-size: 11px; line-height: 1.5; margin-top: 7px; }.mismatch { color: #b64e38; }
+button { font: inherit; cursor: pointer; padding: 12px 16px; border-radius: 10px; border: 1px solid #dce8cd; font-size: 13px; &:disabled { opacity: .55; cursor: not-allowed; } }.primary { width: 100%; margin-top: 22px; background: #d6e97b; color: #354820; font-weight: 600; }.secondary { background: white; }
+a,input,button { &:focus-visible { outline: 2px solid #719554; outline-offset: 3px; } }
+.message { padding: 14px; border-radius: 10px; background: #f5f5e8; font-size: 13px; line-height: 1.6; margin: 15px 0; }.error { background: #fff0e9; color: #a44933; }.success { background: #eef8e8; color: #527348; }
+.login-link { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 26px; font-size: 13px; color: #64845b; text-decoration: none; }
+@media(max-width:500px) { .invite-card { padding: 25px; } h1 { font-size: 24px; } }

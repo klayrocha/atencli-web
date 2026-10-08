@@ -1,5 +1,5 @@
 import { WizardStepperComponent } from '../wizard-shared/wizard-stepper.component';
-import { Component, computed, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
@@ -42,6 +42,7 @@ export interface DurationOption {
 })
 export class WizardStep3ServicesComponent implements OnInit {
 
+  acceptsHealthPlan = true;
   loadingServices = signal(true);
   saving = signal(false);
   submitAttempted = signal(false);
@@ -65,9 +66,18 @@ export class WizardStep3ServicesComponent implements OnInit {
   allServices: ServiceItem[] = [];
 
   // Paginação
+  readonly pageSizeOptions = [10, 25, 50, 100];
   pageSize = 10;
   currentPage = signal(1);
-  totalPages = computed(() => Math.ceil(this.allServices.length / this.pageSize));
+  totalPages(): number {
+    return Math.max(1, Math.ceil(this.allServices.length / this.pageSize));
+  }
+
+  changePageSize(size: number): void {
+    if (!this.pageSizeOptions.includes(size)) return;
+    this.pageSize = size;
+    this.currentPage.set(1);
+  }
 
   get pagedServices(): ServiceItem[] {
     const start = (this.currentPage() - 1) * this.pageSize;
@@ -88,7 +98,7 @@ export class WizardStep3ServicesComponent implements OnInit {
   get canSave(): boolean {
     return this.selectedServices.every(service =>
       service.practicePrice !== null &&
-      service.insurancePrice !== null &&
+      (!this.acceptsHealthPlan || service.insurancePrice !== null) &&
       service.duration !== null
     );
   }
@@ -96,7 +106,7 @@ export class WizardStep3ServicesComponent implements OnInit {
   get invalidServices(): ServiceItem[] {
     return this.selectedServices.filter(service =>
       service.practicePrice === null ||
-      service.insurancePrice === null ||
+      (this.acceptsHealthPlan && service.insurancePrice === null) ||
       service.duration === null
     );
   }
@@ -104,13 +114,13 @@ export class WizardStep3ServicesComponent implements OnInit {
   isServiceInvalid(service: ServiceItem): boolean {
     return service.enabled && (
       service.practicePrice === null ||
-      service.insurancePrice === null ||
+      (this.acceptsHealthPlan && service.insurancePrice === null) ||
       service.duration === null
     );
   }
 
   get allPageSelected(): boolean {
-    return this.pagedServices.every(s => s.enabled);
+    return this.pagedServices.length > 0 && this.pagedServices.every(s => s.enabled);
   }
 
   get somePageSelected(): boolean {
@@ -137,12 +147,13 @@ export class WizardStep3ServicesComponent implements OnInit {
     this.selectedServices.forEach(s => {
       if (s.suggestedPrice !== null) {
         s.practicePrice = s.suggestedPrice;
+        if (this.acceptsHealthPlan) s.insurancePrice = s.suggestedPrice;
       }
     });
   }
 
   copyPracticePriceToInsurance(service: ServiceItem): void {
-    if (service.enabled && service.practicePrice !== null) {
+    if (this.acceptsHealthPlan && service.enabled && service.practicePrice !== null) {
       service.insurancePrice = service.practicePrice;
     }
   }
@@ -172,6 +183,7 @@ export class WizardStep3ServicesComponent implements OnInit {
   async ngOnInit(): Promise<void> {
     try {
       const about = await this.wizardService.getAbout();
+      this.acceptsHealthPlan = about.acceptsHealthPlan !== false;
       if (about.typeClientId == null) {
         return;
       }
@@ -220,7 +232,7 @@ export class WizardStep3ServicesComponent implements OnInit {
       await this.wizardService.saveServices(this.selectedServices.map(service => ({
         serviceId: service.id,
         price: service.practicePrice!,
-        planPrice: service.insurancePrice!,
+        planPrice: this.acceptsHealthPlan ? service.insurancePrice! : null,
         durationMinutes: service.duration!,
       })));
       this.router.navigate(['/wizard-step-4-schedule']);

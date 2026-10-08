@@ -887,3 +887,5 @@
 .interval-settings .interval-error { color: #b91c1c; }
 .schedule-error { padding: 1rem; margin-bottom: 1rem; border: 1px solid #fecaca; border-radius: 8px; background: #fef2f2; color: #b91c1c; }
 .appointment-interval input:focus-visible { outline: 2px solid #65a30d; outline-offset: 3px; }
+
+.btn-add-exception:disabled { opacity: .5; cursor: not-allowed; }
