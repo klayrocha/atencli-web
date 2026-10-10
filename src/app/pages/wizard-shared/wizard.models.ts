@@ -14,6 +14,7 @@ export const WIZARD_STEPS_DEFAULT: WizardStep[] = [
   { id: 4, label: 'Horários', sublabel: 'Defina dias e horários de atendimento', icon: 'pi pi-clock', completed: false, current: false },
   { id: 5, label: 'Equipe', sublabel: 'Convide sua equipe e defina funções', icon: 'pi pi-users', completed: false, current: false },
   { id: 6, label: 'WhatsApp', sublabel: 'Conecte e configure seu WhatsApp', icon: 'pi pi-whatsapp', completed: false, current: false },
-  { id: 7, label: 'IA', sublabel: 'Ative a IA para otimizar atendimentos', icon: 'pi pi-sparkles', completed: false, current: false },
-  { id: 8, label: 'Revisar', sublabel: 'Revise e ative sua clínica', icon: 'pi pi-check-circle', completed: false, current: false },
+  { id: 7, label: 'Instagram', sublabel: 'Conecte o Instagram da clínica', icon: 'pi pi-instagram', completed: false, current: false },
+  { id: 8, label: 'IA', sublabel: 'Ative a IA para otimizar atendimentos', icon: 'pi pi-sparkles', completed: false, current: false },
+  { id: 9, label: 'Revisar', sublabel: 'Revise e ative sua clínica', icon: 'pi pi-check-circle', completed: false, current: false },
 ];

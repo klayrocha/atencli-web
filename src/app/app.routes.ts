@@ -12,6 +12,7 @@ import { WizardStep3ServicesComponent } from './pages/wizard-step-3-services/wiz
 import { WizardStep4ScheduleComponent } from './pages/wizard-step-4-schedule/wizard-step-4-schedule.component';
 import { WizardStep5TeamComponent } from './pages/wizard-step-5-team/wizard-step-5-team.component';
 import { WizardStep6WhatsappComponent } from './pages/wizard-step-6-whatsapp/wizard-step-6-whatsapp.component';
+import { WizardStep7InstagramComponent } from './pages/wizard-step-7-instagram/wizard-step-7-instagram.component';
 import { WizardStep7AiComponent } from './pages/wizard-step-7-ai/wizard-step-7-ai.component';
 import { WizardStep8ReviewComponent } from './pages/wizard-step-8-review/wizard-step-8-review.component';
 import { OAuth2CallbackComponent } from './pages/oauth2-callback/oauth2-callback.component';
@@ -49,6 +50,9 @@ export const routes: Routes = [
       { path: 'wizard-step-5-team', component: WizardStep5TeamComponent },
       { path: 'wizard-step-6-whatsapp', component: WizardStep6WhatsappComponent },
       { path: 'configuracoes/whatsapp', component: WizardStep6WhatsappComponent },
+      { path: 'wizard-step-7-instagram', component: WizardStep7InstagramComponent },
+      { path: 'configuracoes/instagram', component: WizardStep7InstagramComponent },
+      { path: 'integracoes/instagram/callback', component: WizardStep7InstagramComponent },
       { path: 'conversas', component: ConversationsComponent },
       { path: 'contatos', component: DashboardComponent },
       { path: 'etapas', component: EtapasComponent },
@@ -59,9 +63,11 @@ export const routes: Routes = [
       { path: 'resultados', component: DashboardComponent },
       { path: 'ia', component: WizardStep7AiComponent },
       { path: 'wizard-step-7-ai', redirectTo: 'ia', pathMatch: 'full' },
-      { path: 'wizard-step-8-review', component: WizardStep8ReviewComponent },
+      { path: 'wizard-step-8-ai', redirectTo: 'ia', pathMatch: 'full' },
+      { path: 'wizard-step-8-review', redirectTo: 'wizard-step-9-review', pathMatch: 'full' },
+      { path: 'wizard-step-9-review', component: WizardStep8ReviewComponent },
       { path: 'equipe', component: DashboardComponent },
-      { path: 'configuracoes', redirectTo: 'wizard-step-8-review', pathMatch: 'full' },
+      { path: 'configuracoes', redirectTo: 'wizard-step-9-review', pathMatch: 'full' },
       { path: 'ajuda', component: DashboardComponent },
     ]
   },

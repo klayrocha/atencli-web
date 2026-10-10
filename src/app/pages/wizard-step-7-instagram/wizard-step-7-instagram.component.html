@@ -1,0 +1,145 @@
+<div class="wizard-container">
+  <main class="wizard-main">
+    <header class="wizard-header">
+      <div class="header-icon"><i class="pi pi-instagram"></i></div>
+      <div>
+        <h1 class="header-title">Conecte o Instagram</h1>
+        <p class="header-subtitle">Receba conversas do Direct e mantenha o atendimento da clínica no mesmo fluxo da Atenclin.</p>
+      </div>
+    </header>
+
+    <app-wizard-stepper [currentStepId]="7"></app-wizard-stepper>
+
+    <section class="integration-card">
+      <div class="integration-heading">
+        <div class="heading-copy">
+          <span class="eyebrow">Login empresarial</span>
+          <h2>Status do Instagram</h2>
+          <p>A conexão usa o login seguro da Meta e salva os tokens apenas no backend.</p>
+        </div>
+        <div class="status-pill" [class.status-pill--connected]="connectionStatus === 'CONNECTED'" [class.status-pill--paused]="connectionStatus === 'PAUSED'">
+          <span class="status-dot"></span>
+          {{ loading() ? 'Carregando...' : statusLabel }}
+        </div>
+      </div>
+
+      <div class="connection-notice error" role="alert" *ngIf="error()">
+        <i class="pi pi-exclamation-circle"></i>
+        <p>{{ error() }}</p>
+        <button type="button" class="btn-manage" (click)="load()" [disabled]="busy">Tentar novamente</button>
+      </div>
+      <div class="connection-notice success" role="status" *ngIf="success()">
+        <i class="pi pi-check-circle"></i>
+        <p>{{ success() }}</p>
+      </div>
+      <p *ngIf="exchanging()" role="status">Validando autorização da Meta...</p>
+
+      <div class="connection-grid" *ngIf="!loading()">
+        <div class="connection-summary">
+          <div class="instagram-mark"><i class="pi pi-instagram"></i></div>
+          <div class="summary-copy">
+            <strong>{{ connectionStatus === 'NOT_CONFIGURED' ? 'Nenhuma conta conectada' : username || 'Instagram conectado' }}</strong>
+            <span *ngIf="connectionStatus === 'NOT_CONFIGURED'">Conecte a conta profissional do Instagram da clínica.</span>
+            <span *ngIf="connectionStatus !== 'NOT_CONFIGURED'">{{ integration?.instagramUserId || 'Conta vinculada' }}</span>
+          </div>
+
+          <button
+            *ngIf="connectionStatus === 'NOT_CONFIGURED' || connectionStatus === 'ERROR' || connectionStatus === 'DISCONNECTED'"
+            type="button"
+            class="btn-connect"
+            (click)="beginConnection()"
+            [disabled]="!canManageIntegration || busy"
+          >
+            <i class="pi" [class.pi-spin]="starting()" [class.pi-spinner]="starting()" [class.pi-external-link]="!starting()"></i>
+            <span>{{ starting() ? 'Abrindo Meta...' : 'Conectar Instagram' }}</span>
+          </button>
+
+          <div class="connection-actions" *ngIf="connectionStatus !== 'NOT_CONFIGURED'">
+            <button type="button" class="btn-manage" (click)="toggleIntegration()" [disabled]="!canManageIntegration || busy">
+              <i class="pi" [class.pi-pause]="connectionStatus === 'CONNECTED'" [class.pi-play]="connectionStatus === 'PAUSED'"></i>
+              <span>{{ updating() ? 'Salvando...' : integration?.enabled ? 'Pausar integração' : 'Ativar integração' }}</span>
+            </button>
+          </div>
+        </div>
+
+        <dl class="connection-details">
+          <div>
+            <dt>Conta</dt>
+            <dd>{{ username || 'Aguardando conexão' }}</dd>
+          </div>
+          <div>
+            <dt>ID Instagram</dt>
+            <dd>{{ integration?.instagramUserId || 'Aguardando conexão' }}</dd>
+          </div>
+          <div>
+            <dt>Origem</dt>
+            <dd>Instagram Login Business</dd>
+          </div>
+          <div>
+            <dt>Token</dt>
+            <dd>{{ integration?.tokenExpiresAt ? 'Com validade definida' : 'Aguardando conexão' }}</dd>
+          </div>
+        </dl>
+      </div>
+    </section>
+
+    <section class="account-picker" *ngIf="accountsResponse?.accounts?.length">
+      <div class="benefits-heading">
+        <h2>Escolha a conta da clínica</h2>
+        <p>Selecione qual Instagram profissional será conectado a esta clínica.</p>
+      </div>
+      <div class="account-list">
+        <label class="account-option" *ngFor="let account of accountsResponse?.accounts || []">
+          <input type="radio" name="instagramAccount" [value]="account.instagramUserId" [(ngModel)]="selectedInstagramUserId">
+          <span class="avatar" *ngIf="account.profilePictureUrl"><img [src]="account.profilePictureUrl" alt=""></span>
+          <span class="avatar" *ngIf="!account.profilePictureUrl"><i class="pi pi-instagram"></i></span>
+          <span class="account-copy">
+            <strong>{{ account.username ? '@' + account.username : account.name || 'Conta do Instagram' }}</strong>
+            <small>{{ account.pageName || account.instagramUserId }}</small>
+          </span>
+        </label>
+      </div>
+      <button type="button" class="btn-connect" (click)="connectSelectedAccount()" [disabled]="!selectedInstagramUserId || busy">
+        <i class="pi" [class.pi-spin]="connecting()" [class.pi-spinner]="connecting()" [class.pi-check]="!connecting()"></i>
+        <span>{{ connecting() ? 'Conectando...' : 'Confirmar conta selecionada' }}</span>
+      </button>
+    </section>
+
+    <section class="benefits-section">
+      <div class="benefits-heading">
+        <h2>O que muda no atendimento?</h2>
+        <p>O Instagram entra como canal separado do WhatsApp, com a mesma esteira de conversas e IA.</p>
+      </div>
+      <div class="benefits-grid">
+        <article>
+          <div class="benefit-icon"><i class="pi pi-comments"></i></div>
+          <strong>Direct centralizado</strong>
+          <p>Mensagens recebidas pelo Instagram chegam para a equipe atender na Atenclin.</p>
+        </article>
+        <article>
+          <div class="benefit-icon"><i class="pi pi-address-book"></i></div>
+          <strong>Lead sem telefone</strong>
+          <p>Quando necessário, a IA pode pedir o WhatsApp para qualificar ou agendar.</p>
+        </article>
+        <article>
+          <div class="benefit-icon"><i class="pi pi-shield"></i></div>
+          <strong>Permissões da Meta</strong>
+          <p>A clínica autoriza o acesso, e a Atenclin mantém credenciais protegidas no backend.</p>
+        </article>
+      </div>
+    </section>
+
+    <div class="permission-note" [class.permission-note--blocked]="!canManageIntegration">
+      <i class="pi" [class.pi-lock]="!canManageIntegration" [class.pi-info-circle]="canManageIntegration"></i>
+      <span *ngIf="canManageIntegration">Somente administradores e gestores podem alterar esta conexão.</span>
+      <span *ngIf="!canManageIntegration">Seu perfil pode consultar o status, mas não pode alterar esta conexão.</span>
+    </div>
+
+    <div class="wizard-footer-actions">
+      <button type="button" class="btn-back" (click)="goBack()"><i class="pi pi-chevron-left"></i><span>Voltar para WhatsApp</span></button>
+      <button type="button" class="btn-next" (click)="goNext()"><span>Continuar para IA</span><i class="pi pi-arrow-right"></i></button>
+    </div>
+  </main>
+
+  <app-wizard-summary [steps]="steps" [currentStepId]="7" (activate)="activateService()"></app-wizard-summary>
+</div>

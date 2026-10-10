@@ -37,17 +37,17 @@ describe('Onboarding progress', () => {
   });
   it('does not mark completion just by opening Settings', () => {
     navigate('/');
-    navigate('/wizard-step-8-review');
+    navigate('/wizard-step-9-review');
     expect(service.complete()).toBeFalse();
     navigate('/ia');
-    navigate('/wizard-step-8-review?source=menu');
+    navigate('/wizard-step-9-review?source=menu');
     expect(service.complete()).toBeFalse();
   });
   it('completes after advancing from AI to review and persists by clinic', () => {
     navigate('/ia');
-    navigate('/wizard-step-8-review');
+    navigate('/wizard-step-9-review');
     expect(service.complete()).toBeTrue();
-    expect(localStorage.getItem('atenclin:onboarding:progress-test-a')).toBe('8');
+    expect(localStorage.getItem('atenclin:onboarding:progress-test-a')).toBe('9');
     profile.set({ clientUuid: 'progress-test-b' });
     TestBed.flushEffects();
     expect(service.started()).toBeFalse();

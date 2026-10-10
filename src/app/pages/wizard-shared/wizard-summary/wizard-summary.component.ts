@@ -25,7 +25,7 @@ export class WizardSummaryComponent {
   }
 
   get totalCount(): number {
-    return this.steps.length || 8;
+    return this.steps.length || 9;
   }
 
   get progressPercent(): number {

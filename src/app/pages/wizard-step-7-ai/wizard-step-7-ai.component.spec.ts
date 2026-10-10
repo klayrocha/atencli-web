@@ -83,7 +83,7 @@ describe('Wizard AI configuration', () => {
   it('saves defaults before navigating to review even without edits', async () => {
     await component.goToReview();
     expect(api.save).toHaveBeenCalledTimes(1);
-    expect(router.navigate).toHaveBeenCalledOnceWith(['/wizard-step-8-review']);
+    expect(router.navigate).toHaveBeenCalledOnceWith(['/wizard-step-9-review']);
   });
   it('validates on review and stays on the form for invalid input', async () => {
     component.model.tone = '   ';

@@ -18,7 +18,7 @@ import { WizardSummaryComponent } from '../wizard-shared/wizard-summary/wizard-s
 })
 export class WizardStep7AiComponent implements OnInit {
   private readonly automaticMode: AiConfigurationPayload['mode'] = 'LIMITED_AUTOMATIC';
-  steps = WIZARD_STEPS_DEFAULT.map(step => ({ ...step, current: step.id === 7, completed: step.id < 7 }));
+  steps = WIZARD_STEPS_DEFAULT.map(step => ({ ...step, current: step.id === 8, completed: step.id < 8 }));
   readonly topics = [
     ['SERVICES', 'Serviços e procedimentos', 'Somente informações cadastradas.'],
     ['PRICES', 'Preços', 'Somente valores existentes na clínica.'],
@@ -82,7 +82,7 @@ export class WizardStep7AiComponent implements OnInit {
     this.enabled = data.enabled;
     this.loaded = true;
     this.dirty = false;
-    this.steps = this.steps.map(step => step.id === 7 ? { ...step, completed: !data.usingDefaults } : step);
+    this.steps = this.steps.map(step => step.id === 8 ? { ...step, completed: !data.usingDefaults } : step);
   }
   changed() { this.dirty = true; this.success = ''; }
   toggleOption(key: 'allowedTopics' | 'handoffTriggers', value: string, checked: boolean) {
@@ -134,7 +134,7 @@ export class WizardStep7AiComponent implements OnInit {
     if (this.busy || !this.loaded || !this.canManage) return;
     await this.save();
     if (this.error) return;
-    await this.router.navigate(['/wizard-step-8-review']);
+    await this.router.navigate(['/wizard-step-9-review']);
   }
   private errorMessage(error: unknown) {
     if (error instanceof HttpErrorResponse) {

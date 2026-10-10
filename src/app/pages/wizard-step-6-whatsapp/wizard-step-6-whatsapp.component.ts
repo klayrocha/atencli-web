@@ -185,7 +185,7 @@ export class WizardStep6WhatsappComponent implements OnInit, OnDestroy {
   }
 
   goNext(): void {
-    this.router.navigate(['/ia']);
+    this.router.navigate(['/wizard-step-7-instagram']);
   }
 
   activateService(): void {}

@@ -8,6 +8,7 @@ const REVIEW_CONTENT = [
   { route: '/wizard-step-4-schedule', summary: 'Dias e horários de atendimento da clínica, expediente, intervalos e dias sem atendimento.', keywords: 'horario horarios agenda disponibilidade funcionamento abertura fechamento feriado folga pausa almoco semana' },
   { route: '/wizard-step-5-team', summary: 'Convites para a equipe, funções, permissões e profissionais que podem receber conversas.', keywords: 'usuario usuarios colaborador colaboradores funcionario funcionarios equipe acesso administrador gestor atendente convite convidar permissao senha' },
   { route: '/wizard-step-6-whatsapp', summary: 'Conexão do WhatsApp Business, número vinculado, status da integração e sincronização de contatos e histórico.', keywords: 'whatsapp whats zap meta conectar desconectar numero celular telefone canal integracao sincronizar pausar ativar' },
+  { route: '/wizard-step-7-instagram', summary: 'Conexão do Instagram profissional da clínica, conta vinculada, status da integração e permissões da Meta.', keywords: 'instagram insta direct meta conectar desconectar conta profissional perfil business canal integracao pausar ativar' },
   { route: '/ia', summary: 'Modo de atuação da IA, tom de voz, mensagens, horários, assuntos permitidos e regras para chamar uma pessoa. Ativação ou pausa da IA.', keywords: 'ia inteligencia artificial assistente virtual robo bot automatico automacao resposta respostas humano transferencia seguranca tom voz mensagem horario ativar pausar' },
 ];
 
