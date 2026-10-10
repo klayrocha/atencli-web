@@ -42,8 +42,10 @@ export class AcompanhamentoAutomaticoComponent implements OnInit {
     INFORMATION_REQUEST_STOPPED: 'Para conversas em que o contato pediu uma informação e parou de responder.',
     INTEREST_WITHOUT_APPOINTMENT: 'Para contatos qualificados que demonstraram interesse, mas ainda não marcaram.',
     APPOINTMENT_CONFIRMATION: 'Para consultas agendadas que precisam de confirmação antes do atendimento.',
+    APPOINTMENT_REMINDER_ONE_DAY_BEFORE: 'Para lembrar o paciente um dia antes da consulta marcada.',
     NO_SHOW: 'Para contatos que faltaram à consulta e precisam de uma retomada cuidadosa.',
     RETURN_REQUESTED: 'Para contatos que pediram retorno em outra data ou ficaram para reativação futura.',
+    STAGE_PATIENT_WON: 'Para enviar uma mensagem quando a conversa chegar em Paciente conquistado.',
   };
 
   activeTab: Tab = 'templates';
