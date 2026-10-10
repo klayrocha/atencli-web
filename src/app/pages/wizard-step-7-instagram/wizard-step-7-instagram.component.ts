@@ -129,7 +129,11 @@ export class WizardStep7InstagramComponent implements OnInit {
     try {
       this.accountsResponse = await this.api.getOAuthAccounts(code, this.redirectUri());
       this.selectedInstagramUserId = this.accountsResponse.accounts[0]?.instagramUserId ?? '';
-      if (!this.selectedInstagramUserId) this.error.set('Nenhuma conta profissional do Instagram foi autorizada neste login.');
+      if (!this.selectedInstagramUserId) {
+        this.error.set('Nenhuma conta profissional do Instagram foi autorizada neste login.');
+      } else if (this.accountsResponse.accounts.length === 1) {
+        await this.connectSelectedAccount();
+      }
     } catch (error) { this.error.set(this.errorMessage(error)); }
     finally {
       this.exchanging.set(false);
@@ -138,7 +142,7 @@ export class WizardStep7InstagramComponent implements OnInit {
   }
 
   async connectSelectedAccount(): Promise<void> {
-    if (!this.accountsResponse?.connectionToken || !this.selectedInstagramUserId || this.busy || !this.canManageIntegration) return;
+    if (!this.accountsResponse?.connectionToken || !this.selectedInstagramUserId || this.connecting() || this.updating() || !this.canManageIntegration) return;
     this.connecting.set(true);
     this.error.set('');
     this.success.set('');
