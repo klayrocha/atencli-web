@@ -5,7 +5,7 @@ interface FacebookSdk {
   init(options: { appId: string; cookie: boolean; xfbml: boolean; version: string }): void;
   login(callback: (response: { authResponse?: { code?: string } }) => void, options: {
     config_id: string; response_type: string; override_default_response_type: boolean;
-    extras: { setup: Record<string, never>; sessionInfoVersion: string };
+    extras: { setup: Record<string, never>; featureType: string };
   }): void;
 }
 declare global { interface Window { FB?: FacebookSdk; } }
@@ -96,7 +96,7 @@ export class MetaEmbeddedSignupService {
           code = receivedCode;
           finish();
         }, { config_id: config.configurationId, response_type: 'code', override_default_response_type: true,
-          extras: { setup: {}, sessionInfoVersion: '3' } });
+          extras: { setup: {}, featureType: 'whatsapp_business_app_onboarding' } });
       } catch { fail('Não foi possível abrir a Meta. Permita pop-ups e tente novamente.'); }
     });
   }
