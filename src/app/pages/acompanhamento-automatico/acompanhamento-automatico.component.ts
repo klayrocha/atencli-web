@@ -222,6 +222,33 @@ export class AcompanhamentoAutomaticoComponent implements OnInit {
     return status.toLowerCase();
   }
 
+  executionResultLabel(execution: FollowUpExecution): string {
+    if (execution.finishedReason === 'CHANNEL_WINDOW_EXPIRED') {
+      return 'Não enviado: janela de mensagens do Instagram expirada.';
+    }
+    if (execution.lastError) return execution.lastError;
+    if (execution.finishedReason) return this.finishedReasonLabel(execution.finishedReason);
+    return 'Em acompanhamento';
+  }
+
+  private finishedReasonLabel(reason: string): string {
+    const labels: Record<string, string> = {
+      CONTACT_REPLIED: 'Contato respondeu',
+      APPOINTMENT_SCHEDULED: 'Consulta agendada',
+      APPOINTMENT_CONFIRMED: 'Consulta confirmada',
+      PATIENT_WON: 'Paciente conquistado',
+      LOST: 'Contato perdido',
+      HUMAN_PAUSED: 'Pausado pela equipe',
+      INCOMPATIBLE_STAGE: 'Etapa incompatível',
+      ATTEMPT_LIMIT_REACHED: 'Limite de tentativas atingido',
+      TEMPLATE_DISABLED: 'Modelo desativado',
+      MANUAL_CANCELLED: 'Cancelado manualmente',
+      CHANNEL_WINDOW_EXPIRED: 'Janela do canal expirada',
+      PERMANENT_ERROR: 'Erro permanente',
+    };
+    return labels[reason] ?? reason;
+  }
+
   formatDate(value: string | null): string {
     if (!value) return 'Sem data';
     return new Intl.DateTimeFormat('pt-BR', {

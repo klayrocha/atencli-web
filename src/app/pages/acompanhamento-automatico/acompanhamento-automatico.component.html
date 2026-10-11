@@ -12,6 +12,11 @@
     </div>
   </header>
 
+  <section class="channel-rules-alert" aria-label="Regras dos canais">
+    <i class="pi pi-info-circle" aria-hidden="true"></i>
+    <p>O acompanhamento automático respeita as regras de cada canal. No Instagram, mensagens automáticas só podem ser enviadas dentro da janela permitida pela Meta, geralmente até 24 horas após a última mensagem do cliente. Fora desse período, o envio pode ser bloqueado pela plataforma. No WhatsApp, envios fora da janela podem exigir modelos aprovados e podem gerar custos da Meta.</p>
+  </section>
+
   <nav class="tabs" aria-label="Seções">
     <button type="button" [class.active]="activeTab === 'templates'" (click)="activeTab = 'templates'">
       <i class="pi pi-sliders-h"></i>Modelos
@@ -98,6 +103,10 @@
         </div>
         <p class="timing-note">
           Se o tempo de espera terminar fora da janela diária, o envio será feito no próximo horário permitido.
+        </p>
+        <p class="channel-note">
+          <i class="pi pi-instagram" aria-hidden="true"></i>
+          Instagram: disponível apenas dentro da janela de 24 horas após a última mensagem do cliente. Depois disso, o contato precisa interagir novamente para reabrir a conversa.
         </p>
 
         <fieldset class="days-field">
@@ -205,6 +214,7 @@
             <th>Status</th>
             <th>Próxima tentativa</th>
             <th>Tentativas</th>
+            <th>Resultado</th>
             <th>Responsável</th>
             <th>Ações</th>
           </tr>
@@ -219,6 +229,9 @@
             <td><span class="status-pill" [ngClass]="statusClass(execution.status)">{{ statusLabel(execution.status) }}</span></td>
             <td>{{ formatDate(execution.nextAttemptAt) }}</td>
             <td>{{ execution.attemptCount }}/{{ execution.maxAttempts }}</td>
+            <td>
+              <span class="result-text" [class.blocked]="execution.finishedReason === 'CHANNEL_WINDOW_EXPIRED'">{{ executionResultLabel(execution) }}</span>
+            </td>
             <td>{{ execution.assigneeUserName || 'Sem responsável' }}</td>
             <td class="row-actions">
               <button type="button" *ngIf="execution.status === 'SCHEDULED' || execution.status === 'PROCESSING'" (click)="setExecutionAction(execution, 'pause')" [disabled]="actionId === execution.id" title="Pausar">

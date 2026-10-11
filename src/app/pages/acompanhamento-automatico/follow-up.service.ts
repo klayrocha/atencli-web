@@ -14,6 +14,19 @@ export type FollowUpTemplateCode =
   | 'STAGE_PATIENT_WON';
 
 export type FollowUpExecutionStatus = 'SCHEDULED' | 'PROCESSING' | 'PAUSED' | 'COMPLETED' | 'CANCELLED' | 'FAILED';
+export type FollowUpFinishedReason =
+  | 'CONTACT_REPLIED'
+  | 'APPOINTMENT_SCHEDULED'
+  | 'APPOINTMENT_CONFIRMED'
+  | 'PATIENT_WON'
+  | 'LOST'
+  | 'HUMAN_PAUSED'
+  | 'INCOMPATIBLE_STAGE'
+  | 'ATTEMPT_LIMIT_REACHED'
+  | 'TEMPLATE_DISABLED'
+  | 'MANUAL_CANCELLED'
+  | 'CHANNEL_WINDOW_EXPIRED'
+  | 'PERMANENT_ERROR';
 
 export interface FollowUpTemplate {
   id: number;
@@ -67,7 +80,7 @@ export interface FollowUpExecution {
   maxAttempts: number;
   lastAttemptAt: string | null;
   finishedAt: string | null;
-  finishedReason: string | null;
+  finishedReason: FollowUpFinishedReason | null;
   lastError: string | null;
   createdAt: string;
   updatedAt: string;
