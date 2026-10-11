@@ -60,6 +60,15 @@ small { color: #77818e; font-size: 10px; font-weight: 500; line-height: 1.45; }
 .day input { position: absolute; opacity: 0; pointer-events: none; }
 .day span { display: inline-grid; place-items: center; min-width: 46px; height: 34px; border: 1px solid #dfe5dd; border-radius: 8px; background: #fff; font-size: 11px; font-weight: 700; }
 .day input:checked + span { border-color: #c7de75; background: #f0f7d8; color: #49671b; }
+.template-parameters { display: grid; gap: 10px; margin: 2px 0 14px; padding: 12px; border: 1px solid #edf0eb; border-radius: 8px; background: #fbfcfa; }
+.template-parameters-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.template-parameters-heading strong { display: block; font-size: 12px; margin-bottom: 4px; }
+.template-parameters-heading small { display: block; }
+.secondary-button.compact { width: auto; height: 32px; padding: 0 11px; }
+.template-parameter-row { display: grid; grid-template-columns: 28px minmax(0, 1fr) 34px; align-items: center; gap: 8px; }
+.template-parameter-row > span { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: #eef4e4; color: #516d1f; font-size: 11px; font-weight: 800; }
+.template-parameter-row button { display: inline-grid; place-items: center; width: 34px; height: 34px; border: 1px solid #e4e9e0; border-radius: 8px; background: #fff; color: #697585; }
+.template-parameter-row button:hover { background: #fff1f1; color: #9b1c1c; }
 .check-row { display: flex; align-items: flex-start; gap: 10px; margin-top: 16px; padding: 12px; border: 1px solid #edf0eb; border-radius: 8px; background: #fbfcfa; font-size: 12px; }
 .check-row input { width: 17px; height: 17px; margin-top: 1px; }
 .check-row strong, .check-row small { display: block; }

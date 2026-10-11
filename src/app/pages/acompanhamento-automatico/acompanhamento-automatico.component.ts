@@ -109,6 +109,9 @@ export class AcompanhamentoAutomaticoComponent implements OnInit {
       messageOne: template.messageOne ?? '',
       messageTwo: template.messageTwo ?? '',
       messageThree: template.messageThree ?? '',
+      whatsappTemplateName: template.whatsappTemplateName ?? '',
+      whatsappTemplateLanguage: template.whatsappTemplateLanguage || 'pt_BR',
+      whatsappTemplateBodyParameters: [...(template.whatsappTemplateBodyParameters ?? [])],
       responsibleUserUuid: template.responsibleUserUuid,
       createTaskOnFinish: template.createTaskOnFinish,
     };
@@ -199,6 +202,21 @@ export class AcompanhamentoAutomaticoComponent implements OnInit {
       : this.form.activeDays.filter(item => item !== day);
   }
 
+
+  addTemplateParameter(): void {
+    if (!this.form || this.form.whatsappTemplateBodyParameters.length >= 20) return;
+    this.form.whatsappTemplateBodyParameters = [...this.form.whatsappTemplateBodyParameters, ''];
+  }
+
+  removeTemplateParameter(index: number): void {
+    if (!this.form) return;
+    this.form.whatsappTemplateBodyParameters = this.form.whatsappTemplateBodyParameters.filter((_, itemIndex) => itemIndex !== index);
+  }
+
+  trackByIndex(index: number): number {
+    return index;
+  }
+
   messagePreview(message: string | null): string {
     return (message || '')
       .replaceAll('{{nome}}', 'Fernanda')
@@ -224,7 +242,7 @@ export class AcompanhamentoAutomaticoComponent implements OnInit {
 
   executionResultLabel(execution: FollowUpExecution): string {
     if (execution.finishedReason === 'CHANNEL_WINDOW_EXPIRED') {
-      return 'Não enviado: janela de mensagens do Instagram expirada.';
+      return 'Não enviado: janela de mensagens do canal expirada.';
     }
     if (execution.lastError) return execution.lastError;
     if (execution.finishedReason) return this.finishedReasonLabel(execution.finishedReason);
@@ -289,6 +307,9 @@ export class AcompanhamentoAutomaticoComponent implements OnInit {
       messageOne: form.messageOne.trim(),
       messageTwo: form.maxMessages > 1 ? (form.messageTwo?.trim() || null) : null,
       messageThree: form.maxMessages > 2 ? (form.messageThree?.trim() || null) : null,
+      whatsappTemplateName: form.whatsappTemplateName?.trim() || null,
+      whatsappTemplateLanguage: form.whatsappTemplateLanguage?.trim() || 'pt_BR',
+      whatsappTemplateBodyParameters: form.whatsappTemplateBodyParameters.map(value => value.trim()).filter(Boolean),
       responsibleUserUuid: form.responsibleUserUuid?.trim() || null,
       createTaskOnFinish: form.createTaskOnFinish,
     };
@@ -302,6 +323,11 @@ export class AcompanhamentoAutomaticoComponent implements OnInit {
     if (form.maxMessages > 1 && !form.messageTwo?.trim()) return 'Informe a segunda mensagem para modelos com mais de uma mensagem.';
     if (form.maxMessages > 2 && !form.messageThree?.trim()) return 'Informe a terceira mensagem para modelos com três mensagens.';
     if ([form.messageOne, form.messageTwo, form.messageThree].some(message => (message?.length ?? 0) > 1000)) return 'Cada mensagem deve ter até 1000 caracteres.';
+    if ((form.whatsappTemplateName?.length ?? 0) > 120) return 'O nome do template WhatsApp deve ter até 120 caracteres.';
+    if (!form.whatsappTemplateLanguage?.trim()) return 'Informe o idioma do template WhatsApp.';
+    if (form.whatsappTemplateLanguage.length > 20) return 'O idioma do template WhatsApp deve ter até 20 caracteres.';
+    if (form.whatsappTemplateBodyParameters.length > 20) return 'Configure no máximo 20 parâmetros de template.';
+    if (form.whatsappTemplateBodyParameters.some(value => value.length > 1000)) return 'Cada parâmetro do template deve ter até 1000 caracteres.';
     const hasStart = !!form.allowedStartTime;
     const hasEnd = !!form.allowedEndTime;
     if (hasStart !== hasEnd) return 'Preencha início e fim da janela de envio, ou deixe os dois vazios.';

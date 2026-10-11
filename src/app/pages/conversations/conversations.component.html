@@ -65,6 +65,7 @@
       <div class="composer">
         <div class="composer-tabs"><span class="composer-label">Mensagem</span></div>
         <form (ngSubmit)="send()" class="message-input">
+          <p class="window-warning"><i class="pi pi-info-circle" aria-hidden="true"></i> Mensagens livres no WhatsApp só podem ser enviadas dentro da janela de 24 horas após a última mensagem do cliente.</p>
           <textarea name="message" [(ngModel)]="draft" maxlength="4096" [disabled]="!detail || loadingDetail || sending || !!detailError" placeholder="Digite sua mensagem..." aria-label="Mensagem"></textarea>
           <div class="composer-bottom"><small>{{ draft.length }}/4096</small><button type="submit" class="send-button" [disabled]="!canSend" aria-label="Enviar mensagem"><i class="pi" [class.pi-send]="!sending" [class.pi-spinner]="sending" [class.pi-spin]="sending"></i></button></div>
         </form>

@@ -42,6 +42,9 @@ export interface FollowUpTemplate {
   messageOne: string;
   messageTwo: string | null;
   messageThree: string | null;
+  whatsappTemplateName: string | null;
+  whatsappTemplateLanguage: string;
+  whatsappTemplateBodyParameters: string[];
   responsibleUserUuid: string | null;
   responsibleUserName: string | null;
   createTaskOnFinish: boolean;
@@ -60,6 +63,9 @@ export interface FollowUpTemplatePayload {
   messageOne: string;
   messageTwo: string | null;
   messageThree: string | null;
+  whatsappTemplateName: string | null;
+  whatsappTemplateLanguage: string;
+  whatsappTemplateBodyParameters: string[];
   responsibleUserUuid: string | null;
   createTaskOnFinish: boolean;
 }

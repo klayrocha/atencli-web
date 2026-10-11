@@ -120,6 +120,37 @@
           <small>Sem dias selecionados significa todos os dias.</small>
         </fieldset>
 
+        <div class="fields-grid whatsapp-template-grid">
+          <label class="field">
+            Template WhatsApp aprovado para fora da janela
+            <input type="text" name="whatsappTemplateName" maxlength="120" [(ngModel)]="form.whatsappTemplateName" placeholder="ex: consulta_lembrete_24h">
+            <small>Nome exato do template aprovado na Meta. Se ficar vazio, o envio fora das 24 horas será ignorado.</small>
+          </label>
+          <label class="field">
+            Idioma do template
+            <input type="text" name="whatsappTemplateLanguage" maxlength="20" [(ngModel)]="form.whatsappTemplateLanguage" placeholder="pt_BR">
+            <small>Valor padrão: pt_BR.</small>
+          </label>
+        </div>
+
+        <div class="template-parameters">
+          <div class="template-parameters-heading">
+            <div>
+              <strong>Parâmetros do corpo do template</strong>
+              <small>Use a mesma ordem dos placeholders aprovados na Meta: {{ '{' }}{{ '{' }}1{{ '}' }}{{ '}' }}, {{ '{' }}{{ '{' }}2{{ '}' }}{{ '}' }}, {{ '{' }}{{ '{' }}3{{ '}' }}{{ '}' }}. Variáveis disponíveis: {{ '{' }}{{ '{' }}nome{{ '}' }}{{ '}' }}, {{ '{' }}{{ '{' }}clinica{{ '}' }}{{ '}' }} e {{ '{' }}{{ '{' }}interesse{{ '}' }}{{ '}' }}.</small>
+            </div>
+            <button type="button" class="secondary-button compact" (click)="addTemplateParameter()" [disabled]="form.whatsappTemplateBodyParameters.length >= 20">
+              <i class="pi pi-plus"></i>Adicionar
+            </button>
+          </div>
+          <div class="template-parameter-row" *ngFor="let parameter of form.whatsappTemplateBodyParameters; let parameterIndex = index; trackBy: trackByIndex">
+            <span>{{ parameterIndex + 1 }}</span>
+            <input type="text" maxlength="1000" [name]="'whatsappTemplateBodyParameter' + parameterIndex" [(ngModel)]="form.whatsappTemplateBodyParameters[parameterIndex]" placeholder="ex: {{ '{' }}{{ '{' }}nome{{ '}' }}{{ '}' }}">
+            <button type="button" (click)="removeTemplateParameter(parameterIndex)" title="Remover parâmetro" aria-label="Remover parâmetro"><i class="pi pi-trash"></i></button>
+          </div>
+          <small *ngIf="!form.whatsappTemplateBodyParameters.length">Sem parâmetros configurados. Use assim apenas para templates sem placeholders obrigatórios.</small>
+        </div>
+
         <label class="check-row">
           <input type="checkbox" name="createTaskOnFinish" [(ngModel)]="form.createTaskOnFinish">
           <span>
