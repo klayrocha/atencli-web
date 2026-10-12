@@ -11,28 +11,38 @@ Frontend da plataforma **Atenclin** — sistema de atendimento inteligente para 
 
 ## Pré-requisitos
 
-- Node.js 18+
+- Node.js 22 (para desenvolvimento e geração do build)
 - Backend [`atencli-api`](https://github.com/klayrocha/atencli-api) rodando em `http://localhost:8080`
 
 ## Instalação
 
 ```bash
-npm install
+npm ci
+npm ci --prefix help
 ```
 
 ## Executar localmente
 
 ```bash
-npx ng serve
+npm start
 ```
 
 Acesse em `http://localhost:4200`.
 
 ## Build de produção
 
+Para instalar as dependências e preparar Angular e ajuda em um único comando:
+
 ```bash
-npx ng build
+./scripts/preparar-prod.sh
 ```
+
+O script pode ser chamado de qualquer diretório pelo seu caminho completo.
+Requer Node.js 22 e acesso ao registro npm. Executa `npm ci` nos dois projetos
+e `npm run build -- -c production --base-href /web/ --deploy-url /web/`.
+Interrompe em caso de erro e confere os arquivos gerados. Publique todo o conteúdo
+de `dist/atencli-web/browser/`, incluindo `ajuda-docs/`, em `/web/` no servidor.
+O script não envia arquivos nem altera a produção.
 
 ## Autenticação
 
@@ -52,8 +62,12 @@ npx ng build
 
 ## Central de ajuda
 
-A documentação pública usa Docusaurus e fica em [`help/`](help/README.md), com
-build independente do Angular. Instale com `npm ci --prefix help` e execute
-`npm run help:start`. A busca local pode ser conferida com `npm run help:build`
-e `npm run help:serve`. O menu Ajuda abre `localhost:3000` em desenvolvimento;
-em produção, o destino previsto é `https://ajuda.atenclin.com` (publicação separada).
+A documentação usa Docusaurus em [`help/`](help/README.md). `npm start` gera a
+ajuda estática e inicia somente o Angular. `npm run build -- --base-href /web/`
+gera o front e a pasta `ajuda-docs/` em `dist/atencli-web/browser/`; publique o
+conteúdo completo dessa pasta em `/web/`. Para hospedar na raiz, use `npm run build`.
+Não é necessário Node no servidor de produção.
+
+O menu abre `/ajuda` dentro da aplicação, com `authGuard`. Os arquivos da ajuda
+são exibidos em um iframe local. O guard protege a rota Angular, mas não impede
+acesso direto a `ajuda-docs/`; conteúdo privado exige autenticação no servidor.

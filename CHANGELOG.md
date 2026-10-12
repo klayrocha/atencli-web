@@ -4,8 +4,9 @@
 
 ### Adicionado
 
-- Central de ajuda Docusaurus em `help/`, com busca local em português, 14 artigos iniciais e build independente.
-- Menu Ajuda abre a central em nova aba; rota pública `/ajuda` oferece acesso aos guias principais.
+- Script `scripts/preparar-prod.sh` para instalar dependências, gerar Angular e ajuda para `/web/` e conferir os arquivos estáticos de publicação.
+- Central de ajuda Docusaurus em `help/`, com busca local em português, 14 artigos iniciais e geração estática integrada ao build do front.
+- Menu Ajuda abre a rota `/ajuda`, protegida pelo guard de autenticação, com documentação incorporada da pasta estática `ajuda-docs/`.
 - Guia de edição, execução local e publicação da documentação em `help/README.md`.
 
 ## [0.5.0] - 2026-10-08

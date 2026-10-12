@@ -33,6 +33,11 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": "**/*",
+                "input": "help/build",
+                "output": "ajuda-docs"
               }
             ],
             "styles": [

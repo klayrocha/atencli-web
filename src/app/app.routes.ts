@@ -19,7 +19,6 @@ import { OAuth2CallbackComponent } from './pages/oauth2-callback/oauth2-callback
 import { authGuard, guestGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
-  { path: 'ajuda', loadComponent: () => import('./pages/ajuda/ajuda.component').then(m => m.AjudaComponent) },
   {
     path: 'invite/:token',
     loadComponent: () => import('./pages/invite/invite.component').then(m => m.InviteComponent),
@@ -43,6 +42,7 @@ export const routes: Routes = [
     component: LayoutComponent,
     canActivate: [authGuard],
     children: [
+      { path: 'ajuda', canActivate: [authGuard], loadComponent: () => import('./pages/ajuda/ajuda.component').then(m => m.AjudaComponent) },
       { path: '', component: DashboardComponent },
       { path: 'wizard-step-1-aboult', component: WizardStep1AboutComponent },
       { path: 'wizard-step-2-specialty', component: WizardStep2SpecialtyComponent },

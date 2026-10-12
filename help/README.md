@@ -1,32 +1,28 @@
 # Central de ajuda Atenclin
 
-Site público em Docusaurus, independente da API e do build Angular. O código
-fica em `atencli-web/help` para que documentação e produto possam ser revisados
-no mesmo repositório. Não precisa de banco, login ou serviço de busca externo.
+Docusaurus gera HTML, CSS, JavaScript e índice de busca estáticos. O Angular
+inclui essa saída na mesma publicação. Node é usado apenas no desenvolvimento
+ou CI, nunca como serviço obrigatório no servidor de produção.
 
 ## Executar localmente
 
-Requisito: Node.js 20 ou superior (validado com Node 22).
+Requisito: Node.js 22. Na pasta `atencli-web`, instale as duas dependências:
 
 ```sh
-cd atencli-web
+npm ci
 npm ci --prefix help
-npm run help:start
+npm start
 ```
 
-Abra http://localhost:3000. O menu Ajuda do Angular em desenvolvimento aponta
-para esse endereço. Execute o Angular em outro terminal com `npm start`.
+Acesse `http://localhost:4200/ajuda` após fazer login. O comando gera os artigos
+com a busca e inicia somente o Angular. Não há necessidade da porta 3000.
+Após editar artigos, execute `npm run help:build` (ou reinicie `npm start`) e
+recarregue a ajuda. O build estático não acompanha alterações Markdown automaticamente.
 
-A busca local é gerada no build. Para testar a busca e as páginas como serão
-publicadas, prefira:
-
-```sh
-npm run help:build
-npm run help:serve
-```
-
-Pare o servidor de desenvolvimento antes de usar `serve`, pois ambos usam a
-porta 3000. O servidor escuta somente na interface local.
+Para edição isolada com atualização automática, `npm run help:start` continua
+opcional na porta 3000, mas esse servidor não é usado pelo menu do Angular.
+Não execute o modo isolado e a geração integrada simultaneamente, pois ambos
+usam o cache do Docusaurus. A busca deve ser validada no build estático.
 
 ## Editar conteúdo
 
@@ -80,56 +76,79 @@ esse arquivo. Não crie links para imagens inexistentes.
 Não há formulário de suporte, avaliação de artigo ou chat nesta primeira versão.
 Não há promessa de importação de histórico ou funcionalidades não confirmadas.
 
-## Publicar
+## Gerar e publicar
 
-Destino previsto: `https://ajuda.atenclin.com/`. DNS, certificado TLS e publicação
-não são configurados automaticamente por este projeto.
-
-No ambiente de build, use a pasta `help` como raiz:
+Na pasta `atencli-web`, para o caminho de produção `/web/`:
 
 ```sh
-npm ci
-npm run build
+npm run build -- --base-href /web/
 ```
 
-Publique **somente `help/build/`** em uma hospedagem estática. Em Nginx, por
-exemplo, a raiz do virtual host pode apontar para esse diretório e usar:
+Para publicar na raiz do domínio, use `npm run build` sem `--base-href`.
+O script `scripts/with-help.mjs` usa o mesmo prefixo para Angular e Docusaurus,
+gera a ajuda primeiro e interrompe o processo caso qualquer build falhe.
+Use os comandos npm acima; `ng build` sozinho não regenera a documentação.
+
+Saída de publicação:
+
+```text
+dist/atencli-web/browser/
+├── index.html                  # Aplicação Angular
+├── *.js / *.css                # Recursos Angular
+└── ajuda-docs/
+    ├── index.html              # Página inicial da documentação
+    ├── artigos/*/index.html    # Artigos estáticos
+    ├── assets/                # CSS e JavaScript da documentação
+    └── search-index*.json      # Busca local
+```
+
+Publique todo o conteúdo de `dist/atencli-web/browser/` no diretório `/web/`
+do servidor HTTP. Não envie `node_modules`, código da API ou backups.
+A rota do produto será `/web/ajuda` e os arquivos ficarão em `/web/ajuda-docs/`.
+Não há subdomínio separado nem processo Docusaurus em produção.
+
+O servidor precisa servir `index.html` de diretórios da documentação. Em Nginx,
+adapte o `root` ao diretório pai da pasta física `web`:
 
 ```nginx
-location / {
+location /web/ajuda-docs/ {
+    index index.html;
     try_files $uri $uri/ =404;
 }
-error_page 404 /404.html;
+location /web/ {
+    try_files $uri $uri/ /web/index.html;
+}
 ```
 
-O build usa barras finais e gera páginas em diretórios. Teste o acesso direto
-a `/artigos/whatsapp/`, a busca e uma URL inexistente depois da publicação.
-Não envie a pasta inteira do workspace, a API, backups ou `node_modules`.
+Não aplique o fallback Angular aos arquivos da documentação: recursos ausentes
+devem retornar 404. Permita frames da mesma origem se houver CSP/frame-ancestors
+ou X-Frame-Options configurados. Não foi alterada a configuração do servidor.
 
-Variáveis opcionais durante o build:
+## Autenticação
 
-- `HELP_SITE_URL`: origem pública; padrão `https://ajuda.atenclin.com`.
-- `HELP_BASE_URL`: caminho base com barras inicial e final; padrão `/`.
-- `ATENCLIN_APP_URL`: link de retorno ao produto; padrão
-  `https://www.atenclin.com/web/`.
+O menu navega para a rota Angular `/ajuda`, sob `authGuard`, e carrega a ajuda
+em um iframe da mesma origem. Sem sessão válida, a rota redireciona ao login.
+O iframe usa um caminho fixo relativo ao `<base href>` da aplicação.
 
-O endereço do menu Angular fica em `src/environments/environment*.ts`, campo
-`helpUrl`. Se mudar o domínio da documentação, atualize também esse campo.
-Publique a central antes de publicar a alteração do menu para evitar um link
-sem destino em produção. A rota `/ajuda` permanece disponível como acesso
-público com links para os guias.
+**O guard não protege os arquivos estáticos contra acesso direto.** Qualquer
+pessoa com a URL de `ajuda-docs/` consegue obter o conteúdo se o servidor servir
+essa pasta publicamente. Para restringir também os arquivos e o índice de busca,
+o servidor/proxy precisa validar a sessão em cada requisição. Essa proteção
+adicional não está implementada; não coloque informações confidenciais nos artigos.
 
-## Validação
+## Configuração e validação
+
+`HELP_SITE_URL` define a origem canônica (padrão `https://www.atenclin.com`).
+No build integrado, `HELP_BASE_URL` e `ATENCLIN_APP_URL` são derivados de
+`--base-href`. O prefixo deve começar e terminar com `/`, como `/web/`.
 
 ```sh
-npm run help:build
-npm run build -- --configuration development
+npm run build -- --base-href /web/
 ```
 
-O primeiro comando valida a geração estática e os links; o segundo valida a
-integração com o Angular. Confira a busca na versão compilada, incluindo termos
-com acento como “convênio” e “horários”. O índice é servido pelo próprio site.
+Confira login obrigatório em `/web/ajuda`, navegação entre artigos, imagens,
+busca por “horários” e recarregamento de páginas. O índice é servido localmente.
 
-Documentação de referência:
-- https://docusaurus.io/docs
-- https://github.com/easyops-cn/docusaurus-search-local
+Referências:
+- https://docusaurus.io/docs/deployment
+- https://angular.dev/guide/routing/route-guards

@@ -5,7 +5,7 @@ module.exports = {
   title: 'Ajuda Atenclin',
   tagline: 'Mais clareza para cuidar de cada atendimento.',
   favicon: 'img/favicon.svg',
-  url: process.env.HELP_SITE_URL || 'https://ajuda.atenclin.com',
+  url: process.env.HELP_SITE_URL || 'https://www.atenclin.com',
   baseUrl: process.env.HELP_BASE_URL || '/',
   trailingSlash: true,
   onBrokenLinks: 'throw',
@@ -26,7 +26,7 @@ module.exports = {
       title: 'Atenclin | Ajuda', logo: { alt: 'Atenclin', src: 'img/logo.png' },
       items: [
         { to: '/artigos/primeiros-passos', label: 'Comece por aqui', position: 'left' },
-        { href: appUrl, label: 'Acessar Atenclin ↗', position: 'right' },
+        { href: appUrl, label: 'Acessar Atenclin', target: '_top', position: 'right' },
       ],
     },
     footer: { style: 'light', copyright: 'Atenclin · Central de ajuda' },
