@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Adicionado
+
+- Central de ajuda Docusaurus em `help/`, com busca local em português, 14 artigos iniciais e build independente.
+- Menu Ajuda abre a central em nova aba; rota pública `/ajuda` oferece acesso aos guias principais.
+- Guia de edição, execução local e publicação da documentação em `help/README.md`.
+
 ## [0.5.0] - 2026-10-08
 
 ### Adicionado

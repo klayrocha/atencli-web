@@ -49,3 +49,11 @@ npx ng build
 - Sidebar colapsável e topbar com menu do usuário
 - Drawer "Minha conta" com alteração de senha (validação de força em tempo real)
 - Usuários Google não visualizam a opção de alterar senha
+
+## Central de ajuda
+
+A documentação pública usa Docusaurus e fica em [`help/`](help/README.md), com
+build independente do Angular. Instale com `npm ci --prefix help` e execute
+`npm run help:start`. A busca local pode ser conferida com `npm run help:build`
+e `npm run help:serve`. O menu Ajuda abre `localhost:3000` em desenvolvimento;
+em produção, o destino previsto é `https://ajuda.atenclin.com` (publicação separada).

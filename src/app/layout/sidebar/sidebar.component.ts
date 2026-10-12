@@ -1,12 +1,14 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, RouterLink, RouterLinkActive } from '@angular/router';
+import { environment } from '../../../environments/environment.development';
 import { TooltipModule } from 'primeng/tooltip';
 
 interface MenuItem {
   label: string;
   icon: string;
   route: string;
+  externalUrl?: string;
   queryParams?: Record<string, string>;
 }
 
@@ -27,7 +29,11 @@ interface MenuItem {
       <!-- Menu Items -->
       <ul class="menu-list">
         <li *ngFor="let item of menuItems">
-          <a
+          <a *ngIf="item.externalUrl; else internalLink" [href]="item.externalUrl" target="_blank" rel="noopener noreferrer"
+            class="menu-item" [attr.aria-label]="item.label + ' (abre em nova aba)'" [pTooltip]="collapsed ? item.label : ''" tooltipPosition="right">
+            <i [class]="item.icon" aria-hidden="true"></i><span class="menu-label" *ngIf="!collapsed">{{ item.label }} ↗</span>
+          </a>
+          <ng-template #internalLink><a
             [routerLink]="item.route"
             [queryParams]="item.queryParams"
             routerLinkActive="active"
@@ -37,7 +43,7 @@ interface MenuItem {
             tooltipPosition="right">
             <i [class]="item.icon"></i>
             <span class="menu-label" *ngIf="!collapsed">{{ item.label }}</span>
-          </a>
+          </a></ng-template>
         </li>
       </ul>
 
@@ -67,7 +73,7 @@ export class SidebarComponent {
     //{ label: 'Resultados', icon: 'pi pi-chart-bar', route: '/resultados' },
     //{ label: 'Equipe', icon: 'pi pi-cog', route: '/equipe' },
     { label: 'Configurações', icon: 'pi pi-sliders-h', route: '/wizard-step-9-review', queryParams: { source: 'menu' } },
-    { label: 'Ajuda', icon: 'pi pi-question-circle', route: '/ajuda' },
+    { label: 'Ajuda', icon: 'pi pi-question-circle', route: '/ajuda', externalUrl: environment.helpUrl },
   ];
 
   toggleCollapse() {

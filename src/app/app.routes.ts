@@ -19,6 +19,7 @@ import { OAuth2CallbackComponent } from './pages/oauth2-callback/oauth2-callback
 import { authGuard, guestGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
+  { path: 'ajuda', loadComponent: () => import('./pages/ajuda/ajuda.component').then(m => m.AjudaComponent) },
   {
     path: 'invite/:token',
     loadComponent: () => import('./pages/invite/invite.component').then(m => m.InviteComponent),
@@ -68,7 +69,7 @@ export const routes: Routes = [
       { path: 'wizard-step-9-review', component: WizardStep8ReviewComponent },
       { path: 'equipe', component: DashboardComponent },
       { path: 'configuracoes', redirectTo: 'wizard-step-9-review', pathMatch: 'full' },
-      { path: 'ajuda', component: DashboardComponent },
+
     ]
   },
   { path: '**', redirectTo: '' }
