@@ -17,6 +17,7 @@ import { WizardStep7AiComponent } from './pages/wizard-step-7-ai/wizard-step-7-a
 import { WizardStep8ReviewComponent } from './pages/wizard-step-8-review/wizard-step-8-review.component';
 import { OAuth2CallbackComponent } from './pages/oauth2-callback/oauth2-callback.component';
 import { authGuard, guestGuard } from './guards/auth.guard';
+import { settingsEntryGuard } from './guards/settings-entry.guard';
 
 export const routes: Routes = [
   {
@@ -66,7 +67,7 @@ export const routes: Routes = [
       { path: 'wizard-step-7-ai', redirectTo: 'ia', pathMatch: 'full' },
       { path: 'wizard-step-8-ai', redirectTo: 'ia', pathMatch: 'full' },
       { path: 'wizard-step-8-review', redirectTo: 'wizard-step-9-review', pathMatch: 'full' },
-      { path: 'wizard-step-9-review', component: WizardStep8ReviewComponent },
+      { path: 'wizard-step-9-review', component: WizardStep8ReviewComponent, canActivate: [settingsEntryGuard], runGuardsAndResolvers: 'paramsOrQueryParamsChange' },
       { path: 'equipe', component: DashboardComponent },
       { path: 'configuracoes', redirectTo: 'wizard-step-9-review', pathMatch: 'full' },
 

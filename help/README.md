@@ -139,7 +139,7 @@ adicional não está implementada; não coloque informações confidenciais nos 
 ## Configuração e validação
 
 `HELP_SITE_URL` define a origem canônica (padrão `https://www.atenclin.com`).
-No build integrado, `HELP_BASE_URL` e `ATENCLIN_APP_URL` são derivados de
+No build integrado, `HELP_BASE_URL` é derivado de
 `--base-href`. O prefixo deve começar e terminar com `/`, como `/web/`.
 
 ```sh

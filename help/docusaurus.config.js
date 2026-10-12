@@ -1,5 +1,3 @@
-const appUrl = process.env.ATENCLIN_APP_URL || 'https://www.atenclin.com/web/';
-
 /** @type {import('@docusaurus/types').Config} */
 module.exports = {
   title: 'Ajuda Atenclin',
@@ -23,10 +21,9 @@ module.exports = {
   themeConfig: {
     colorMode: { defaultMode: 'light', disableSwitch: true },
     navbar: {
-      title: 'Atenclin | Ajuda', logo: { alt: 'Atenclin', src: 'img/logo.png' },
+      title: 'Ajuda',
       items: [
         { to: '/artigos/primeiros-passos', label: 'Comece por aqui', position: 'left' },
-        { href: appUrl, label: 'Acessar Atenclin', target: '_top', position: 'right' },
       ],
     },
     footer: { style: 'light', copyright: 'Atenclin · Central de ajuda' },

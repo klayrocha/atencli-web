@@ -43,6 +43,11 @@ export class OnboardingProgressService {
     });
   }
 
+  isConfigurationComplete(): boolean {
+    const key = this.storageKey();
+    return (key === this.activeKey ? this.completedSteps() : this.read(key)) === 9;
+  }
+
   advance(completed: number): void {
     const key = this.storageKey();
     if (!key) return;

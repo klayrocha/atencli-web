@@ -22,7 +22,6 @@ function run(file, parameters, env = process.env) {
 run('help/node_modules/@docusaurus/core/bin/docusaurus.mjs', ['build', 'help'], {
   ...process.env,
   HELP_BASE_URL: `${baseHref}ajuda-docs/`,
-  ATENCLIN_APP_URL: baseHref,
 });
 if (command !== 'help') {
   run('node_modules/@angular/cli/bin/ng.js', [command === 'start' ? 'serve' : 'build', ...args]);
