@@ -101,8 +101,11 @@ export class DashboardHomeService {
     return { headers: { Authorization: `Bearer ${this.auth.getToken()}` } };
   }
 
-  async getHome(): Promise<DashboardHomeResponse> {
-    const home = await firstValueFrom(this.http.get<DashboardHomeResponse>(this.url, this.options));
+  async getHome(from?: string, to?: string): Promise<DashboardHomeResponse> {
+    const home = await firstValueFrom(this.http.get<DashboardHomeResponse>(this.url, {
+      ...this.options,
+      params: from && to ? { from, to } : {}
+    }));
     this.clinicName.set(home.clinic.name);
     if (home.clinic.name) {
       sessionStorage.setItem(this.CLINIC_NAME_KEY, home.clinic.name);

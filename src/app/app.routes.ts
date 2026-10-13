@@ -62,7 +62,7 @@ export const routes: Routes = [
       { path: 'calendar', redirectTo: 'agenda', pathMatch: 'full' },
       { path: 'ac', component: AcompanhamentoAutomaticoComponent },
       { path: 'tarefas', loadComponent: () => import('./pages/tarefas/tarefas.component').then(m => m.TarefasComponent) },
-      { path: 'resultados', component: DashboardComponent },
+      { path: 'resultados', loadComponent: () => import('./pages/dashboard/dashboard-period.component').then(m => m.DashboardPeriodComponent) },
       { path: 'ia', component: WizardStep7AiComponent },
       { path: 'wizard-step-7-ai', redirectTo: 'ia', pathMatch: 'full' },
       { path: 'wizard-step-8-ai', redirectTo: 'ia', pathMatch: 'full' },

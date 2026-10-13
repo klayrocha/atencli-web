@@ -64,7 +64,7 @@ export class SidebarComponent {
     { label: 'Agenda', icon: 'pi pi-calendar', route: '/agenda' },
     { label: 'Acompanhamento automático', icon: 'pi pi-sparkles', route: '/ac' },
     { label: 'Tarefas', icon: 'pi pi-check-square', route: '/tarefas' },
-    //{ label: 'Resultados', icon: 'pi pi-chart-bar', route: '/resultados' },
+    { label: 'Resultados', icon: 'pi pi-chart-bar', route: '/resultados' },
     //{ label: 'Equipe', icon: 'pi pi-cog', route: '/equipe' },
     { label: 'Configurações', icon: 'pi pi-sliders-h', route: '/wizard-step-9-review', queryParams: { source: 'menu' } },
     { label: 'Ajuda', icon: 'pi pi-question-circle', route: '/ajuda' },

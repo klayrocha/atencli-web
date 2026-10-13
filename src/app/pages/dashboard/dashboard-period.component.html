@@ -1,0 +1,133 @@
+<main class="period-dashboard">
+  <header class="page-header">
+    <div>
+      <h1>Resultados</h1>
+      <p>Indicadores da {{ home?.clinic?.name || 'clínica' }}</p>
+    </div>
+  </header>
+
+  <form class="period-filter" (ngSubmit)="loadPeriod()">
+    <div class="date-field">
+      <label for="period-from">Data inicial</label>
+      <input id="period-from" name="fromDate" type="date" [(ngModel)]="fromDate" [max]="toDate || null" required>
+    </div>
+    <div class="date-field">
+      <label for="period-to">Data final</label>
+      <input id="period-to" name="toDate" type="date" [(ngModel)]="toDate" [min]="fromDate || null" required>
+    </div>
+    <button type="submit" [disabled]="loading || !fromDate || !toDate">
+      <i class="pi pi-search" aria-hidden="true"></i>
+      Consultar
+    </button>
+  </form>
+
+  <div class="page-state error" role="alert" *ngIf="errorMessage">
+    <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+    <span>{{ errorMessage }}</span>
+  </div>
+  <div class="page-state" role="status" *ngIf="loading">
+    <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
+    <span>Carregando resultados...</span>
+  </div>
+
+  <ng-container *ngIf="home && !loading">
+    <section class="results-section" aria-labelledby="pulse-title">
+      <div class="section-heading">
+        <h2 id="pulse-title">Pulso da clínica</h2>
+        <p>{{ home.attentionPulse.total }} situações precisam de atenção agora. Estes indicadores mostram as pendências atuais.</p>
+      </div>
+      <div class="metrics-grid pulse-grid">
+        <div class="metric" *ngFor="let card of home.attentionPulse.cards">
+          <i class="pi {{ metricIcon(card.key) }}" aria-hidden="true"></i>
+          <strong>{{ metricValue(card) }}</strong>
+          <span class="metric-label">{{ card.label }}</span>
+          <small>{{ metricHelper(card) }}</small>
+        </div>
+      </div>
+    </section>
+
+    <section class="results-section" aria-labelledby="journey-title">
+      <div class="section-heading">
+        <h2 id="journey-title">Jornada do atendimento</h2>
+        <p>{{ appliedPeriod }} · De novos contatos a pacientes conquistados.</p>
+      </div>
+      <div class="metrics-grid">
+        <div class="metric" *ngFor="let card of home.journey">
+          <i class="pi {{ metricIcon(card.key) }}" aria-hidden="true"></i>
+          <strong>{{ metricValue(card) }}</strong>
+          <span class="metric-label">{{ card.label }}</span>
+          <small>{{ metricHelper(card) }}</small>
+        </div>
+      </div>
+    </section>
+
+    <section class="results-section" aria-labelledby="results-title">
+      <div class="section-heading">
+        <h2 id="results-title">Resultados</h2>
+        <p>{{ appliedPeriod }}</p>
+      </div>
+      <div class="metrics-grid three-columns">
+        <div class="metric" *ngFor="let card of home.resultsPreview.cards">
+          <i class="pi {{ metricIcon(card.key) }}" aria-hidden="true"></i>
+          <strong>{{ metricValue(card) }}</strong>
+          <span class="metric-label">{{ card.label }}</span>
+          <small>{{ metricHelper(card) }}</small>
+        </div>
+      </div>
+    </section>
+
+    <section class="results-section" aria-labelledby="summary-title">
+      <div class="section-heading">
+        <h2 id="summary-title">Resumo do período</h2>
+        <p>{{ appliedPeriod }}</p>
+      </div>
+      <div class="metrics-grid three-columns">
+        <div class="metric" *ngFor="let card of home.daySummary.cards">
+          <i class="pi {{ metricIcon(card.key) }}" aria-hidden="true"></i>
+          <strong>{{ metricValue(card) }}</strong>
+          <span class="metric-label">{{ card.label }}</span>
+          <small>{{ metricHelper(card) }}</small>
+        </div>
+      </div>
+    </section>
+
+    <section class="results-section" aria-labelledby="appointments-title">
+      <div class="section-heading">
+        <h2 id="appointments-title">Consultas no período</h2>
+        <p>{{ appliedPeriod }} · {{ home.todayAppointments.length }} consultas</p>
+      </div>
+      <div class="appointments-list" *ngIf="home.todayAppointments.length; else noAppointments">
+        <div class="appointment-row" *ngFor="let appointment of appointmentPageItems">
+          <time>{{ appointmentDate(appointment.startsAt) }}</time>
+          <div class="appointment-person">
+            <strong>{{ appointment.contactName }}</strong>
+            <span>{{ appointment.serviceName }}<ng-container *ngIf="appointment.professionalName"> · {{ appointment.professionalName }}</ng-container></span>
+          </div>
+          <span class="appointment-status">{{ appointmentStatus(appointment.status) }}</span>
+        </div>
+      </div>
+      <ng-template #noAppointments><p class="empty-state">Nenhuma consulta no período selecionado.</p></ng-template>
+      <nav class="appointment-pagination" aria-label="Páginas de consultas" *ngIf="appointmentPageCount > 1">
+        <button type="button" aria-label="Página anterior" [disabled]="appointmentsPage === 0" (click)="appointmentsPage = appointmentsPage - 1"><i class="pi pi-chevron-left" aria-hidden="true"></i></button>
+        <span>{{ appointmentsPage + 1 }} de {{ appointmentPageCount }}</span>
+        <button type="button" aria-label="Próxima página" [disabled]="appointmentsPage + 1 >= appointmentPageCount" (click)="appointmentsPage = appointmentsPage + 1"><i class="pi pi-chevron-right" aria-hidden="true"></i></button>
+      </nav>
+    </section>
+
+    <section class="savings-section" aria-labelledby="savings-title">
+      <div class="section-heading">
+        <h2 id="savings-title">Economia com IA</h2>
+        <p>{{ home.aiSavings.helper }}</p>
+      </div>
+      <div class="savings-grid">
+        <div class="savings-primary">
+          <span>Economia estimada</span>
+          <strong>{{ savingsAmount() }}</strong>
+        </div>
+        <div class="savings-detail"><strong>{{ savingsTime() }}</strong><span>tempo poupado</span></div>
+        <div class="savings-detail"><strong>{{ home.aiSavings.assistedContacts }}</strong><span>contatos atendidos pela IA</span></div>
+        <div class="savings-detail"><strong>{{ home.aiSavings.aiScheduledAppointments }}</strong><span>agendamentos pela IA</span></div>
+      </div>
+    </section>
+  </ng-container>
+</main>

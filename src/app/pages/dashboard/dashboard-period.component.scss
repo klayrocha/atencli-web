@@ -1,0 +1,197 @@
+.period-dashboard {
+  max-width: 1400px;
+  margin: 0 auto;
+  min-width: 0;
+  color: var(--text-primary);
+}
+
+.page-header {
+  margin-bottom: 1.5rem;
+}
+
+.page-header h1 {
+  font-size: 1.75rem;
+  margin: 0 0 0.25rem;
+}
+
+.page-header p,
+.section-heading p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.period-filter {
+  display: flex;
+  align-items: end;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 1rem 0;
+  border-top: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 1.75rem;
+}
+
+.date-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.date-field label {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.date-field input {
+  min-height: 2.5rem;
+  padding: 0.4rem 0.65rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--text-primary);
+  font: inherit;
+}
+
+.period-filter button {
+  min-height: 2.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: 0;
+  border-radius: 6px;
+  background: #4d7c0f;
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.period-filter button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.page-state {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 1.25rem;
+  color: var(--text-secondary);
+}
+
+.page-state.error { color: #b91c1c; }
+
+.results-section,
+.savings-section { margin-bottom: 2rem; }
+
+.section-heading { margin-bottom: 1rem; }
+
+.section-heading h2 {
+  font-size: 1.1rem;
+  margin: 0 0 0.25rem;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.pulse-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.three-columns { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+.metric {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+  min-height: 9rem;
+  padding: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.metric i { color: #4d7c0f; }
+.metric strong { font-size: 1.65rem; line-height: 1; }
+.metric-label { font-weight: 600; }
+.metric small { color: var(--text-secondary); line-height: 1.35; }
+
+.appointments-list { border-top: 1px solid var(--border-color); }
+
+.appointment-row {
+  display: grid;
+  grid-template-columns: minmax(10rem, 0.8fr) minmax(0, 2fr) minmax(10rem, 1fr);
+  align-items: center;
+  gap: 1rem;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.875rem;
+}
+
+.appointment-row time { font-weight: 600; }
+.appointment-person { display: flex; flex-direction: column; gap: 0.2rem; min-width: 0; }
+.appointment-person span { color: var(--text-secondary); overflow-wrap: anywhere; }
+.appointment-status { color: var(--text-secondary); }
+.empty-state { color: var(--text-secondary); font-size: 0.875rem; }
+
+.appointment-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding-top: 0.75rem;
+  font-size: 0.85rem;
+}
+
+.appointment-pagination button {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.appointment-pagination button:disabled { opacity: 0.4; cursor: default; }
+
+.savings-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+  align-items: start;
+}
+
+.savings-primary,
+.savings-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+  padding: 1rem 0;
+  border-top: 2px solid #84cc16;
+}
+
+.savings-primary strong,
+.savings-detail strong { font-size: 1.4rem; overflow-wrap: anywhere; }
+.savings-primary span,
+.savings-detail span { color: var(--text-secondary); font-size: 0.85rem; }
+
+@media (max-width: 900px) {
+  .metrics-grid,
+  .savings-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 540px) {
+  .period-filter { align-items: stretch; }
+  .date-field { flex: 1 1 100%; }
+  .period-filter button { width: 100%; }
+  .metrics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .savings-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .appointment-row { grid-template-columns: 1fr; gap: 0.3rem; }
+}
