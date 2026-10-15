@@ -1,5 +1,6 @@
 import { WizardStepperComponent } from '../wizard-shared/wizard-stepper.component';
 import { Component, OnInit, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -23,7 +24,8 @@ const DRAFT_KEY = 'wizard_step1_draft';
 
 interface Step1Draft {
   clinicName: string;
-  clinicType: string;
+  clinicTypeIds?: string[];
+  clinicType?: string; // rascunhos anteriores
   shortDescription: string;
   city: string;
   state: string;
@@ -53,7 +55,8 @@ export class WizardStep1AboutComponent implements OnInit {
 
   // ─── Campos do formulário ──────────────────────────────────────────────────
   clinicName = '';
-  clinicType = '';
+  clinicTypeIds: string[] = [];
+  private primaryClinicTypeId: number | null = null;
   shortDescription = '';
   city = '';
   state = '';
@@ -71,12 +74,13 @@ export class WizardStep1AboutComponent implements OnInit {
   loadingLists = signal(true);
   saving = signal(false);
   submitAttempted = signal(false);
+  saveError = signal('');
 
   // ─── Validação ─────────────────────────────────────────────────────────────
   get isFormValid(): boolean {
     return (
       this.clinicName.trim() !== '' &&
-      this.clinicType != null && this.clinicType !== '' &&
+      this.clinicTypeIds.length > 0 &&
       this.shortDescription.trim() !== '' &&
       this.city.trim() !== '' &&
       this.state != null && this.state !== '' &&
@@ -112,6 +116,7 @@ export class WizardStep1AboutComponent implements OnInit {
       this.states = states;
       this.clinicTypes = clientTypes;
       this.healthPlans = healthPlans;
+      this.primaryClinicTypeId = about.typeClientId;
       if (!hasDraft) {
         this.applySavedData(about, clientHealthPlans);
       }
@@ -127,7 +132,7 @@ export class WizardStep1AboutComponent implements OnInit {
   saveDraft(): void {
     const draft: Step1Draft = {
       clinicName: this.clinicName,
-      clinicType: this.clinicType,
+      clinicTypeIds: [...this.clinicTypeIds],
       shortDescription: this.shortDescription,
       city: this.city,
       state: this.state,
@@ -145,7 +150,9 @@ export class WizardStep1AboutComponent implements OnInit {
       if (!raw) return false;
       const draft: Step1Draft = JSON.parse(raw);
       this.clinicName = draft.clinicName ?? '';
-      this.clinicType = draft.clinicType ?? '';
+      this.clinicTypeIds = Array.isArray(draft.clinicTypeIds)
+        ? draft.clinicTypeIds.map(String)
+        : draft.clinicType ? [String(draft.clinicType)] : [];
       this.shortDescription = draft.shortDescription ?? '';
       this.city = draft.city ?? '';
       this.state = draft.state ?? '';
@@ -162,7 +169,9 @@ export class WizardStep1AboutComponent implements OnInit {
 
   private applySavedData(about: AboutResponse, clientHealthPlans: ClientHealthPlansResponse): void {
     this.clinicName = about.clientName ?? '';
-    this.clinicType = about.typeClientId != null ? String(about.typeClientId) : '';
+    this.clinicTypeIds = about.typeClientIds?.length
+      ? about.typeClientIds.map(String)
+      : about.typeClientId != null ? [String(about.typeClientId)] : [];
     this.shortDescription = about.description ?? '';
     this.city = about.cityName ?? '';
     this.state = about.stateId != null ? String(about.stateId) : '';
@@ -218,10 +227,10 @@ export class WizardStep1AboutComponent implements OnInit {
   }
 
   recommendByAi(): void {
-    this.clinicType = this.clinicTypes.length > 0 ? this.clinicTypes[0].id : '';
+    this.clinicTypeIds = this.clinicTypes.length > 0 ? [this.clinicTypes[0].id] : [];
     this.shortDescription = 'Clínica odontológica moderna focada em implantes, estética e ortodontia de alta performance.';
     this.city = 'São Paulo';
-    this.state = 'SP';
+    this.state = this.states.find(state => state.name === 'São Paulo')?.id ?? '';
     if (!this.clinicPhone) {
       this.clinicPhone = '(11) 99999-9999';
     }
@@ -241,13 +250,19 @@ export class WizardStep1AboutComponent implements OnInit {
       return;
     }
 
+    this.saveError.set('');
     this.saving.set(true);
     try {
+      const selectedTypeIds = this.clinicTypeIds.map(Number);
+      const primaryTypeId = this.primaryClinicTypeId != null
+        && selectedTypeIds.includes(this.primaryClinicTypeId)
+        ? this.primaryClinicTypeId : selectedTypeIds[0];
       const rawPhone = this.clinicPhone.replace(/\D/g, '');
       await this.wizardService.saveAbout({
         clientName: this.clinicName.trim(),
         email: this.clinicEmail.trim(),
-        typeClientId: Number(this.clinicType),
+        typeClientId: primaryTypeId,
+        typeClientIds: selectedTypeIds,
         description: this.shortDescription.trim(),
         cityName: this.city.trim(),
         stateId: Number(this.state),
@@ -257,8 +272,11 @@ export class WizardStep1AboutComponent implements OnInit {
       await this.wizardService.saveHealthPlans(this.healthPlanIds);
       sessionStorage.removeItem(DRAFT_KEY);
       this.router.navigate(['/wizard-step-2-specialty']);
-    } catch {
-      // Erro silenciado — pode adicionar toast aqui no futuro
+    } catch (error) {
+      const message = error instanceof HttpErrorResponse ? String(error.error?.message ?? '') : '';
+      this.saveError.set(message.includes('Remove services and specialties')
+        ? 'Remova as especialidades e os serviços dessa área nos próximos passos antes de excluí-la.'
+        : 'Não foi possível salvar os dados da clínica. Tente novamente.');
     } finally {
       this.saving.set(false);
     }

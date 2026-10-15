@@ -184,14 +184,17 @@ export class WizardStep3ServicesComponent implements OnInit {
     try {
       const about = await this.wizardService.getAbout();
       this.acceptsHealthPlan = about.acceptsHealthPlan !== false;
-      if (about.typeClientId == null) {
-        return;
-      }
+      const typeIds = about.typeClientIds?.length
+        ? about.typeClientIds
+        : about.typeClientId != null ? [about.typeClientId] : [];
+      if (typeIds.length === 0) return;
 
-      const [catalog, configured] = await Promise.all([
-        this.wizardService.getServicesByTypeClient(about.typeClientId),
+      const [catalog, configured, clientTypes] = await Promise.all([
+        this.wizardService.getServicesByTypeClients(typeIds),
         this.wizardService.getClientServices(),
+        this.wizardService.getClientTypes(),
       ]);
+      const typeNames = new Map(clientTypes.map(type => [Number(type.id), type.name]));
       const configuredById = new Map(configured.services.map(service => [service.id, service]));
 
       this.allServices = catalog.map(service => {
@@ -200,7 +203,7 @@ export class WizardStep3ServicesComponent implements OnInit {
           id: Number(service.id),
           name: service.name,
           icon: 'pi-briefcase',
-          category: 'Serviço',
+          category: typeIds.length > 1 ? typeNames.get(service.typeClientId) ?? 'Serviço' : 'Serviço',
           suggestedPrice: service.valor ?? configuredService?.defaultValue ?? null,
           practicePrice: configuredService?.price ?? null,
           insurancePrice: configuredService?.planPrice ?? null,

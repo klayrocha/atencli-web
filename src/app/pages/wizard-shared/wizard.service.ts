@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment.development';
 import { AuthService } from '../../auth/auth.service';
@@ -28,6 +28,7 @@ export interface AboutPayload {
   clientName: string;
   email: string;
   typeClientId: number;
+  typeClientIds: number[];
   description: string;
   cityName: string;
   stateId: number;
@@ -42,6 +43,7 @@ export interface AboutResponse {
   languageCode: string;
   clientName: string;
   typeClientId: number | null;
+  typeClientIds: number[];
   description: string;
   cityName: string;
   stateId: number | null;
@@ -59,6 +61,12 @@ export interface SpecialtyOption {
   name: string;
 }
 
+export interface TypedSpecialtyOption {
+  id: string;
+  name: string;
+  typeClientId: number;
+}
+
 export interface ClientSpecialtiesResponse {
   clientUuid: string;
   specialties: SpecialtyOption[];
@@ -68,6 +76,10 @@ export interface ProvidedServiceOption {
   id: string;
   name: string;
   valor: number | null;
+}
+
+export interface TypedProvidedServiceOption extends ProvidedServiceOption {
+  typeClientId: number;
 }
 
 export interface ClientProvidedServiceOption {
@@ -227,6 +239,18 @@ export class WizardService {
     );
   }
 
+  async getSpecialtiesByTypeClients(typeClientIds: number[]): Promise<TypedSpecialtyOption[]> {
+    return firstValueFrom(
+      this.http.get<TypedSpecialtyOption[]>(
+        `${environment.apiBaseUrl}/api/v1/lists/specialties`,
+        {
+          headers: this.headers,
+          params: new HttpParams().set('typeClientIds', typeClientIds.join(',')),
+        }
+      )
+    );
+  }
+
   async getClientSpecialties(): Promise<ClientSpecialtiesResponse> {
     return firstValueFrom(
       this.http.get<ClientSpecialtiesResponse>(
@@ -241,6 +265,18 @@ export class WizardService {
       this.http.get<ProvidedServiceOption[]>(
         `${environment.apiBaseUrl}/api/v1/lists/type-client/${typeClientId}/services`,
         { headers: this.headers }
+      )
+    );
+  }
+
+  async getServicesByTypeClients(typeClientIds: number[]): Promise<TypedProvidedServiceOption[]> {
+    return firstValueFrom(
+      this.http.get<TypedProvidedServiceOption[]>(
+        `${environment.apiBaseUrl}/api/v1/lists/services`,
+        {
+          headers: this.headers,
+          params: new HttpParams().set('typeClientIds', typeClientIds.join(',')),
+        }
       )
     );
   }

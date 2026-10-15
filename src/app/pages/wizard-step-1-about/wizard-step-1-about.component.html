@@ -27,7 +27,7 @@
 
       <form class="step-form">
 
-        <!-- Linha: Nome da clínica & Tipo de clínica -->
+        <!-- Linha: Nome da clínica & Áreas de atendimento -->
         <div class="form-row">
           <div class="form-group">
             <label for="clinicName">Nome da clínica <span class="required">*</span></label>
@@ -44,22 +44,31 @@
             <small class="field-error" *ngIf="submitAttempted() && !clinicName.trim()">Campo obrigatório.</small>
           </div>
 
-          <div class="form-group">
-            <label for="clinicType">Tipo de clínica <span class="required">*</span></label>
-            <p-dropdown
-              id="clinicType"
+          <div class="form-group clinic-types-selection">
+            <label for="clinicTypeIds">Áreas de atendimento <span class="required">*</span></label>
+            <p-multiSelect
+              id="clinicTypeIds"
               [options]="clinicTypes"
-              [(ngModel)]="clinicType"
-              name="clinicType"
-              placeholder="{{ loadingLists() ? 'Carregando...' : 'Selecione o tipo de clínica' }}"
+              [(ngModel)]="clinicTypeIds"
+              name="clinicTypeIds"
+              [placeholder]="loadingLists() ? 'Carregando...' : 'Selecione uma ou mais áreas'"
               optionLabel="name"
               optionValue="id"
+              selectedItemsLabel="{0} áreas selecionadas"
+              [maxSelectedLabels]="2"
+              [filter]="true"
+              filterPlaceholder="Buscar área"
               styleClass="w-full"
               [disabled]="loadingLists()"
-              [class.ng-invalid]="submitAttempted() && !clinicType"
+              [class.ng-invalid]="submitAttempted() && clinicTypeIds.length === 0"
               (ngModelChange)="saveDraft()"
-            ></p-dropdown>
-            <small class="field-error" *ngIf="submitAttempted() && !clinicType">Campo obrigatório.</small>
+            ></p-multiSelect>
+            <small class="field-hint" *ngIf="!(submitAttempted() && clinicTypeIds.length === 0)">
+              Selecione todas as áreas em que a clínica atende.
+            </small>
+            <small class="field-error" *ngIf="submitAttempted() && clinicTypeIds.length === 0">
+              Selecione pelo menos uma área.
+            </small>
           </div>
         </div>
 
@@ -231,6 +240,8 @@
 
       </form>
     </div>
+
+    <p class="save-error" *ngIf="saveError()" role="alert">{{ saveError() }}</p>
 
     <!-- Ações no rodapé do Wizard -->
     <div class="wizard-footer-actions">

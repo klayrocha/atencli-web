@@ -39,7 +39,7 @@ export class WizardStep2SpecialtyComponent implements OnInit {
   saving = signal(false);
   loadingSpecialties = signal(true);
 
-  // Lista carregada do catálogo oficial da API para o tipo da clínica.
+  // Lista carregada do catálogo oficial para todas as áreas da clínica.
   availableSpecialties: SpecialtyItem[] = [];
 
   selectedSpecialties: SpecialtyItem[] = [];
@@ -60,18 +60,22 @@ export class WizardStep2SpecialtyComponent implements OnInit {
 
     try {
       const about = await this.wizardService.getAbout();
-      if (about.typeClientId == null) {
-        return;
-      }
+      const typeIds = about.typeClientIds?.length
+        ? about.typeClientIds
+        : about.typeClientId != null ? [about.typeClientId] : [];
+      if (typeIds.length === 0) return;
 
-      const [specialties, clientSpecialties] = await Promise.all([
-        this.wizardService.getSpecialtiesByTypeClient(about.typeClientId),
+      const [specialties, clientSpecialties, clientTypes] = await Promise.all([
+        this.wizardService.getSpecialtiesByTypeClients(typeIds),
         this.wizardService.getClientSpecialties(),
+        this.wizardService.getClientTypes(),
       ]);
+      const typeNames = new Map(clientTypes.map(type => [Number(type.id), type.name]));
 
       this.availableSpecialties = specialties.map(specialty => ({
         id: Number(specialty.id),
         name: specialty.name,
+        category: typeIds.length > 1 ? typeNames.get(specialty.typeClientId) : undefined,
       }));
       const selectedIds = clientSpecialties.specialties.map(specialty => Number(specialty.id));
       this.selectedSpecialties = this.availableSpecialties.filter(specialty => selectedIds.includes(specialty.id));
@@ -104,7 +108,7 @@ export class WizardStep2SpecialtyComponent implements OnInit {
     if (index > -1) {
       this.selectedSpecialties.splice(index, 1);
     } else {
-      this.selectedSpecialties.push({ id: specialty.id, name: specialty.name });
+      this.selectedSpecialties.push({ ...specialty });
     }
     this.saveDraft();
   }
@@ -118,12 +122,12 @@ export class WizardStep2SpecialtyComponent implements OnInit {
     // Sugestão inteligente de especialidades com alta procura
     const aiSuggestedIds = [2, 3, 7, 8, 10]; // Dentística, Implantodontia, Periodontia, Ortodontia, Harmonização
     const suggestions = this.availableSpecialties.filter(s => aiSuggestedIds.includes(s.id));
-    this.selectedSpecialties = suggestions.map(s => ({ id: s.id, name: s.name }));
+    this.selectedSpecialties = suggestions.map(s => ({ ...s }));
     this.saveDraft();
   }
 
   selectAll(): void {
-    this.selectedSpecialties = this.availableSpecialties.map(s => ({ id: s.id, name: s.name }));
+    this.selectedSpecialties = this.availableSpecialties.map(s => ({ ...s }));
     this.saveDraft();
   }
 
