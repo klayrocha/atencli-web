@@ -24,7 +24,7 @@
       <div class="step-card-header">
         <div class="header-info">
           <h2 class="step-title">3. Serviços</h2>
-          <p class="step-desc">Habilite os serviços e ajuste os valores praticados{{ acceptsHealthPlan ? ' e de convênio' : '' }}.</p>
+          <p class="step-desc">Habilite os serviços e ajuste os valores praticados{{ acceptsHealthPlan ? ' e de convênio' : '' }}. Para serviços gratuitos, informe 0; não deixe o valor vazio.</p>
         </div>
         <div class="selected-counter">
           <i class="pi pi-check-circle"></i>
@@ -101,7 +101,7 @@
 
               <!-- Valor Praticado (editável) -->
               <td class="col-practice">
-                <div class="price-input-wrap" [class.disabled]="!service.enabled" [class.input-error]="submitAttempted() && service.enabled && service.practicePrice === null">
+                <div class="price-input-wrap" [class.disabled]="!service.enabled" [class.input-error]="submitAttempted() && service.enabled && !isPriceValid(service.practicePrice)">
                   <span class="currency-prefix">R$</span>
                   <input
                     type="number"
@@ -109,7 +109,7 @@
                     [(ngModel)]="service.practicePrice"
                     (click)="copySuggestedPriceToPractice(service)"
                     [disabled]="!service.enabled"
-                    placeholder="..."
+                    placeholder="Informe o valor"
                     min="0"
                     step="0.01"
                   />
@@ -118,15 +118,14 @@
 
               <!-- Valor Convênio (editável) -->
               <td class="col-insurance" *ngIf="acceptsHealthPlan">
-                <div class="price-input-wrap" [class.disabled]="!service.enabled" [class.input-error]="submitAttempted() && service.enabled && service.insurancePrice === null">
+                <div class="price-input-wrap" [class.disabled]="!service.enabled" [class.input-error]="submitAttempted() && service.enabled && !isPriceValid(service.insurancePrice)">
                   <span class="currency-prefix">R$</span>
                   <input
                     type="number"
                     class="price-input"
                     [(ngModel)]="service.insurancePrice"
-                    (click)="copyPracticePriceToInsurance(service)"
                     [disabled]="!service.enabled"
-                    placeholder="..."
+                    placeholder="Informe o valor"
                     min="0"
                     step="0.01"
                   />
@@ -217,7 +216,7 @@
         <i class="pi pi-exclamation-triangle"></i>
         <span>
           {{ invalidServices.length }} serviço{{ invalidServices.length === 1 ? '' : 's' }} habilitado{{ invalidServices.length === 1 ? '' : 's' }}
-          com {{ acceptsHealthPlan ? 'valor praticado, valor convênio ou duração' : 'valor praticado ou duração' }} pendente. Campo obrigatório.
+          com {{ acceptsHealthPlan ? 'valor praticado, valor convênio ou duração' : 'valor praticado ou duração' }} pendente ou inválido. Informe valores iguais ou maiores que zero; para serviços gratuitos, digite 0.
         </span>
       </div>
 

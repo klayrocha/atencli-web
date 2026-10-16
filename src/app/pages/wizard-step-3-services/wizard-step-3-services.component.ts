@@ -96,25 +96,21 @@ export class WizardStep3ServicesComponent implements OnInit {
   }
 
   get canSave(): boolean {
-    return this.selectedServices.every(service =>
-      service.practicePrice !== null &&
-      (!this.acceptsHealthPlan || service.insurancePrice !== null) &&
-      service.duration !== null
-    );
+    return this.invalidServices.length === 0;
   }
 
   get invalidServices(): ServiceItem[] {
-    return this.selectedServices.filter(service =>
-      service.practicePrice === null ||
-      (this.acceptsHealthPlan && service.insurancePrice === null) ||
-      service.duration === null
-    );
+    return this.selectedServices.filter(service => this.isServiceInvalid(service));
+  }
+
+  isPriceValid(value: number | null): boolean {
+    return typeof value === 'number' && Number.isFinite(value) && value >= 0;
   }
 
   isServiceInvalid(service: ServiceItem): boolean {
     return service.enabled && (
-      service.practicePrice === null ||
-      (this.acceptsHealthPlan && service.insurancePrice === null) ||
+      !this.isPriceValid(service.practicePrice) ||
+      (this.acceptsHealthPlan && !this.isPriceValid(service.insurancePrice)) ||
       service.duration === null
     );
   }
@@ -152,14 +148,8 @@ export class WizardStep3ServicesComponent implements OnInit {
     });
   }
 
-  copyPracticePriceToInsurance(service: ServiceItem): void {
-    if (this.acceptsHealthPlan && service.enabled && service.practicePrice !== null) {
-      service.insurancePrice = service.practicePrice;
-    }
-  }
-
   copySuggestedPriceToPractice(service: ServiceItem): void {
-    if (service.enabled && service.suggestedPrice !== null) {
+    if (service.enabled && service.practicePrice === null && this.isPriceValid(service.suggestedPrice)) {
       service.practicePrice = service.suggestedPrice;
     }
   }
