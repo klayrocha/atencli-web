@@ -50,6 +50,7 @@ export const routes: Routes = [
       { path: 'wizard-step-3-services', component: WizardStep3ServicesComponent },
       { path: 'wizard-step-4-schedule', component: WizardStep4ScheduleComponent },
       { path: 'wizard-step-5-team', component: WizardStep5TeamComponent },
+      { path: 'wizard-step-6-professionals', loadComponent: () => import('./pages/wizard-step-6-professionals/wizard-step-6-professionals.component').then(m => m.WizardStep6ProfessionalsComponent) },
       { path: 'wizard-step-6-whatsapp', component: WizardStep6WhatsappComponent },
       { path: 'configuracoes/whatsapp', component: WizardStep6WhatsappComponent },
       { path: 'wizard-step-7-instagram', component: WizardStep7InstagramComponent },

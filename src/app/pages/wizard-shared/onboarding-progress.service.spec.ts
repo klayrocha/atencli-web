@@ -11,8 +11,8 @@ describe('Onboarding progress', () => {
   const profile = signal({ clientUuid: 'progress-test-a' });
   const navigate = (url: string) => events.next(new NavigationEnd(1, url, url));
   beforeEach(() => {
-    localStorage.removeItem('atenclin:onboarding:progress-test-a');
-    localStorage.removeItem('atenclin:onboarding:progress-test-b');
+    localStorage.removeItem('atenclin:onboarding:v2:progress-test-a');
+    localStorage.removeItem('atenclin:onboarding:v2:progress-test-b');
     profile.set({ clientUuid: 'progress-test-a' });
     events = new Subject();
     TestBed.configureTestingModule({ providers: [
@@ -23,8 +23,8 @@ describe('Onboarding progress', () => {
     TestBed.flushEffects();
   });
   afterEach(() => {
-    localStorage.removeItem('atenclin:onboarding:progress-test-a');
-    localStorage.removeItem('atenclin:onboarding:progress-test-b');
+    localStorage.removeItem('atenclin:onboarding:v2:progress-test-a');
+    localStorage.removeItem('atenclin:onboarding:v2:progress-test-b');
   });
   it('starts at step one and resumes after a successful forward navigation', () => {
     expect(service.started()).toBeFalse();
@@ -34,6 +34,13 @@ describe('Onboarding progress', () => {
     expect(service.resumeRoute()).toBe('/wizard-step-2-specialty');
     navigate('/wizard-step-1-aboult');
     expect(service.completedSteps()).toBe(1);
+  });
+  it('visits professionals immediately after team', () => {
+    navigate('/wizard-step-5-team'); navigate('/wizard-step-6-professionals');
+    expect(service.completedSteps()).toBe(5);
+    expect(service.resumeRoute()).toBe('/wizard-step-6-professionals');
+    navigate('/wizard-step-6-whatsapp');
+    expect(service.completedSteps()).toBe(6);
   });
   it('does not mark completion just by opening Settings', () => {
     navigate('/');
@@ -47,7 +54,7 @@ describe('Onboarding progress', () => {
     navigate('/ia');
     navigate('/wizard-step-9-review');
     expect(service.complete()).toBeTrue();
-    expect(localStorage.getItem('atenclin:onboarding:progress-test-a')).toBe('9');
+    expect(localStorage.getItem('atenclin:onboarding:v2:progress-test-a')).toBe('10');
     profile.set({ clientUuid: 'progress-test-b' });
     TestBed.flushEffects();
     expect(service.started()).toBeFalse();

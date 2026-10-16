@@ -15,8 +15,8 @@ import { WIZARD_STEPS_DEFAULT } from '../wizard-shared/wizard.models';
   template: `
     <div class="wizard-container">
     <main class="review-page">
-      <header><span class="step-label">Passo 9 de 9</span><h1>Parabéns, você concluiu a configuração!</h1><p>Um novo começo para o atendimento da sua clínica: mais organização para a equipe e mais cuidado em cada conversa.</p></header>
-      <app-wizard-stepper [currentStepId]="9"></app-wizard-stepper>
+      <header><span class="step-label">Passo 10 de 10</span><h1>Parabéns, você concluiu a configuração!</h1><p>Um novo começo para o atendimento da sua clínica: mais organização para a equipe e mais cuidado em cada conversa.</p></header>
+      <app-wizard-stepper [currentStepId]="10"></app-wizard-stepper>
       <section *ngIf="!fromSettingsMenu" class="completion-card" aria-labelledby="next-title">
         <div class="completion-heading">
           <div class="completion-icon"><i class="pi pi-check" aria-hidden="true"></i></div>
@@ -57,7 +57,7 @@ import { WIZARD_STEPS_DEFAULT } from '../wizard-shared/wizard.models';
       </section>
       <footer><a class="back" routerLink="/ia"><i class="pi pi-chevron-left" aria-hidden="true"></i> Voltar para IA</a></footer>
     </main>
-    <app-wizard-summary [steps]="steps" [currentStepId]="9" (activate)="startService()"></app-wizard-summary>
+    <app-wizard-summary [steps]="steps" [currentStepId]="10" (activate)="startService()"></app-wizard-summary>
     </div>
   `,
   styles: [`
@@ -173,7 +173,7 @@ import { WIZARD_STEPS_DEFAULT } from '../wizard-shared/wizard.models';
 export class WizardStep8ReviewComponent {
   fromSettingsMenu = false;
   reviewExpanded = false;
-  readonly steps = WIZARD_STEPS_DEFAULT.map(step => ({ ...step, completed: true, current: step.id === 9 }));
+  readonly steps = WIZARD_STEPS_DEFAULT.map(step => ({ ...step, completed: true, current: step.id === 10 }));
   constructor(private router: Router, route: ActivatedRoute) {
     route.queryParamMap.pipe(takeUntilDestroyed()).subscribe(params => {
       this.fromSettingsMenu = params.get('source') === 'menu';

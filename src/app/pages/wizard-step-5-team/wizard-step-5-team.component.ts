@@ -328,6 +328,6 @@ export class WizardStep5TeamComponent implements OnInit {
   }
 
   goBack():  void { this.router.navigate(['/wizard-step-4-schedule']); }
-  goNext():  void { this.router.navigate(['/wizard-step-6-whatsapp']); }
+  goNext():  void { this.router.navigate(['/wizard-step-6-professionals']); }
   activateService(): void {}
 }

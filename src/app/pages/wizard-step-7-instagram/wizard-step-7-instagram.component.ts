@@ -32,8 +32,8 @@ export class WizardStep7InstagramComponent implements OnInit {
 
   steps: WizardStep[] = WIZARD_STEPS_DEFAULT.map(step => ({
     ...step,
-    current: step.id === 7,
-    completed: step.id < 7,
+    current: step.id === 8,
+    completed: step.id < 8,
   }));
 
   constructor(

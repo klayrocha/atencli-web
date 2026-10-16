@@ -4,7 +4,7 @@
       <div class="header-icon"><i class="pi pi-sparkles" aria-hidden="true"></i></div>
       <div><h1 class="header-title">Configure a inteligência artificial</h1><p class="header-subtitle">Defina como a IA conversa, quando atende e quando chama sua equipe.</p></div>
     </header>
-    <app-wizard-stepper [currentStepId]="8"></app-wizard-stepper>
+    <app-wizard-stepper [currentStepId]="9"></app-wizard-stepper>
     <div class="notice" *ngIf="!canManage" role="status"><i class="pi pi-lock"></i>Somente administradores e gestores podem acessar a configuração da IA.</div>
     <div class="notice" *ngIf="loading" role="status">Carregando configuração da IA...</div>
     <div class="notice error" *ngIf="error && !loaded" role="alert">{{ error }} <button *ngIf="!loaded && canManage" type="button" (click)="load()" [disabled]="busy">Tentar novamente</button></div>
@@ -53,7 +53,7 @@
       </section>
     </form>
     <div class="notice error" *ngIf="error && loaded" role="alert">{{ error }}</div>
-    <div class="wizard-footer-actions"><a class="btn-back" routerLink="/wizard-step-7-instagram"><i class="pi pi-chevron-left"></i>Voltar para Instagram</a><button type="submit" form="ai-configuration" class="btn-next" [disabled]="busy || !loaded || !canManage"><i *ngIf="saving" class="pi pi-spin pi-spinner" aria-hidden="true"></i>{{ saving ? 'Salvando...' : 'Revisar passo 9' }}<i *ngIf="!saving" class="pi pi-arrow-right" aria-hidden="true"></i></button></div>
+    <div class="wizard-footer-actions"><a class="btn-back" routerLink="/wizard-step-7-instagram"><i class="pi pi-chevron-left"></i>Voltar para Instagram</a><button type="submit" form="ai-configuration" class="btn-next" [disabled]="busy || !loaded || !canManage"><i *ngIf="saving" class="pi pi-spin pi-spinner" aria-hidden="true"></i>{{ saving ? 'Salvando...' : 'Revisar configuração' }}<i *ngIf="!saving" class="pi pi-arrow-right" aria-hidden="true"></i></button></div>
   </main>
-  <app-wizard-summary [steps]="steps" [currentStepId]="8"></app-wizard-summary>
+  <app-wizard-summary [steps]="steps" [currentStepId]="9"></app-wizard-summary>
 </div>

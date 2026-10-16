@@ -3,6 +3,7 @@ import { provideRouter } from '@angular/router';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { AgendaComponent } from './agenda.component';
 import { CalendarService } from './calendar.service';
+import { ProfessionalsService } from './professionals.service';
 import { WizardService } from '../wizard-shared/wizard.service';
 
 describe('Agenda rendered controls', () => {
@@ -11,6 +12,7 @@ describe('Agenda rendered controls', () => {
       imports: [AgendaComponent],
       providers: [provideRouter([]), provideNoopAnimations(),
         { provide: CalendarService, useValue: { events: async () => [], appointments: async () => [] } },
+        { provide: ProfessionalsService, useValue: { list: async () => [] } },
         { provide: WizardService, useValue: {} }]
     }).compileComponents();
     const fixture = TestBed.createComponent(AgendaComponent);

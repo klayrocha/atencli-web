@@ -5,7 +5,7 @@ import { AuthService } from '../auth/auth.service';
 import { settingsEntryGuard } from './settings-entry.guard';
 
 describe('Settings entry guard', () => {
-  const key = 'atenclin:onboarding:settings-guard-test';
+  const key = 'atenclin:onboarding:v2:settings-guard-test';
   beforeEach(() => {
     localStorage.removeItem(key);
     TestBed.configureTestingModule({ providers: [
@@ -29,7 +29,7 @@ describe('Settings entry guard', () => {
     });
   }
   it('allows completed configuration on direct entry before effects run', () => {
-    localStorage.setItem(key, '9');
+    localStorage.setItem(key, '10');
     expect(enter()).toBeTrue();
   });
   it('allows normal onboarding to reach the completion page', () => {

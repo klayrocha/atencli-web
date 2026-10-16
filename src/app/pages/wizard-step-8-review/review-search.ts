@@ -7,12 +7,13 @@ const REVIEW_CONTENT = [
   { route: '/wizard-step-3-services', summary: 'Serviços e procedimentos, preços particulares e por convênio, além da duração de cada atendimento.', keywords: 'servico consulta exame procedimento valor valores preco precos custo tabela duracao minutos' },
   { route: '/wizard-step-4-schedule', summary: 'Dias e horários de atendimento da clínica, expediente, intervalos e dias sem atendimento.', keywords: 'horario horarios agenda disponibilidade funcionamento abertura fechamento feriado folga pausa almoco semana' },
   { route: '/wizard-step-5-team', summary: 'Convites para a equipe, funções, permissões e profissionais que podem receber conversas.', keywords: 'usuario usuarios colaborador colaboradores funcionario funcionarios equipe acesso administrador gestor atendente convite convidar permissao senha' },
+  { route: '/wizard-step-6-professionals', summary: 'Profissionais que realizam atendimentos, serviços vinculados, horários individuais, afastamentos e ativação.', keywords: 'profissional profissionais medico medicos dentista psicologo nutricionista ferias afastamento agenda cadastro ativar desativar' },
   { route: '/wizard-step-6-whatsapp', summary: 'Conexão do WhatsApp Business, número vinculado, status da integração e sincronização de contatos e histórico.', keywords: 'whatsapp whats zap meta conectar desconectar numero celular telefone canal integracao sincronizar pausar ativar' },
   { route: '/wizard-step-7-instagram', summary: 'Conexão do Instagram profissional da clínica, conta vinculada, status da integração e permissões da Meta.', keywords: 'instagram insta direct meta conectar desconectar conta profissional perfil business canal integracao pausar ativar' },
   { route: '/ia', summary: 'Modo de atuação da IA, tom de voz, mensagens, horários, assuntos permitidos e regras para chamar uma pessoa. Ativação ou pausa da IA.', keywords: 'ia inteligencia artificial assistente virtual robo bot automatico automacao resposta respostas humano transferencia seguranca tom voz mensagem horario ativar pausar' },
 ];
 
-export const REVIEW_ENTRIES = WIZARD_STEPS_DEFAULT.filter(step => step.id < 8).map((step, index) => ({ ...step, ...REVIEW_CONTENT[index] }));
+export const REVIEW_ENTRIES = WIZARD_STEPS_DEFAULT.filter(step => step.id < 10).map((step, index) => ({ ...step, ...REVIEW_CONTENT[index] }));
 const normalize = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 const ignoredWords = new Set('a o as os um uma de da do das dos e em na no nas nos para por com que eu meu minha meus minhas quero gostaria desejo preciso posso fazer mudar alterar ajustar configurar configuracao configuracoes revisar clinica'.split(' '));
 

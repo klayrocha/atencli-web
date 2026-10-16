@@ -25,7 +25,7 @@ export class WizardSummaryComponent {
   }
 
   get totalCount(): number {
-    return this.steps.length || 9;
+    return this.steps.length || ONBOARDING_ROUTES.length;
   }
 
   get progressPercent(): number {

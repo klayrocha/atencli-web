@@ -1,3 +1,4 @@
+import { ProfessionalsService } from './professionals.service';
 import { ActivatedRoute } from '@angular/router';
 import { AgendaComponent } from './agenda.component';
 import { Appointment, CalendarEvent, CalendarService } from './calendar.service';
@@ -10,7 +11,7 @@ describe('Agenda workflows', () => {
   beforeEach(() => {
     api = jasmine.createSpyObj('CalendarService', ['events', 'appointments', 'create', 'reschedule', 'slots']);
     api.events.and.resolveTo([]); api.appointments.and.resolveTo([]); api.create.and.resolveTo(appointment); api.reschedule.and.resolveTo(appointment);
-    component = new AgendaComponent(api, {} as WizardService, {} as ActivatedRoute);
+    component = new AgendaComponent(api, {} as WizardService, {} as ActivatedRoute, {} as ProfessionalsService);
     component.config = { source: 'INTERNAL', timeZone: 'America/Sao_Paulo', googleConnected: false, googleCalendarId: null };
     component.anchor = '2026-09-21';
   });
@@ -19,7 +20,18 @@ describe('Agenda workflows', () => {
     component.chooseSlot({ startsAt: appointment.startsAt, endsAt: appointment.endsAt });
     component.form.name = 'Paciente';
     await component.save();
-    expect(api.create).toHaveBeenCalledWith(jasmine.objectContaining({ startsAt: appointment.startsAt, serviceId: 4, professionalUserUuid: 'professional' }));
+    expect(api.create).toHaveBeenCalledWith(jasmine.objectContaining({ startsAt: appointment.startsAt, serviceId: 4, professionalUuid: 'professional' }));
+  });
+  it('requires an eligible active professional when the clinic has a professional catalog', async () => {
+    component.professionals = [{ uuid: 'mauro', fullName: 'Mauro', active: true, serviceIds: [4], hours: [], timeOff: [] },
+      { uuid: 'leo', fullName: 'Leonardo', active: false, serviceIds: [4], hours: [], timeOff: [] }];
+    component.openCreate(); component.form.name = 'João'; component.form.serviceId = '4';
+    expect(component.formProfessionals.map(item => item.uuid)).toEqual(['mauro']);
+    await component.save();
+    expect(api.create).not.toHaveBeenCalled();
+    component.form.professional = 'mauro';
+    await component.save();
+    expect(api.create).toHaveBeenCalledWith(jasmine.objectContaining({ professionalUuid: 'mauro' }));
   });
   it('preserves appointment duration when rescheduling', async () => {
     component.openAppointment(appointment); component.rescheduleAt = '2026-09-22T14:00';

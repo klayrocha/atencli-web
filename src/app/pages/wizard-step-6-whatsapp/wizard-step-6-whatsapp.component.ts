@@ -50,8 +50,8 @@ export class WizardStep6WhatsappComponent implements OnInit, OnDestroy {
 
   steps: WizardStep[] = WIZARD_STEPS_DEFAULT.map(step => ({
     ...step,
-    current: step.id === 6,
-    completed: step.id < 6,
+    current: step.id === 7,
+    completed: step.id < 7,
   }));
 
   constructor(
@@ -181,7 +181,7 @@ export class WizardStep6WhatsappComponent implements OnInit, OnDestroy {
   }
 
   goBack(): void {
-    this.router.navigate(['/wizard-step-5-team']);
+    this.router.navigate(['/wizard-step-6-professionals']);
   }
 
   goNext(): void {

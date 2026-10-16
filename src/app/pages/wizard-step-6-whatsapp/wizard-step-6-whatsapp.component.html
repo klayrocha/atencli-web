@@ -8,7 +8,7 @@
       </div>
     </header>
 
-    <app-wizard-stepper [currentStepId]="6"></app-wizard-stepper>
+    <app-wizard-stepper [currentStepId]="7"></app-wizard-stepper>
 
     <section class="integration-card">
       <div class="integration-heading">
@@ -126,7 +126,7 @@
     <div class="wizard-footer-actions">
       <button type="button" class="btn-back" (click)="goBack()">
         <i class="pi pi-chevron-left"></i>
-        <span>Voltar para Equipe</span>
+        <span>Voltar para Profissionais</span>
       </button>
       <button type="button" class="btn-next" (click)="goNext()">
         <span>Continuar para Instagram</span>
@@ -137,7 +137,7 @@
 
   <app-wizard-summary
     [steps]="steps"
-    [currentStepId]="6"
+    [currentStepId]="7"
     (activate)="activateService()"
   ></app-wizard-summary>
 </div>

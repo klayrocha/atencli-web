@@ -4,14 +4,16 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DialogModule } from 'primeng/dialog';
 import { CalendarService, CalendarConfiguration, CalendarEvent, Appointment, AppointmentStatus, Slot } from './calendar.service';
-import { WizardService, ClientProvidedServiceOption, TeamMemberResponse } from '../wizard-shared/wizard.service';
+import { WizardService, ClientProvidedServiceOption } from '../wizard-shared/wizard.service';
+import { ClinicProfessional, ProfessionalsService } from './professionals.service';
 import { addDays, clinicInstant, weekStart, zonedParts } from './calendar-date';
 
 @Component({ selector: 'app-agenda', standalone: true, imports: [CommonModule, FormsModule, RouterLink, DialogModule], templateUrl: './agenda.component.html', styleUrls: ['./agenda.component.scss'] })
 export class AgendaComponent implements OnInit {
   config: CalendarConfiguration | null = null;
   services: ClientProvidedServiceOption[] = [];
-  team: TeamMemberResponse[] = [];
+  professionals: ClinicProfessional[] = [];
+  externalProfessional = '';
   events: CalendarEvent[] = [];
   appointments: Appointment[] = [];
   upcoming: Appointment[] = [];
@@ -47,7 +49,7 @@ export class AgendaComponent implements OnInit {
     { value: 'RESCHEDULED', label: 'Reagendado' }, { value: 'COMPLETED', label: 'Concluído' },
     { value: 'CANCELLED', label: 'Cancelado' }, { value: 'NO_SHOW', label: 'Não compareceu' }, { value: 'BLOCKED', label: 'Bloqueado' }
   ];
-  constructor(private api: CalendarService, private wizard: WizardService, private route: ActivatedRoute) {}
+  constructor(private api: CalendarService, private wizard: WizardService, private route: ActivatedRoute, private professionalApi: ProfessionalsService) {}
   get zone() { return this.config?.timeZone || 'America/Sao_Paulo'; }
   get today() { return zonedParts(new Date(), this.zone).slice(0, 10); }
   async ngOnInit() {
@@ -62,9 +64,9 @@ export class AgendaComponent implements OnInit {
     try {
       this.config = await this.api.configuration();
       this.anchor = this.today;
-      const refs = await Promise.allSettled([this.wizard.getClientServices(), this.wizard.getTeam()]);
+      const refs = await Promise.allSettled([this.wizard.getClientServices(), this.professionalApi.list()]);
       if (refs[0].status === 'fulfilled') this.services = refs[0].value.services;
-      if (refs[1].status === 'fulfilled') this.team = refs[1].value.members.filter(m => m.status === 'ACTIVE');
+      if (refs[1].status === 'fulfilled') this.professionals = refs[1].value;
       this.referenceError = refs.some(r => r.status === 'rejected') ? 'Não foi possível carregar serviços ou profissionais. Recarregue a página para tentar novamente.' : '';
       await this.load();
     } catch (error) { this.error = this.message(error); this.loading = false; }
@@ -147,16 +149,17 @@ export class AgendaComponent implements OnInit {
   openCreate(blocked = false, day = this.anchor) { this.form = this.blankForm(); this.form.blocked = blocked; this.form.professional = this.professional; this.form.startsAt = `${day || this.today}T09:00`; this.form.endsAt = `${day || this.today}T10:00`; this.modalError = ''; this.editor = true; }
   openEvent(event: CalendarEvent) { this.selected = this.appointment(event) || null; this.external = event; this.openDetails(); }
   openAppointment(appointment: Appointment) { this.selected = appointment; this.external = null; this.openDetails(); }
-  openDetails() { this.rescheduleAt = this.selected ? zonedParts(this.selected.startsAt, this.zone) : ''; this.modalError = ''; this.details = true; }
+  openDetails() { this.externalProfessional = this.external?.professionalUuid || ''; this.rescheduleAt = this.selected ? zonedParts(this.selected.startsAt, this.zone) : ''; this.modalError = ''; this.details = true; }
   async save() {
     this.modalError = '';
     if (!this.form.name.trim() || (!this.form.blocked && !this.form.serviceId)) { this.modalError = 'Preencha o nome e selecione o serviço.'; return; }
+    if (!this.form.blocked && this.professionals.length && !this.formProfessionals.some(item => item.uuid === this.form.professional)) { this.modalError = 'Selecione um profissional ativo que realize este serviço.'; return; }
     this.saving = true;
     try {
       const startsAt = this.form.slot || clinicInstant(this.form.startsAt, this.zone);
       const endsAt = this.form.blocked ? clinicInstant(this.form.endsAt, this.zone) : undefined;
       if (endsAt && Date.parse(endsAt) <= Date.parse(startsAt)) throw new Error('O fim deve ser posterior ao início.');
-      await this.api.create({ contactName: this.form.name.trim(), contactPhone: this.form.phone || undefined, contactEmail: this.form.email || undefined, serviceId: this.form.blocked ? undefined : Number(this.form.serviceId), serviceName: this.form.blocked ? 'Bloqueio de agenda' : undefined, professionalUserUuid: this.form.professional || undefined, startsAt, endsAt, status: this.form.blocked ? 'BLOCKED' : this.form.status, notes: this.form.notes || undefined });
+      await this.api.create({ contactName: this.form.name.trim(), contactPhone: this.form.phone || undefined, contactEmail: this.form.email || undefined, serviceId: this.form.blocked ? undefined : Number(this.form.serviceId), serviceName: this.form.blocked ? 'Bloqueio de agenda' : undefined, professionalUuid: this.form.professional || undefined, startsAt, endsAt, status: this.form.blocked ? 'BLOCKED' : this.form.status, notes: this.form.notes || undefined });
       this.editor = false; this.notice = this.form.blocked ? 'Horário bloqueado.' : 'Agendamento criado.'; await this.load();
     } catch (error) { this.modalError = this.message(error); } finally { this.saving = false; }
   }
@@ -176,9 +179,32 @@ export class AgendaComponent implements OnInit {
       this.details = false; this.notice = 'Consulta reagendada.'; await this.load();
     } catch (error) { this.modalError = this.message(error); } finally { this.saving = false; }
   }
+  eligibleProfessionals(serviceId: string) { return this.professionals.filter(item => item.active && (!serviceId || item.serviceIds.includes(Number(serviceId)))); }
+  get formProfessionals() { return this.eligibleProfessionals(this.form.blocked ? '' : this.form.serviceId); }
+  get slotProfessionals() { return this.eligibleProfessionals(this.slotService); }
+  formServiceChanged() {
+    this.form.slot = '';
+    if (!this.formProfessionals.some(item => item.uuid === this.form.professional)) this.form.professional = '';
+  }
+  slotServiceChanged() {
+    if (!this.slotProfessionals.some(item => item.uuid === this.slotProfessional)) this.slotProfessional = '';
+    this.clearSlots();
+  }
+  async assignExternalProfessional() {
+    if (!this.external?.id.startsWith('google:') || this.saving) return;
+    this.saving = true; this.modalError = '';
+    try {
+      const eventId = this.external.id.slice('google:'.length);
+      if (this.externalProfessional) await this.api.assignExternal(eventId, this.externalProfessional);
+      else await this.api.unassignExternal(eventId);
+      this.details = false; this.notice = 'Profissional do evento atualizado.'; await this.load();
+    } catch (error) { this.modalError = this.message(error); }
+    finally { this.saving = false; }
+  }
   openSlots() { this.slotRequest++; this.slotsLoading = false; this.slotService = this.service; this.slotProfessional = this.professional; this.slotDay = this.today; this.slots = []; this.slotsSearched = false; this.modalError = ''; this.availability = true; }
   clearSlots() { this.slotRequest++; this.slots = []; this.slotsLoading = false; this.slotsSearched = false; }
   async findSlots() {
+    if (this.professionals.length && !this.slotProfessionals.some(item => item.uuid === this.slotProfessional)) { this.modalError = 'Selecione um profissional para consultar os horários.'; return; }
     if (!this.slotService || !this.slotDay) { this.modalError = 'Selecione o serviço e a data inicial.'; return; }
     const request = ++this.slotRequest; this.slotsLoading = true; this.slots = []; this.modalError = ''; this.slotsSearched = false;
     try {
@@ -200,6 +226,15 @@ export class AgendaComponent implements OnInit {
     if (e.status === 409) return 'Este horário não está mais disponível. Consulte os horários livres e tente novamente.';
     if (e.status === 0) return 'Não foi possível conectar à API. Verifique a conexão e tente novamente.';
     if (e.status === 401 || e.status === 403) return 'Sua sessão expirou ou você não tem permissão para esta ação.';
-    return e.error?.message || (error instanceof Error && !e.status ? e.message! : 'Não foi possível concluir a operação. Tente novamente.');
+    const translations: Record<string, string> = {
+      'Professional is inactive': 'Este profissional está inativo para novos agendamentos.',
+      'Professional does not provide this service': 'Este profissional não realiza o serviço selecionado.',
+      'Requested time is outside professional availability': 'O horário está fora da disponibilidade do profissional.',
+      'Professional is required for appointments at this clinic': 'Selecione um profissional para este agendamento.',
+      'Requested time is outside clinic working hours': 'O horário está fora do expediente da clínica.',
+      'Requested time overlaps a clinic break': 'O horário coincide com um intervalo da clínica.',
+      'The clinic does not work on this date': 'A clínica não atende nessa data.',
+    };
+    return translations[e.error?.message || ''] || e.error?.message || (error instanceof Error && !e.status ? e.message! : 'Não foi possível concluir a operação. Tente novamente.');
   }
 }

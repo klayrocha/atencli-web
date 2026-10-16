@@ -1,0 +1,43 @@
+<div class="wizard-container">
+  <main class="professionals-page">
+    <header class="page-header"><span class="eyebrow">Passo 6 de 10</span><h1>Profissionais da clínica</h1><p>Cadastre quem realiza os atendimentos e organize a disponibilidade de cada profissional na agenda da clínica.</p></header>
+    <app-wizard-stepper [currentStepId]="6"></app-wizard-stepper>
+    <p class="notice" *ngIf="notice" role="status">{{ notice }}</p>
+    <div class="error" *ngIf="error" role="alert">{{ error }} <button *ngIf="!loaded && !loading" type="button" (click)="load()">Tentar novamente</button></div>
+    <p *ngIf="loading" role="status">Carregando profissionais…</p>
+    <section class="card" *ngIf="loaded && !editing">
+      <div class="section-heading"><div><h2>Quem atende na clínica</h2><p>A equipe administra os cadastros e os agendamentos por aqui.</p></div><button class="primary" type="button" (click)="edit()" [disabled]="saving"><i class="pi pi-plus" aria-hidden="true"></i> Adicionar profissional</button></div>
+      <div class="empty" *ngIf="!professionals.length"><i class="pi pi-users" aria-hidden="true"></i><h3>Nenhum profissional cadastrado</h3><p>Adicione os profissionais e vincule os serviços que cada um realiza.</p></div>
+      <article class="professional" *ngFor="let item of professionals">
+        <div class="professional-info"><h3>{{ item.fullName }} <span class="badge" [class.inactive]="!item.active">{{ item.active ? 'Ativo' : 'Inativo' }}</span></h3><p>{{ serviceNames(item) }}</p><small>{{ item.hours.length ? 'Horários personalizados' : 'Segue o expediente da clínica' }} · {{ item.timeOff.length }} período(s) de afastamento</small></div>
+        <div class="actions"><button type="button" (click)="edit(item)" [disabled]="saving" [attr.aria-label]="'Editar ' + item.fullName">Editar</button><button type="button" (click)="toggleActive(item)" [disabled]="saving" [attr.aria-label]="(item.active ? 'Desativar ' : 'Ativar ') + item.fullName">{{ item.active ? 'Desativar' : 'Ativar' }}</button></div>
+      </article>
+    </section>
+    <form class="card editor" *ngIf="loaded && editing" #professionalForm="ngForm" (ngSubmit)="save()">
+      <h2>{{ editingUuid ? 'Editar profissional' : 'Novo profissional' }}</h2>
+      <fieldset [disabled]="saving">
+        <label class="field">Nome completo<input name="fullName" [(ngModel)]="fullName" required maxlength="150" autocomplete="name"></label>
+        <label class="check"><input type="checkbox" name="active" [(ngModel)]="active"> Ativo para novos agendamentos</label>
+        <p class="hint">Desativar preserva as consultas já marcadas.</p>
+        <h3>Serviços realizados</h3>
+        <p *ngIf="!services.length">Cadastre primeiro os <a routerLink="/wizard-step-3-services">serviços da clínica</a> para vinculá-los ao profissional.</p>
+        <div class="service-options"><label class="check" *ngFor="let service of services"><input type="checkbox" [name]="'service-' + service.id" [ngModel]="serviceIds.includes(service.id)" (ngModelChange)="toggleService(service.id, $event)"> {{ service.name }}</label></div>
+        <p class="hint">A IA só agenda os serviços vinculados a um profissional ativo.</p>
+        <h3>Horários de atendimento</h3>
+        <label class="check"><input type="checkbox" name="inheritHours" [(ngModel)]="inheritHours"> Seguir o expediente da clínica</label>
+        <p class="hint">Os horários personalizados também respeitam o expediente, os intervalos e os dias sem atendimento da clínica.</p>
+        <div *ngIf="!inheritHours">
+          <div class="period-row" *ngFor="let hour of hours; let i = index"><label>Dia<select [(ngModel)]="hour.dayOfWeek" [name]="'day-' + i"><option *ngFor="let day of days; let d = index" [ngValue]="d + 1">{{ day }}</option></select></label><label>Início<input type="time" [(ngModel)]="hour.startTime" [name]="'start-' + i" required></label><label>Fim<input type="time" [(ngModel)]="hour.endTime" [name]="'end-' + i" required></label><button type="button" (click)="hours.splice(i, 1)" [attr.aria-label]="'Remover horário ' + (i + 1)">Remover</button></div>
+          <button type="button" (click)="addHours()">Adicionar horário</button>
+        </div>
+        <h3>Afastamentos e indisponibilidades</h3><p class="hint">Férias, folgas ou outros períodos em que o profissional não atende. Fuso: {{ zone }}.</p>
+        <div class="period-row time-off" *ngFor="let period of timeOff; let i = index"><label>Início<input type="datetime-local" [(ngModel)]="period.startsAt" [name]="'off-start-' + i" required></label><label>Fim<input type="datetime-local" [(ngModel)]="period.endsAt" [name]="'off-end-' + i" required></label><button type="button" (click)="timeOff.splice(i, 1)" [attr.aria-label]="'Remover afastamento ' + (i + 1)">Remover</button></div>
+        <button type="button" (click)="timeOff.push({startsAt: '', endsAt: ''})">Adicionar afastamento</button>
+      </fieldset>
+      <div class="editor-actions"><button type="button" (click)="cancel()" [disabled]="saving">Cancelar</button><button type="submit" class="primary" [disabled]="saving || professionalForm.invalid">{{ saving ? 'Salvando…' : 'Salvar profissional' }}</button></div>
+    </form>
+    <footer><a class="button" routerLink="/wizard-step-5-team" *ngIf="!editing && !saving">Voltar para Equipe</a><button type="button" class="primary" (click)="next()" [disabled]="!loaded || editing || saving">Continuar para WhatsApp <i class="pi pi-arrow-right" aria-hidden="true"></i></button></footer>
+    <p class="hint" *ngIf="editing">Salve ou cancele a edição antes de continuar.</p>
+  </main>
+  <app-wizard-summary [steps]="steps" [currentStepId]="6"></app-wizard-summary>
+</div>
