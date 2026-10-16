@@ -131,4 +131,73 @@ describe('Schedule appointment intervals', () => {
     }
     expect(component.exceptions.length).toBe(0);
   });
+  it('restores lunch and evening breaks and preserves them on save', async () => {
+    const lunch = { ...rule(0), id: 2, availabilityType: 'BREAK' as const, startTime: '12:00:00', endTime: '13:00:00', description: 'Almoço' };
+    const dinner = { ...lunch, id: 3, startTime: '19:00:00', endTime: '20:00:00', description: 'Jantar' };
+    api.getClientAvailability.and.resolveTo([{ ...rule(), endTime: '23:59:00' }, lunch, dinner]);
+    await component.ngOnInit();
+    expect(component.breaks.length).toBe(2);
+    expect(component.breaks[1].description).toBe('Jantar');
+    expect(component.isWorkingHour(component.days[0], 12)).toBeFalse();
+    expect(component.isWorkingHour(component.days[0], 13)).toBeTrue();
+    await component.goNext();
+    expect(api.deleteAvailability).not.toHaveBeenCalled();
+    expect(api.updateAvailability).not.toHaveBeenCalled();
+    expect(api.createAvailability).not.toHaveBeenCalled();
+  });
+
+  it('saves multiple pauses only after updating working hours', async () => {
+    await component.ngOnInit();
+    component.days[0].end = '23:59';
+    component.breaks = [
+      { dayOfWeek: 1, start: '12:00', end: '13:00', description: 'Almoço' },
+      { dayOfWeek: 1, start: '19:00', end: '20:00', description: 'Jantar' },
+    ];
+    let id = 2;
+    api.createAvailability.and.callFake(async request => {
+      expect(api.updateAvailability).toHaveBeenCalled();
+      return { ...rule(0), ...request, id: id++ };
+    });
+    await component.goNext();
+    expect(api.createAvailability).toHaveBeenCalledTimes(2);
+    expect(api.createAvailability.calls.allArgs().map(([request]) => request.startTime)).toEqual(['12:00:00', '19:00:00']);
+    expect(component.savedAvailability.filter(item => item.availabilityType === 'BREAK').length).toBe(2);
+  });
+
+  it('rejects empty, overlapping and out-of-hours pauses before writing', async () => {
+    await component.ngOnInit();
+    for (const [start, end] of [['', '13:00'], ['13:00', '12:00'], ['07:00', '09:00'], ['18:00', '20:00'], ['12:00', '12:00']]) {
+      component.breaks = [{ dayOfWeek: 1, start, end, description: '' }];
+      await component.goNext();
+      expect(component.error()).toBeTruthy();
+    }
+    component.breaks = [
+      { dayOfWeek: 1, start: '12:00', end: '13:00', description: '' },
+      { dayOfWeek: 1, start: '12:30', end: '14:00', description: '' },
+    ];
+    await component.goNext();
+    expect(component.error()).toContain('sobrepor');
+    expect(api.createAvailability).not.toHaveBeenCalled();
+    expect(api.updateAvailability).not.toHaveBeenCalled();
+    expect(api.deleteAvailability).not.toHaveBeenCalled();
+  });
+
+  it('removes an edited break before shortening hours and retries a failed creation', async () => {
+    api.getClientAvailability.and.resolveTo([rule(), { ...rule(0), id: 2, availabilityType: 'BREAK', startTime: '18:00:00', endTime: '19:00:00' }]);
+    await component.ngOnInit();
+    component.days[0].end = '17:00';
+    component.breaks[0] = { dayOfWeek: 1, start: '12:00', end: '13:00', description: 'Almoço' };
+    api.updateAvailability.and.callFake(async (id, request) => {
+      expect(api.deleteAvailability).toHaveBeenCalledOnceWith(2);
+      return { ...rule(), ...request, id };
+    });
+    api.createAvailability.and.rejectWith(new Error('offline'));
+    await component.goNext();
+    expect(router.navigate).not.toHaveBeenCalled();
+    api.createAvailability.and.callFake(async request => ({ ...rule(0), ...request, id: 3 }));
+    await component.goNext();
+    expect(api.deleteAvailability).toHaveBeenCalledOnceWith(2);
+    expect(api.updateAvailability).toHaveBeenCalledTimes(1);
+    expect(router.navigate).toHaveBeenCalled();
+  });
 });

@@ -889,3 +889,26 @@
 .appointment-interval input:focus-visible { outline: 2px solid #65a30d; outline-offset: 3px; }
 
 .btn-add-exception:disabled { opacity: .5; cursor: not-allowed; }
+
+.day-breaks { padding: 0 24px 24px; }
+.day-break-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 16px;
+  margin: 0 0 16px;
+  padding: 16px;
+  border: 1px solid #dce3e0;
+  border-radius: 12px;
+  legend { padding: 0 8px; font-weight: 600; }
+  .form-field { flex: 1 1 140px; }
+}
+.break-action {
+  padding: 10px 16px;
+  border: 1px solid #dce3e0;
+  border-radius: 8px;
+  background: #fff;
+  color: inherit;
+  cursor: pointer;
+  &:disabled { opacity: .5; cursor: not-allowed; }
+}

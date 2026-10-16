@@ -137,6 +137,46 @@
       </div>
     </section>
 
+    <section class="section-card" aria-labelledby="breaks-title">
+      <div class="section-header">
+        <div class="section-header-left">
+          <div class="section-icon"><i class="pi pi-pause" aria-hidden="true"></i></div>
+          <div>
+            <h2 id="breaks-title" class="section-title">Pausas durante o dia</h2>
+            <p class="section-desc">Cadastre almoço, jantar ou outras pausas semanais. A IA não oferecerá consultas que ocupem qualquer parte desses períodos.</p>
+          </div>
+        </div>
+      </div>
+      <div class="day-breaks">
+        <p *ngIf="breaks.length === 0">Nenhuma pausa cadastrada.</p>
+        <fieldset class="day-break-row" *ngFor="let pause of breaks; let i = index"
+          [disabled]="loading() || saving() || loadFailed()">
+          <legend>Pausa {{ i + 1 }}</legend>
+          <label class="form-field">Dia da semana
+            <select class="field-input" [(ngModel)]="pause.dayOfWeek" [name]="'break-day-' + i">
+              <option *ngFor="let day of days; let d = index" [ngValue]="d + 1">{{ day.label }}{{ day.active ? '' : ' (fechado)' }}</option>
+            </select>
+          </label>
+          <label class="form-field">Início
+            <input type="time" class="field-input" [(ngModel)]="pause.start" [name]="'break-start-' + i" required>
+          </label>
+          <label class="form-field">Fim
+            <input type="time" class="field-input" [(ngModel)]="pause.end" [name]="'break-end-' + i" required>
+          </label>
+          <label class="form-field">Descrição (opcional)
+            <input class="field-input" [(ngModel)]="pause.description" [name]="'break-description-' + i"
+              maxlength="255" placeholder="Ex.: almoço ou jantar">
+          </label>
+          <button type="button" class="break-action" (click)="removeBreak(i)" [attr.aria-label]="'Remover pausa ' + (i + 1)">Remover</button>
+          <p class="interval-hint" *ngIf="!days[pause.dayOfWeek - 1].active">Esta pausa será removida ao salvar porque o dia está fechado.</p>
+        </fieldset>
+        <button type="button" class="break-action" (click)="addBreak()"
+          [disabled]="loading() || saving() || loadFailed() || activeDaysCount === 0">Adicionar pausa</button>
+        <p class="interval-hint">Você pode cadastrar várias pausas no mesmo dia. Elas devem ficar dentro do expediente e não podem se sobrepor.</p>
+        <p class="interval-error" role="alert" *ngIf="!loading() && scheduleError">{{ scheduleError }}</p>
+      </div>
+    </section>
+
     <!-- ═══ SEÇÃO 2: Exceções ═══════════════════════════════════════════════ -->
     <div class="section-card">
 

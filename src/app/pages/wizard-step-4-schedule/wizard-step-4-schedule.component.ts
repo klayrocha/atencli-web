@@ -16,6 +16,13 @@ export interface DaySchedule {
   end: string;
 }
 
+export interface DayBreak {
+  dayOfWeek: number;
+  start: string;
+  end: string;
+  description: string;
+}
+
 export interface ScheduleException {
   id: number;
   date: string;
@@ -78,6 +85,56 @@ export class WizardStep4ScheduleComponent implements OnInit {
   }
 
   savedAvailability: ClientAvailabilityOption[] = [];
+  breaks: DayBreak[] = [];
+
+  addBreak(): void {
+    if (this.loading() || this.saving() || this.loadFailed()) return;
+    const day = this.days.findIndex(item => item.active);
+    if (day < 0) return;
+    this.breaks.push({ dayOfWeek: day + 1, start: '', end: '', description: '' });
+  }
+
+  removeBreak(index: number): void {
+    this.breaks.splice(index, 1);
+  }
+
+  private validTime(value: string): boolean {
+    return /^([01]\d|2[0-3]):[0-5]\d$/.test(value);
+  }
+
+  get scheduleError(): string {
+    for (const day of this.days.filter(day => day.active)) {
+      if (!this.validTime(day.start) || !this.validTime(day.end) || day.start >= day.end) {
+        return `Informe um horário de funcionamento válido para ${day.label}.`;
+      }
+    }
+    for (let index = 0; index < this.breaks.length; index++) {
+      const pause = this.breaks[index];
+      const day = this.days[pause.dayOfWeek - 1];
+      // Pausas de dias desativados são removidas junto com o expediente ao salvar.
+      if (day && !day.active) continue;
+      if (!day || !this.validTime(pause.start) || !this.validTime(pause.end) || pause.start >= pause.end) {
+        return 'Informe o dia, o início e o fim de cada pausa, com início anterior ao fim.';
+      }
+      if (pause.start < day.start || pause.end > day.end) {
+        return `A pausa de ${day.label} deve ficar dentro do horário de funcionamento.`;
+      }
+      if (pause.description.length > 255) return 'A descrição da pausa deve ter no máximo 255 caracteres.';
+      if (this.breaks.slice(0, index).some(other => other.dayOfWeek === pause.dayOfWeek
+        && pause.start < other.end && pause.end > other.start)) {
+        return `As pausas de ${day.label} não podem se sobrepor.`;
+      }
+    }
+    return '';
+  }
+
+  private breakRequests(): AvailabilityRequest[] {
+    return this.breaks.filter(pause => this.days[pause.dayOfWeek - 1]?.active).map(pause => ({
+      availabilityType: 'BREAK', dayOfWeek: pause.dayOfWeek,
+      startTime: `${pause.start}:00`, endTime: `${pause.end}:00`,
+      description: pause.description || undefined,
+    }));
+  }
 
   steps: WizardStep[] = WIZARD_STEPS_DEFAULT.map(s => ({
     ...s,
@@ -195,6 +252,11 @@ export class WizardStep4ScheduleComponent implements OnInit {
         day.end = this.toTimeInput(item.endTime, day.end);
       });
 
+    this.breaks = this.savedAvailability
+      .filter(item => item.availabilityType === 'BREAK' && item.dayOfWeek !== null)
+      .map(item => ({ dayOfWeek: item.dayOfWeek!, start: this.toTimeInput(item.startTime, ''),
+        end: this.toTimeInput(item.endTime, ''), description: item.description ?? '' }));
+
     this.exceptions = this.savedAvailability
       .filter(item => item.specificDate && ['NON_WORKING_DAY', 'WORKING_HOURS'].includes(item.availabilityType))
       .map(item => ({
@@ -229,7 +291,11 @@ export class WizardStep4ScheduleComponent implements OnInit {
     if (!day.active) return false;
     const startH = parseInt(day.start.split(':')[0], 10);
     const endH   = parseInt(day.end.split(':')[0], 10);
-    return hour >= startH && hour < endH;
+    const dayOfWeek = this.days.indexOf(day) + 1;
+    const start = `${String(hour).padStart(2, '0')}:00`;
+    const end = `${String(hour + 1).padStart(2, '0')}:00`;
+    return hour >= startH && hour < endH && !this.breaks.some(pause =>
+      pause.dayOfWeek === dayOfWeek && pause.start < end && pause.end > start);
   }
 
   goBack(): void {
@@ -239,6 +305,10 @@ export class WizardStep4ScheduleComponent implements OnInit {
   async goNext(): Promise<void> {
     if (this.loading() || this.saving() || this.loadFailed()) return;
     this.error.set('');
+    if (this.scheduleError) {
+      this.error.set(this.scheduleError);
+      return;
+    }
     if (this.intervalInvalid) {
       this.error.set('Informe um número inteiro entre 1 e 120 minutos para o descanso.');
       return;
@@ -249,8 +319,12 @@ export class WizardStep4ScheduleComponent implements OnInit {
       // Breaks must be removed before their containing working hours (API validation).
       const removed = this.savedAvailability.filter(item =>
         item.specificDate === null && item.dayOfWeek !== null &&
-        this.days[item.dayOfWeek - 1]?.active === false &&
-        (item.availabilityType === 'WORKING_HOURS' || item.availabilityType === 'BREAK'))
+        ((this.days[item.dayOfWeek - 1]?.active === false &&
+          (item.availabilityType === 'WORKING_HOURS' || item.availabilityType === 'BREAK')) ||
+         (item.availabilityType === 'BREAK' && !requests.some(request =>
+           request.availabilityType === 'BREAK' && request.dayOfWeek === item.dayOfWeek &&
+           request.startTime?.substring(0, 5) === this.toTimeInput(item.startTime, '') &&
+           request.endTime?.substring(0, 5) === this.toTimeInput(item.endTime, '')))))
         .sort((a, b) => Number(a.availabilityType !== 'BREAK') - Number(b.availabilityType !== 'BREAK'));
       for (const item of removed) {
         await this.wizardService.deleteAvailability(item.id);
@@ -301,7 +375,7 @@ export class WizardStep4ScheduleComponent implements OnInit {
         description: exception.description || undefined,
       }));
 
-    return [...workingHours, ...closedDates, ...specificWorkingHours].map(request => {
+    return [...workingHours, ...closedDates, ...specificWorkingHours, ...this.breakRequests()].map(request => {
       if (request.availabilityType !== 'WORKING_HOURS') return request;
       const existing = this.findSaved(request);
       return {
@@ -322,7 +396,7 @@ export class WizardStep4ScheduleComponent implements OnInit {
     return matches.find(item =>
       this.toTimeInput(item.startTime, '') === (request.startTime?.substring(0, 5) ?? '') &&
       this.toTimeInput(item.endTime, '') === (request.endTime?.substring(0, 5) ?? ''))
-      ?? (matches.length === 1 ? matches[0] : undefined);
+      ?? (request.availabilityType !== 'BREAK' && matches.length === 1 ? matches[0] : undefined);
   }
 
   private isAlreadySaved(request: AvailabilityRequest): boolean {
