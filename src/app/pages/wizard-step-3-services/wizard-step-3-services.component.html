@@ -33,6 +33,39 @@
         </div>
       </div>
 
+      <section class="service-filters" aria-label="Filtrar serviços">
+        <div class="filter-field">
+          <label for="service-search">Buscar serviços</label>
+          <input id="service-search" type="search" placeholder="Nome do serviço ou área"
+            [ngModel]="searchTerm" (ngModelChange)="changeSearch($event)" [disabled]="loadingServices()">
+        </div>
+        <div class="filter-field">
+          <label for="service-exclusion">Não quero ver na lista</label>
+          <div class="exclusion-entry">
+            <input id="service-exclusion" type="text" placeholder="Digite um termo e pressione Enter"
+              [(ngModel)]="exclusionInput" (keydown.enter)="$event.preventDefault(); addExclusion()"
+              [disabled]="loadingServices()" aria-describedby="service-filter-help">
+            <button type="button" class="bulk-btn" (click)="addExclusion()"
+              [disabled]="loadingServices() || !exclusionInput.trim()">Excluir termo</button>
+          </div>
+        </div>
+        <label class="selected-only-filter">
+          <input type="checkbox" [ngModel]="showSelectedOnly" (ngModelChange)="changeSelectedOnly($event)" [disabled]="loadingServices()">
+          Mostrar apenas selecionados
+        </label>
+        <div class="exclusion-tags" *ngIf="excludedTerms.length" aria-label="Termos excluídos">
+          <span class="exclusion-tag" *ngFor="let term of excludedTerms">
+            {{ term }}
+            <button type="button" (click)="removeExclusion(term)" [attr.aria-label]="'Remover exclusão: ' + term">×</button>
+          </span>
+        </div>
+        <p id="service-filter-help">Os filtros apenas ocultam serviços; os valores e as seleções são mantidos. As ações em lote continuam valendo para todos os serviços habilitados.</p>
+        <div class="filter-summary">
+          <span role="status" aria-live="polite">{{ filteredServices.length }} de {{ allServices.length }} serviços encontrados</span>
+          <button type="button" class="bulk-btn" *ngIf="searchTerm || excludedTerms.length || showSelectedOnly" (click)="clearFilters()">Limpar filtros</button>
+        </div>
+      </section>
+
       <!-- Tabela de Serviços -->
       <div class="services-loading" *ngIf="loadingServices()">
         <i class="pi pi-spin pi-spinner"></i>
@@ -62,6 +95,9 @@
             </tr>
           </thead>
           <tbody>
+            <tr *ngIf="!filteredServices.length">
+              <td [attr.colspan]="acceptsHealthPlan ? 6 : 5" class="empty-services">Nenhum serviço encontrado. Ajuste a busca ou remova os termos de exclusão.</td>
+            </tr>
             <tr
               *ngFor="let service of pagedServices"
               class="service-row"
@@ -178,17 +214,17 @@
           </button>
         </div>
 
-        <div class="pagination-area">
+        <div class="pagination-area" role="navigation" aria-label="Paginação dos serviços">
           <label class="page-size-select">
             Serviços por página
             <select [ngModel]="pageSize" (ngModelChange)="changePageSize($event)" [disabled]="loadingServices()">
               <option *ngFor="let size of pageSizeOptions" [ngValue]="size">{{ size }}</option>
             </select>
           </label>
-          <button class="page-btn" [disabled]="currentPage() === 1" (click)="currentPage.set(1)">
+          <button type="button" aria-label="Primeira página" class="page-btn" [disabled]="currentPage() === 1" (click)="currentPage.set(1)">
             <i class="pi pi-angle-double-left"></i>
           </button>
-          <button class="page-btn" [disabled]="currentPage() === 1" (click)="currentPage.set(currentPage() - 1)">
+          <button type="button" aria-label="Página anterior" class="page-btn" [disabled]="currentPage() === 1" (click)="currentPage.set(currentPage() - 1)">
             <i class="pi pi-angle-left"></i>
           </button>
 
@@ -196,18 +232,22 @@
             *ngFor="let p of pagesArray"
             class="page-btn"
             [class.active]="p === currentPage()"
+            [attr.aria-current]="p === currentPage() ? 'page' : null"
+            [attr.aria-label]="'Página ' + p"
             (click)="currentPage.set(p)"
           >{{ p }}</button>
 
-          <button class="page-btn" [disabled]="currentPage() === totalPages()" (click)="currentPage.set(currentPage() + 1)">
+          <span class="page-ellipsis" *ngIf="currentPage() + 3 < totalPages()" aria-label="Mais páginas">…</span>
+
+          <button type="button" aria-label="Próxima página" class="page-btn" [disabled]="currentPage() === totalPages()" (click)="currentPage.set(currentPage() + 1)">
             <i class="pi pi-angle-right"></i>
           </button>
-          <button class="page-btn" [disabled]="currentPage() === totalPages()" (click)="currentPage.set(totalPages())">
+          <button type="button" aria-label="Última página" class="page-btn" [disabled]="currentPage() === totalPages()" (click)="currentPage.set(totalPages())">
             <i class="pi pi-angle-double-right"></i>
           </button>
 
           <span class="pagination-info">
-            Mostrando {{ allServices.length ? (currentPage() - 1) * pageSize + 1 : 0 }}–{{ Math.min(currentPage() * pageSize, allServices.length) }} de {{ allServices.length }} serviços
+            Mostrando {{ filteredServices.length ? (currentPage() - 1) * pageSize + 1 : 0 }}–{{ Math.min(currentPage() * pageSize, filteredServices.length) }} de {{ filteredServices.length }} serviços
           </span>
         </div>
       </div>

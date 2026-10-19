@@ -515,8 +515,16 @@
   display: flex;
   align-items: center;
   gap: 0.3rem;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  white-space: nowrap;
+  padding: 3px;
+  > * { flex-shrink: 0; }
 }
+
+.page-ellipsis { padding: 0 .3rem; color: #64748b; }
 
 .page-btn {
   width: 30px;
@@ -725,4 +733,27 @@
   color: #94a3b8;
 
   i { font-size: 0.75rem; }
+}
+
+.service-filters {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+  padding: 1rem; margin-bottom: 1rem; background: #f8faf5; border-radius: 12px;
+  .filter-field { display: flex; flex-direction: column; gap: .5rem; min-width: 0; }
+  label { font-weight: 600; font-size: .875rem; color: #334155; }
+  input { width: 100%; min-width: 0; box-sizing: border-box; padding: .7rem; border: 1px solid #cbd5e1; border-radius: 8px; font: inherit; background: white; }
+  input:focus-visible, button:focus-visible { outline: 2px solid #65a30d; outline-offset: 2px; }
+  .exclusion-entry { display: flex; gap: .5rem; }
+  .exclusion-entry button { flex-shrink: 0; }
+  p { grid-column: 1 / -1; margin: 0; color: #64748b; font-size: .8rem; }
+  .exclusion-tags, .filter-summary { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+  .filter-summary { justify-content: space-between; font-size: .875rem; }
+  .exclusion-tag { display: inline-flex; align-items: center; gap: .5rem; background: #e8efd9; border-radius: 20px; padding: .25rem .5rem .25rem .75rem; overflow-wrap: anywhere; max-width: 100%; }
+  .exclusion-tag button { border: 0; border-radius: 50%; background: transparent; cursor: pointer; font-size: 1.2rem; min-width: 28px; min-height: 28px; }
+  @media (max-width: 760px) { grid-template-columns: 1fr; .exclusion-entry { flex-wrap: wrap; } }
+}
+.empty-services { padding: 2rem; text-align: center; color: #64748b; }
+
+.service-filters .selected-only-filter {
+  grid-column: 1 / -1; display: flex; align-items: center; gap: .5rem; cursor: pointer;
+  input { width: 18px; height: 18px; accent-color: #65a30d; }
 }

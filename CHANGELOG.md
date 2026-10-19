@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-10-19
+
+### Adicionado
+
+- Busca de serviços por nome ou área, ignorando maiúsculas e acentos.
+- Filtro “Não quero ver na lista” com termos de exclusão em tags removíveis, combinado com a busca e preservando valores e seleções dos serviços ocultos.
+- Flag “Mostrar apenas selecionados”, ativada automaticamente ao identificar campos inválidos no salvamento; limpa os filtros de texto e abre a página da primeira pendência.
+
+### Alterado
+
+- Paginação dos serviços acompanha os filtros e mostra a página atual, até três seguintes e reticências, mantendo os controles na mesma linha.
+- Página atual ajustada ao desmarcar itens no filtro de selecionados, evitando páginas vazias.
+
 ## [0.7.0] - 2026-10-19
 
 ### Adicionado

@@ -72,12 +72,63 @@ export class WizardStep3ServicesComponent implements OnInit {
 
   allServices: ServiceItem[] = [];
 
+  showSelectedOnly = false;
+  searchTerm = '';
+  exclusionInput = '';
+  excludedTerms: string[] = [];
+
+  private normalizeTerm(value: string): string {
+    return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('pt-BR').trim();
+  }
+
+  get filteredServices(): ServiceItem[] {
+    const search = this.normalizeTerm(this.searchTerm);
+    const exclusions = this.excludedTerms.map(term => this.normalizeTerm(term));
+    return this.allServices.filter(service => {
+      const text = this.normalizeTerm(service.name + ' ' + service.category);
+      return (!this.showSelectedOnly || service.enabled) && text.includes(search) && !exclusions.some(term => text.includes(term));
+    });
+  }
+
+  changeSelectedOnly(value: boolean): void {
+    this.showSelectedOnly = value;
+    this.currentPage.set(1);
+  }
+
+  changeSearch(value: string): void {
+    this.searchTerm = value;
+    this.currentPage.set(1);
+  }
+
+  addExclusion(): void {
+    const term = this.exclusionInput.trim();
+    if (!term) return;
+    if (!this.excludedTerms.some(item => this.normalizeTerm(item) === this.normalizeTerm(term))) {
+      this.excludedTerms = [...this.excludedTerms, term];
+      this.currentPage.set(1);
+    }
+    this.exclusionInput = '';
+  }
+
+  removeExclusion(term: string): void {
+    this.excludedTerms = this.excludedTerms.filter(item => item !== term);
+    this.currentPage.set(1);
+  }
+
+  clearFilters(): void {
+    this.showSelectedOnly = false;
+    this.searchTerm = '';
+    this.exclusionInput = '';
+    this.excludedTerms = [];
+    this.currentPage.set(1);
+  }
+
   // Paginação
   readonly pageSizeOptions = [10, 25, 50, 100];
   pageSize = 10;
   currentPage = signal(1);
   totalPages(): number {
-    return Math.max(1, Math.ceil(this.allServices.length / this.pageSize));
+    return Math.max(1, Math.ceil(this.filteredServices.length / this.pageSize));
   }
 
   changePageSize(size: number): void {
@@ -88,13 +139,13 @@ export class WizardStep3ServicesComponent implements OnInit {
 
   get pagedServices(): ServiceItem[] {
     const start = (this.currentPage() - 1) * this.pageSize;
-    return this.allServices.slice(start, start + this.pageSize);
+    return this.filteredServices.slice(start, start + this.pageSize);
   }
 
   Math = Math;
 
   get pagesArray(): number[] {
-    return Array.from({ length: this.totalPages() }, (_, i) => i + 1);
+    return Array.from({ length: Math.min(4, this.totalPages() - this.currentPage() + 1) }, (_, i) => this.currentPage() + i);
   }
 
   // Seleção
@@ -133,10 +184,12 @@ export class WizardStep3ServicesComponent implements OnInit {
   togglePageSelection(): void {
     const allSelected = this.allPageSelected;
     this.pagedServices.forEach(s => (s.enabled = !allSelected));
+    this.currentPage.set(Math.min(this.currentPage(), this.totalPages()));
   }
 
   toggleService(service: ServiceItem): void {
     service.enabled = !service.enabled;
+    this.currentPage.set(Math.min(this.currentPage(), this.totalPages()));
   }
 
   // Bulk actions
@@ -267,7 +320,9 @@ export class WizardStep3ServicesComponent implements OnInit {
     const firstInvalid = this.invalidServices[0];
     if (!firstInvalid) return;
 
-    const index = this.allServices.indexOf(firstInvalid);
+    this.clearFilters();
+    this.showSelectedOnly = true;
+    const index = this.filteredServices.indexOf(firstInvalid);
     const page = Math.floor(index / this.pageSize) + 1;
     this.currentPage.set(page);
   }
