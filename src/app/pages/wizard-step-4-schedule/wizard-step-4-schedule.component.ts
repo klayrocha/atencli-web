@@ -1,3 +1,6 @@
+import { Optional } from '@angular/core';
+import { OnboardingProgressService } from '../wizard-shared/onboarding-progress.service';
+import { ConfigurationChanges } from '../wizard-shared/configuration-changes';
 import { WizardStepperComponent } from '../wizard-shared/wizard-stepper.component';
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -50,6 +53,8 @@ export interface ExceptionTypeOption {
   styleUrls: ['./wizard-step-4-schedule.component.scss'],
 })
 export class WizardStep4ScheduleComponent implements OnInit {
+  readonly configurationChanges = new ConfigurationChanges(() => [this.days, this.breaks, this.exceptions, this.intervalEnabled, this.intervalMinutes, this.newException], () => this.saveConfiguration());
+
 
   loading = signal(true);
   saving = signal(false);
@@ -152,6 +157,8 @@ export class WizardStep4ScheduleComponent implements OnInit {
     { key: 'sun', label: 'Domingo',  shortLabel: 'Dom', active: true,  start: '08:00', end: '18:00' },
   ];
 
+  private exceptionDraftBaseline = '';
+
   exceptionTypeOptions: ExceptionTypeOption[] = [
     { label: 'Horário Especial', value: 'WORKING_HOURS' },
     { label: 'Fechado',          value: 'CLOSED' },
@@ -173,6 +180,7 @@ export class WizardStep4ScheduleComponent implements OnInit {
   constructor(
     private router: Router,
     private wizardService: WizardService,
+    @Optional() private readonly progress?: OnboardingProgressService,
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -182,6 +190,8 @@ export class WizardStep4ScheduleComponent implements OnInit {
     try {
       this.savedAvailability = await this.wizardService.getClientAvailability();
       this.restoreSavedAvailability();
+      this.exceptionDraftBaseline = JSON.stringify(this.newException);
+      this.configurationChanges.markSaved();
     } catch {
       this.loadFailed.set(true);
       this.error.set('Não foi possível carregar os horários. Tente novamente antes de salvar.');
@@ -227,6 +237,7 @@ export class WizardStep4ScheduleComponent implements OnInit {
       end: '19:00',
       description: '',
     };
+    this.exceptionDraftBaseline = JSON.stringify(this.newException);
   }
 
   removeException(id: number): void {
@@ -303,21 +314,41 @@ export class WizardStep4ScheduleComponent implements OnInit {
   }
 
   async goNext(): Promise<void> {
-    if (this.loading() || this.saving() || this.loadFailed()) return;
+    if (this.progress?.isConfigurationComplete() && this.configurationChanges.hasChanges()) {
+      void this.router.navigate(['/wizard-step-5-team']);
+      return;
+    }
+    if (await this.saveConfiguration()) void this.router.navigate(['/wizard-step-5-team']);
+  }
+
+  async saveConfiguration(): Promise<boolean> {
+    if (this.loading() || this.saving() || this.loadFailed()) return false;
     this.error.set('');
     if (this.scheduleError) {
       this.error.set(this.scheduleError);
-      return;
+      return false;
     }
     if (this.intervalInvalid) {
       this.error.set('Informe um número inteiro entre 1 e 120 minutos para o descanso.');
-      return;
+      return false;
     }
+    if (JSON.stringify(this.newException) !== this.exceptionDraftBaseline) {
+      if (this.exceptionDateError) { this.error.set(this.exceptionDateError); return false; }
+      this.addException();
+    }
+    if (this.days.some(day => day.active && (!day.start || !day.end || day.start >= day.end)) ||
+        this.exceptions.some(item => item.type === 'WORKING_HOURS' && (!item.start || !item.end || item.start >= item.end))) {
+      this.error.set('Informe horários de término posteriores ao início.');
+      return false;
+    }
+    const snapshot = this.configurationChanges.snapshot();
     this.saving.set(true);
     try {
       const requests = this.buildAvailabilityRequests();
       // Breaks must be removed before their containing working hours (API validation).
       const removed = this.savedAvailability.filter(item =>
+        (item.specificDate !== null && (item.availabilityType === 'WORKING_HOURS' || item.availabilityType === 'NON_WORKING_DAY') && !this.exceptions.some(exception => exception.date === item.specificDate &&
+          (exception.type === 'CLOSED' ? 'NON_WORKING_DAY' : 'WORKING_HOURS') === item.availabilityType)) ||
         item.specificDate === null && item.dayOfWeek !== null &&
         ((this.days[item.dayOfWeek - 1]?.active === false &&
           (item.availabilityType === 'WORKING_HOURS' || item.availabilityType === 'BREAK')) ||
@@ -338,9 +369,11 @@ export class WizardStep4ScheduleComponent implements OnInit {
           : await this.wizardService.createAvailability(request);
         this.savedAvailability = [...this.savedAvailability.filter(item => item.id !== saved.id), saved];
       }
-      this.router.navigate(['/wizard-step-5-team']);
+      this.configurationChanges.markSaved(snapshot);
+      return true;
     } catch {
       this.error.set('Não foi possível salvar os horários. Verifique os dados e tente novamente.');
+      return false;
     } finally {
       this.saving.set(false);
     }

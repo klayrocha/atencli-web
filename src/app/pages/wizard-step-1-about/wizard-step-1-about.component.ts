@@ -1,3 +1,6 @@
+import { Optional } from '@angular/core';
+import { OnboardingProgressService } from '../wizard-shared/onboarding-progress.service';
+import { ConfigurationChanges } from '../wizard-shared/configuration-changes';
 import { WizardStepperComponent } from '../wizard-shared/wizard-stepper.component';
 import { Component, OnInit, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -52,6 +55,8 @@ interface Step1Draft {
   styleUrls: ['./wizard-step-1-about.component.scss'],
 })
 export class WizardStep1AboutComponent implements OnInit {
+  readonly configurationChanges = new ConfigurationChanges(() => [this.clinicName, [...this.clinicTypeIds].sort(), this.shortDescription, this.city, this.state, this.clinicPhone, this.clinicEmail, this.acceptsHealthPlan, [...this.healthPlanIds].sort()], () => this.saveConfiguration());
+
 
   // ─── Campos do formulário ──────────────────────────────────────────────────
   clinicName = '';
@@ -73,6 +78,7 @@ export class WizardStep1AboutComponent implements OnInit {
   // ─── Estado de UI ──────────────────────────────────────────────────────────
   loadingLists = signal(true);
   saving = signal(false);
+  private configurationLoaded = false;
   submitAttempted = signal(false);
   saveError = signal('');
 
@@ -100,10 +106,11 @@ export class WizardStep1AboutComponent implements OnInit {
   constructor(
     private router: Router,
     private wizardService: WizardService,
+    @Optional() private readonly progress?: OnboardingProgressService,
   ) {}
 
   async ngOnInit(): Promise<void> {
-    const hasDraft = this.restoreDraft();
+
 
     try {
       const [states, clientTypes, healthPlans, about, clientHealthPlans] = await Promise.all([
@@ -117,9 +124,10 @@ export class WizardStep1AboutComponent implements OnInit {
       this.clinicTypes = clientTypes;
       this.healthPlans = healthPlans;
       this.primaryClinicTypeId = about.typeClientId;
-      if (!hasDraft) {
-        this.applySavedData(about, clientHealthPlans);
-      }
+      this.applySavedData(about, clientHealthPlans);
+      this.configurationLoaded = true;
+      this.configurationChanges.markSaved();
+      if (!this.progress?.isConfigurationComplete()) this.restoreDraft();
     } catch {
       // Em caso de falha na API, mantém as listas vazias sem bloquear a tela
     } finally {
@@ -244,13 +252,28 @@ export class WizardStep1AboutComponent implements OnInit {
   }
 
   async goNext(): Promise<void> {
+    if (this.progress?.isConfigurationComplete() && this.configurationChanges.hasChanges()) {
+      void this.router.navigate(['/wizard-step-2-specialty']);
+      return;
+    }
+    if (await this.saveConfiguration()) void this.router.navigate(['/wizard-step-2-specialty']);
+  }
+
+  async saveConfiguration(): Promise<boolean> {
+    this.saveError.set('');
+    if (!this.configurationLoaded) {
+      this.saveError.set('Recarregue a tela para obter a configuração antes de salvar.');
+      return false;
+    }
+    if (this.saving()) return false;
     this.submitAttempted.set(true);
 
     if (!this.isFormValid) {
-      return;
+      return false;
     }
 
     this.saveError.set('');
+    const snapshot = this.configurationChanges.snapshot();
     this.saving.set(true);
     try {
       const selectedTypeIds = this.clinicTypeIds.map(Number);
@@ -271,12 +294,14 @@ export class WizardStep1AboutComponent implements OnInit {
       });
       await this.wizardService.saveHealthPlans(this.healthPlanIds);
       sessionStorage.removeItem(DRAFT_KEY);
-      this.router.navigate(['/wizard-step-2-specialty']);
+      this.configurationChanges.markSaved(snapshot);
+      return true;
     } catch (error) {
       const message = error instanceof HttpErrorResponse ? String(error.error?.message ?? '') : '';
       this.saveError.set(message.includes('Remove services and specialties')
         ? 'Remova as especialidades e os serviços dessa área nos próximos passos antes de excluí-la.'
         : 'Não foi possível salvar os dados da clínica. Tente novamente.');
+      return false;
     } finally {
       this.saving.set(false);
     }

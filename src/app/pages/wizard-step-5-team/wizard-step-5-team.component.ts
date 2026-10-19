@@ -1,3 +1,4 @@
+import { ConfigurationChanges } from '../wizard-shared/configuration-changes';
 import { WizardStepperComponent } from '../wizard-shared/wizard-stepper.component';
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -60,6 +61,22 @@ export interface PendingInvite {
   styleUrls: ['./wizard-step-5-team.component.scss'],
 })
 export class WizardStep5TeamComponent implements OnInit {
+  readonly configurationChanges: ConfigurationChanges = new ConfigurationChanges(() => {
+    const member = this.members.find(item => item.editing && item.profile !== this.editBuffer.profile);
+    const invite = this.showInviteForm() && (this.inviteFullName || this.inviteEmail ||
+      this.inviteProfile !== 'Atendente/Recepcionista' || this.inviteAuthProvider !== 'LOCAL');
+    return { member: member ? [member.id, this.editBuffer.profile] : null,
+      invite: invite ? [this.inviteFullName, this.inviteEmail, this.inviteProfile, this.inviteAuthProvider] : null };
+  }, () => this.saveConfiguration());
+
+  async saveConfiguration(): Promise<boolean> {
+    if (this.loading() || this.saving()) return false;
+    const member = this.members.find(item => item.editing && item.profile !== this.editBuffer.profile);
+    if (member && !await this.saveEdit(member)) return false;
+    if (this.configurationChanges.hasChanges() && !await this.sendInvite()) return false;
+    return !this.configurationChanges.hasChanges();
+  }
+
 
   loading = signal(true);
   saving = signal(false);
@@ -107,8 +124,8 @@ export class WizardStep5TeamComponent implements OnInit {
     this.inviteAuthProvider = 'LOCAL';
   }
 
-  async sendInvite(): Promise<void> {
-    if (this.saving() || !this.inviteFullName.trim() || !this.inviteEmail.trim()) return;
+  async sendInvite(): Promise<boolean> {
+    if (this.saving() || !this.inviteFullName.trim() || !this.inviteEmail.trim()) return false;
     this.inviteError.set('');
     this.saving.set(true);
     try {
@@ -120,8 +137,11 @@ export class WizardStep5TeamComponent implements OnInit {
         canReceiveConversations: false,
         sendInvitationNow: true,
       });
-      await this.loadTeam();
       this.showInviteForm.set(false);
+      this.inviteFullName = '';
+      this.inviteEmail = '';
+      await this.loadTeam();
+      return true;
     } catch (error) {
       const message = error instanceof HttpErrorResponse && typeof error.error?.message === 'string'
         ? error.error.message.trim() : '';
@@ -134,6 +154,7 @@ export class WizardStep5TeamComponent implements OnInit {
           ? 'Não foi possível enviar o convite: já existe um cadastro ou convite para este e-mail.'
           : 'Não foi possível enviar o convite. Tente novamente.'
       ));
+      return false;
     } finally {
       this.saving.set(false);
     }
@@ -146,18 +167,22 @@ export class WizardStep5TeamComponent implements OnInit {
     member.editing = true;
   }
 
-  async saveEdit(member: TeamMember): Promise<void> {
-    if (this.isProtectedAdministrator(member)) return;
-    if (!this.editBuffer.profile) return;
+  async saveEdit(member: TeamMember): Promise<boolean> {
+    if (this.isProtectedAdministrator(member)) return false;
+    if (!this.editBuffer.profile) return false;
     this.saving.set(true);
     try {
       await this.wizardService.updateTeamMember(member.id, {
         role: this.roleFromProfile(this.editBuffer.profile as MemberProfile),
       });
-      await this.loadTeam();
+      member.profile = this.editBuffer.profile;
+      member.editing = false;
       this.editBuffer = {};
+      await this.loadTeam();
+      return true;
     } catch {
-      // Erro silenciado — pode adicionar toast aqui no futuro
+      this.inviteError.set('Não foi possível salvar o perfil da equipe. Tente novamente.');
+      return false;
     } finally {
       this.saving.set(false);
     }
@@ -321,7 +346,7 @@ export class WizardStep5TeamComponent implements OnInit {
     private router: Router,
     private wizardService: WizardService,
     private authService: AuthService,
-  ) {}
+  ) { this.configurationChanges.markSaved(); }
 
   async ngOnInit(): Promise<void> {
     await this.loadTeam();

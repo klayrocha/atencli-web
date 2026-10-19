@@ -1,3 +1,4 @@
+import { ConfigurationChanges } from '../wizard-shared/configuration-changes';
 import { WizardStepperComponent } from '../wizard-shared/wizard-stepper.component';
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, signal } from '@angular/core';
@@ -19,6 +20,11 @@ type ConnectionStatus = 'NOT_CONFIGURED' | 'CONNECTED' | 'PAUSED' | 'DISCONNECTE
   styleUrls: ['./wizard-step-7-instagram.component.scss'],
 })
 export class WizardStep7InstagramComponent implements OnInit {
+  readonly configurationChanges: ConfigurationChanges = new ConfigurationChanges(
+    () => this.accountsResponse ? this.selectedInstagramUserId : '',
+    async () => { await this.connectSelectedAccount(); return !this.error() && !this.configurationChanges.hasChanges(); },
+  );
+
   integration: InstagramIntegration | null = null;
   accountsResponse: InstagramOAuthAccountsResponse | null = null;
   selectedInstagramUserId = '';
@@ -72,6 +78,7 @@ export class WizardStep7InstagramComponent implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
+    this.configurationChanges.markSaved();
     await this.load();
     const params = this.route.snapshot.queryParamMap;
     const error = params.get('error') || params.get('error_message');
@@ -129,6 +136,7 @@ export class WizardStep7InstagramComponent implements OnInit {
     try {
       this.accountsResponse = await this.api.getOAuthAccounts(code, this.redirectUri());
       this.selectedInstagramUserId = this.accountsResponse.accounts[0]?.instagramUserId ?? '';
+      this.configurationChanges.markSaved();
       if (!this.selectedInstagramUserId) {
         this.error.set('Nenhuma conta profissional do Instagram foi autorizada neste login.');
       } else if (this.accountsResponse.accounts.length === 1) {
@@ -150,6 +158,7 @@ export class WizardStep7InstagramComponent implements OnInit {
       this.integration = await this.api.connect(this.accountsResponse.connectionToken, this.selectedInstagramUserId);
       this.accountsResponse = null;
       this.selectedInstagramUserId = '';
+      this.configurationChanges.markSaved();
       this.success.set('Instagram conectado com sucesso.');
     } catch (error) { this.error.set(this.errorMessage(error)); }
     finally { this.connecting.set(false); }

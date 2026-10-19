@@ -1,3 +1,6 @@
+import { ConfigurationEditor } from '../guards/configuration-exit.guard';
+import { OnboardingProgressService } from '../pages/wizard-shared/onboarding-progress.service';
+import { ConfigurationExitDialogComponent } from '../pages/wizard-shared/configuration-exit-dialog.component';
 import { Component, DestroyRef, HostListener, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
@@ -9,14 +12,15 @@ import { TopbarComponent } from './topbar/topbar.component';
 @Component({
   selector: 'app-layout',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, SidebarComponent, TopbarComponent],
+  imports: [ConfigurationExitDialogComponent, CommonModule, RouterOutlet, SidebarComponent, TopbarComponent],
   template: `
+    <app-configuration-exit-dialog />
     <div class="layout-wrapper">
       <app-sidebar [(collapsed)]="sidebarCollapsed"></app-sidebar>
       <div class="layout-main">
         <app-topbar></app-topbar>
         <main class="layout-content">
-          <router-outlet></router-outlet>
+          <router-outlet (activate)="activePage = $event"></router-outlet>
         </main>
       </div>
     </div>
@@ -27,6 +31,16 @@ export class LayoutComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private helpActive = false;
   sidebarCollapsed = false;
+  activePage?: Partial<ConfigurationEditor>;
+  private readonly onboarding = inject(OnboardingProgressService);
+
+  @HostListener('window:beforeunload', ['$event'])
+  beforeUnload(event: BeforeUnloadEvent): void {
+    if (this.onboarding.isConfigurationComplete() && this.activePage?.configurationChanges?.hasChanges()) {
+      event.preventDefault();
+      event.returnValue = '';
+    }
+  }
 
   ngOnInit(): void {
     this.applyMobileSidebarState();

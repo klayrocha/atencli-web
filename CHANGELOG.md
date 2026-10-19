@@ -2,6 +2,21 @@
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-10-19
+
+### Adicionado
+
+- Etapa de configuração de profissionais, com serviços, horários e indisponibilidades, integrada à agenda.
+- Suporte a múltiplas áreas de atuação da clínica nos catálogos de especialidades e serviços.
+
+- Confirmação ao sair de configurações com alterações pendentes após concluir o onboarding: salva na API antes da navegação, permite continuar editando e mantém a tela em caso de falha.
+- Aviso nativo do navegador ao fechar ou recarregar uma configuração com alterações pendentes.
+
+### Corrigido
+
+- Edição de clínica concluída carrega os dados da API sem substituir por rascunhos locais antigos.
+- Salvamento de configurações separado da navegação; erros de salvamento exibidos e remoções de exceções de horário persistidas na API.
+
 ## [0.6.0] - 2026-10-12
 
 ### Adicionado

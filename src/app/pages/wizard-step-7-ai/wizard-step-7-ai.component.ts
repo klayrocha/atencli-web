@@ -1,3 +1,6 @@
+import { Optional } from '@angular/core';
+import { OnboardingProgressService } from '../wizard-shared/onboarding-progress.service';
+import { ConfigurationChanges } from '../wizard-shared/configuration-changes';
 import { WizardStepperComponent } from '../wizard-shared/wizard-stepper.component';
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
@@ -17,6 +20,10 @@ import { WizardSummaryComponent } from '../wizard-shared/wizard-summary/wizard-s
   styleUrls: ['./wizard-step-7-ai.component.scss'],
 })
 export class WizardStep7AiComponent implements OnInit {
+  readonly configurationChanges: ConfigurationChanges = new ConfigurationChanges(() => this.model, async () => {
+    await this.save();
+    return !this.error && !this.configurationChanges.hasChanges();
+  });
   private readonly automaticMode: AiConfigurationPayload['mode'] = 'LIMITED_AUTOMATIC';
   steps = WIZARD_STEPS_DEFAULT.map(step => ({ ...step, current: step.id === 9, completed: step.id < 9 }));
   readonly topics = [
@@ -56,7 +63,7 @@ export class WizardStep7AiComponent implements OnInit {
   dirty = false;
   error = '';
   success = '';
-  constructor(private api: AiConfigurationService, private auth: AuthService, private router: Router) {}
+  constructor(private api: AiConfigurationService, private auth: AuthService, private router: Router, @Optional() private readonly progress?: OnboardingProgressService) {}
   get canManage() { return (this.auth.currentProfile()?.roles ?? []).some(role => role === 'ADMIN' || role === 'MANAGER'); }
   get busy() { return this.loading || this.saving || this.updating; }
   ngOnInit() { if (this.canManage) void this.load(); }
@@ -82,6 +89,7 @@ export class WizardStep7AiComponent implements OnInit {
     this.enabled = data.enabled;
     this.loaded = true;
     this.dirty = false;
+    this.configurationChanges.markSaved();
     this.steps = this.steps.map(step => step.id === 9 ? { ...step, completed: !data.usingDefaults } : step);
   }
   changed() { this.dirty = true; this.success = ''; }
@@ -131,6 +139,10 @@ export class WizardStep7AiComponent implements OnInit {
     finally { this.updating = false; }
   }
   async goToReview() {
+    if (this.progress?.isConfigurationComplete() && this.configurationChanges.hasChanges()) {
+      await this.router.navigate(['/wizard-step-9-review']);
+      return;
+    }
     if (this.busy || !this.loaded || !this.canManage) return;
     await this.save();
     if (this.error) return;

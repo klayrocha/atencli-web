@@ -1,3 +1,6 @@
+import { Optional } from '@angular/core';
+import { OnboardingProgressService } from '../wizard-shared/onboarding-progress.service';
+import { ConfigurationChanges } from '../wizard-shared/configuration-changes';
 import { WizardStepperComponent } from '../wizard-shared/wizard-stepper.component';
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -35,8 +38,12 @@ export interface SpecialtyItem {
   styleUrls: ['./wizard-step-2-specialty.component.scss'],
 })
 export class WizardStep2SpecialtyComponent implements OnInit {
+  readonly configurationChanges = new ConfigurationChanges(() => [...this.selectedSpecialties.map(item => item.id)].sort(), () => this.saveConfiguration());
+
   searchTerm = '';
   saving = signal(false);
+  saveError = signal('');
+  private configurationLoaded = false;
   loadingSpecialties = signal(true);
 
   // Lista carregada do catálogo oficial para todas as áreas da clínica.
@@ -53,6 +60,7 @@ export class WizardStep2SpecialtyComponent implements OnInit {
   constructor(
     private router: Router,
     private wizardService: WizardService,
+    @Optional() private readonly progress?: OnboardingProgressService,
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -79,6 +87,8 @@ export class WizardStep2SpecialtyComponent implements OnInit {
       }));
       const selectedIds = clientSpecialties.specialties.map(specialty => Number(specialty.id));
       this.selectedSpecialties = this.availableSpecialties.filter(specialty => selectedIds.includes(specialty.id));
+      this.configurationLoaded = true;
+      this.configurationChanges.markSaved();
     } catch {
       if (draftSpecialtyIds !== null) {
         this.selectedSpecialties = this.availableSpecialties.filter(specialty => draftSpecialtyIds.includes(specialty.id));
@@ -162,14 +172,31 @@ export class WizardStep2SpecialtyComponent implements OnInit {
   }
 
   async goNext(): Promise<void> {
+    if (this.progress?.isConfigurationComplete() && this.configurationChanges.hasChanges()) {
+      void this.router.navigate(['/wizard-step-3-services']);
+      return;
+    }
+    if (await this.saveConfiguration()) void this.router.navigate(['/wizard-step-3-services']);
+  }
+
+  async saveConfiguration(): Promise<boolean> {
+    this.saveError.set('');
+    if (!this.configurationLoaded) {
+      this.saveError.set('Recarregue a tela para obter a configuração antes de salvar.');
+      return false;
+    }
+    if (this.saving() || this.loadingSpecialties()) return false;
+    const snapshot = this.configurationChanges.snapshot();
     this.saving.set(true);
     try {
       const specialtyIds = this.selectedSpecialties.map(specialty => specialty.id);
       await this.wizardService.saveSpecialties(specialtyIds);
       sessionStorage.removeItem(DRAFT_KEY);
-      this.router.navigate(['/wizard-step-3-services']);
+      this.configurationChanges.markSaved(snapshot);
+      return true;
     } catch {
-      // Erro silenciado — pode adicionar toast aqui no futuro
+      this.saveError.set('Não foi possível salvar as configurações. Tente novamente.');
+      return false;
     } finally {
       this.saving.set(false);
     }

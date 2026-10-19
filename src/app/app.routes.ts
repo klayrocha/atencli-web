@@ -1,3 +1,4 @@
+import { configurationExitGuard } from './guards/configuration-exit.guard';
 import { Routes } from '@angular/router';
 import { LayoutComponent } from './layout/layout.component';
 import { AcompanhamentoAutomaticoComponent } from './pages/acompanhamento-automatico/acompanhamento-automatico.component';
@@ -45,17 +46,17 @@ export const routes: Routes = [
     children: [
       { path: 'ajuda', canActivate: [authGuard], loadComponent: () => import('./pages/ajuda/ajuda.component').then(m => m.AjudaComponent) },
       { path: '', component: DashboardComponent },
-      { path: 'wizard-step-1-aboult', component: WizardStep1AboutComponent },
-      { path: 'wizard-step-2-specialty', component: WizardStep2SpecialtyComponent },
-      { path: 'wizard-step-3-services', component: WizardStep3ServicesComponent },
-      { path: 'wizard-step-4-schedule', component: WizardStep4ScheduleComponent },
-      { path: 'wizard-step-5-team', component: WizardStep5TeamComponent },
+      { path: 'wizard-step-1-aboult', component: WizardStep1AboutComponent, canDeactivate: [configurationExitGuard] },
+      { path: 'wizard-step-2-specialty', component: WizardStep2SpecialtyComponent, canDeactivate: [configurationExitGuard] },
+      { path: 'wizard-step-3-services', component: WizardStep3ServicesComponent, canDeactivate: [configurationExitGuard] },
+      { path: 'wizard-step-4-schedule', component: WizardStep4ScheduleComponent, canDeactivate: [configurationExitGuard] },
+      { path: 'wizard-step-5-team', component: WizardStep5TeamComponent, canDeactivate: [configurationExitGuard] },
       { path: 'wizard-step-6-professionals', loadComponent: () => import('./pages/wizard-step-6-professionals/wizard-step-6-professionals.component').then(m => m.WizardStep6ProfessionalsComponent) },
       { path: 'wizard-step-6-whatsapp', component: WizardStep6WhatsappComponent },
       { path: 'configuracoes/whatsapp', component: WizardStep6WhatsappComponent },
-      { path: 'wizard-step-7-instagram', component: WizardStep7InstagramComponent },
-      { path: 'configuracoes/instagram', component: WizardStep7InstagramComponent },
-      { path: 'integracoes/instagram/callback', component: WizardStep7InstagramComponent },
+      { path: 'wizard-step-7-instagram', component: WizardStep7InstagramComponent, canDeactivate: [configurationExitGuard] },
+      { path: 'configuracoes/instagram', component: WizardStep7InstagramComponent, canDeactivate: [configurationExitGuard] },
+      { path: 'integracoes/instagram/callback', component: WizardStep7InstagramComponent, canDeactivate: [configurationExitGuard] },
       { path: 'conversas', component: ConversationsComponent },
       { path: 'contatos', component: DashboardComponent },
       { path: 'etapas', component: EtapasComponent },
@@ -64,7 +65,7 @@ export const routes: Routes = [
       { path: 'ac', component: AcompanhamentoAutomaticoComponent },
       { path: 'tarefas', loadComponent: () => import('./pages/tarefas/tarefas.component').then(m => m.TarefasComponent) },
       { path: 'resultados', loadComponent: () => import('./pages/dashboard/dashboard-period.component').then(m => m.DashboardPeriodComponent) },
-      { path: 'ia', component: WizardStep7AiComponent },
+      { path: 'ia', component: WizardStep7AiComponent, canDeactivate: [configurationExitGuard] },
       { path: 'wizard-step-7-ai', redirectTo: 'ia', pathMatch: 'full' },
       { path: 'wizard-step-8-ai', redirectTo: 'ia', pathMatch: 'full' },
       { path: 'wizard-step-8-review', redirectTo: 'wizard-step-9-review', pathMatch: 'full' },

@@ -7,9 +7,13 @@ describe('WizardStep3ServicesComponent prices', () => {
   let wizard: jasmine.SpyObj<WizardService>;
   let service: ServiceItem;
 
-  beforeEach(() => {
-    wizard = jasmine.createSpyObj<WizardService>('WizardService', ['saveServices']);
+  beforeEach(async () => {
+    wizard = jasmine.createSpyObj<WizardService>('WizardService', ['saveServices', 'getAbout', 'getServicesByTypeClients', 'getClientServices', 'getClientTypes']);
     wizard.saveServices.and.resolveTo();
+    wizard.getAbout.and.resolveTo({ typeClientId: 1 } as Awaited<ReturnType<WizardService['getAbout']>>);
+    wizard.getServicesByTypeClients.and.resolveTo([]);
+    wizard.getClientServices.and.resolveTo({ clientUuid: 'test', services: [] });
+    wizard.getClientTypes.and.resolveTo([]);
     const router = jasmine.createSpyObj<Router>('Router', ['navigate']);
     component = new WizardStep3ServicesComponent(router, wizard);
     service = {
@@ -17,6 +21,7 @@ describe('WizardStep3ServicesComponent prices', () => {
       suggestedPrice: 200, practicePrice: null, insurancePrice: null,
       duration: 30, enabled: true,
     };
+    await component.ngOnInit();
     component.allServices = [service];
   });
 

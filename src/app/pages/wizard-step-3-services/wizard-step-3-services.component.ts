@@ -1,3 +1,6 @@
+import { Optional } from '@angular/core';
+import { OnboardingProgressService } from '../wizard-shared/onboarding-progress.service';
+import { ConfigurationChanges } from '../wizard-shared/configuration-changes';
 import { WizardStepperComponent } from '../wizard-shared/wizard-stepper.component';
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -41,10 +44,14 @@ export interface DurationOption {
   styleUrls: ['./wizard-step-3-services.component.scss'],
 })
 export class WizardStep3ServicesComponent implements OnInit {
+  readonly configurationChanges = new ConfigurationChanges(() => this.allServices.map(({id, enabled, practicePrice, insurancePrice, duration}) => ({id, enabled, practicePrice, insurancePrice, duration})), () => this.saveConfiguration());
+
 
   acceptsHealthPlan = true;
   loadingServices = signal(true);
   saving = signal(false);
+  saveError = signal('');
+  private configurationLoaded = false;
   submitAttempted = signal(false);
 
   steps: WizardStep[] = WIZARD_STEPS_DEFAULT.map(s => ({
@@ -168,6 +175,7 @@ export class WizardStep3ServicesComponent implements OnInit {
   constructor(
     private router: Router,
     private wizardService: WizardService,
+    @Optional() private readonly progress?: OnboardingProgressService,
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -201,6 +209,8 @@ export class WizardStep3ServicesComponent implements OnInit {
           enabled: configuredService != null,
         };
       });
+      this.configurationLoaded = true;
+      this.configurationChanges.markSaved();
     } catch {
       // Em caso de falha na API, mantém a lista vazia sem bloquear a tela
     } finally {
@@ -213,13 +223,28 @@ export class WizardStep3ServicesComponent implements OnInit {
   }
 
   async goNext(): Promise<void> {
+    if (this.progress?.isConfigurationComplete() && this.configurationChanges.hasChanges()) {
+      void this.router.navigate(['/wizard-step-4-schedule']);
+      return;
+    }
+    if (await this.saveConfiguration()) void this.router.navigate(['/wizard-step-4-schedule']);
+  }
+
+  async saveConfiguration(): Promise<boolean> {
+    this.saveError.set('');
+    if (!this.configurationLoaded) {
+      this.saveError.set('Recarregue a tela para obter a configuração antes de salvar.');
+      return false;
+    }
+    if (this.saving()) return false;
     this.submitAttempted.set(true);
 
     if (!this.canSave) {
       this.goToFirstInvalidService();
-      return;
+      return false;
     }
 
+    const snapshot = this.configurationChanges.snapshot();
     this.saving.set(true);
     try {
       await this.wizardService.saveServices(this.selectedServices.map(service => ({
@@ -228,9 +253,11 @@ export class WizardStep3ServicesComponent implements OnInit {
         planPrice: this.acceptsHealthPlan ? service.insurancePrice! : null,
         durationMinutes: service.duration!,
       })));
-      this.router.navigate(['/wizard-step-4-schedule']);
+      this.configurationChanges.markSaved(snapshot);
+      return true;
     } catch {
-      // Erro silenciado — pode adicionar toast aqui no futuro
+      this.saveError.set('Não foi possível salvar as configurações. Tente novamente.');
+      return false;
     } finally {
       this.saving.set(false);
     }
