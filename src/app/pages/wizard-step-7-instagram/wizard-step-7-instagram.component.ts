@@ -1,7 +1,7 @@
 import { ConfigurationChanges } from '../wizard-shared/configuration-changes';
 import { WizardStepperComponent } from '../wizard-shared/wizard-stepper.component';
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -19,7 +19,9 @@ type ConnectionStatus = 'NOT_CONFIGURED' | 'CONNECTED' | 'PAUSED' | 'DISCONNECTE
   templateUrl: './wizard-step-7-instagram.component.html',
   styleUrls: ['./wizard-step-7-instagram.component.scss'],
 })
-export class WizardStep7InstagramComponent implements OnInit {
+export class WizardStep7InstagramComponent implements OnInit, OnDestroy {
+  private cancelPopup?: () => void;
+  private destroyed = false;
   readonly configurationChanges: ConfigurationChanges = new ConfigurationChanges(
     () => this.accountsResponse ? this.selectedInstagramUserId : '',
     async () => { await this.connectSelectedAccount(); return !this.error() && !this.configurationChanges.hasChanges(); },
@@ -78,6 +80,14 @@ export class WizardStep7InstagramComponent implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
+    const callbackParams = this.route.snapshot.queryParamMap;
+    if (window.opener
+      && (callbackParams.has('code') || callbackParams.has('error') || callbackParams.has('error_message'))) {
+      window.opener.postMessage({ type: 'atenclin:instagram-oauth', code: callbackParams.get('code'),
+        state: callbackParams.get('state'), error: callbackParams.get('error') || callbackParams.get('error_message') }, window.location.origin);
+      window.close();
+      return;
+    }
     this.configurationChanges.markSaved();
     await this.load();
     const params = this.route.snapshot.queryParamMap;
@@ -101,11 +111,18 @@ export class WizardStep7InstagramComponent implements OnInit {
 
   async beginConnection(): Promise<void> {
     if (!this.canManageIntegration || this.busy) return;
+    const popup = window.open('about:blank', 'atenclin-instagram-oauth', 'popup=yes,width=600,height=760');
+    if (!popup) {
+      this.error.set('Permita pop-ups para conectar o Instagram e tente novamente.');
+      return;
+    }
+    this.cancelPopup = () => popup.close();
     this.starting.set(true);
     this.error.set('');
     this.success.set('');
     try {
       const config = await this.api.getOAuthConfig();
+      if (this.destroyed || popup.closed) { popup.close(); this.starting.set(false); return; }
       const state = this.generateState();
       sessionStorage.setItem('atenclin:instagram-oauth-state', state);
       const params = new URLSearchParams({
@@ -115,18 +132,54 @@ export class WizardStep7InstagramComponent implements OnInit {
         scope: config.scopes.join(','),
         state,
       });
-      window.location.href = `https://www.instagram.com/oauth/authorize?${params.toString()}`;
+      await new Promise<void>((resolve, reject) => {
+        let timer: number;
+        const cleanup = () => {
+          window.removeEventListener('message', receive);
+          window.clearInterval(timer);
+          this.cancelPopup = undefined;
+          popup.close();
+        };
+        const receive = (event: MessageEvent) => {
+          if (event.origin !== window.location.origin || event.source !== popup
+            || event.data?.type !== 'atenclin:instagram-oauth') return;
+          if (event.data.state !== state) {
+            cleanup(); reject(new Error('Não foi possível validar o retorno da Meta. Inicie a conexão novamente.')); return;
+          }
+          cleanup();
+          if (event.data.error || typeof event.data.code !== 'string' || !event.data.code) {
+            reject(new Error('A autorização do Instagram foi cancelada ou recusada.')); return;
+          }
+          void this.exchangeCode(event.data.code, state).then(resolve, reject);
+        };
+        const deadline = Date.now() + 5 * 60 * 1000;
+        timer = window.setInterval(() => {
+          if (popup.closed || Date.now() > deadline) {
+            cleanup(); reject(new Error('A conexão foi encerrada ou expirou. Tente novamente.'));
+          }
+        }, 500);
+        this.cancelPopup = () => { cleanup(); resolve(); };
+        window.addEventListener('message', receive);
+        try { popup.location.href = `https://www.instagram.com/oauth/authorize?${params.toString()}`; }
+        catch (error) { cleanup(); reject(error); }
+      });
     } catch (error) {
-      this.error.set(this.errorMessage(error));
+      popup.close();
+      if (!this.destroyed) this.error.set(this.errorMessage(error));
+    } finally {
+      sessionStorage.removeItem('atenclin:instagram-oauth-state');
+      this.cancelPopup = undefined;
       this.starting.set(false);
     }
   }
 
-  async exchangeCode(code: string): Promise<void> {
-    const state = this.route.snapshot.queryParamMap.get('state');
+  ngOnDestroy(): void { this.destroyed = true; this.cancelPopup?.(); }
+
+  async exchangeCode(code: string, callbackState?: string): Promise<void> {
+    const state = callbackState ?? this.route.snapshot.queryParamMap.get('state');
     const expectedState = sessionStorage.getItem('atenclin:instagram-oauth-state');
     sessionStorage.removeItem('atenclin:instagram-oauth-state');
-    if (expectedState && state !== expectedState) {
+    if (!expectedState || state !== expectedState) {
       this.error.set('Não foi possível validar o retorno da Meta. Inicie a conexão novamente.');
       await this.clearCallbackUrl();
       return;
