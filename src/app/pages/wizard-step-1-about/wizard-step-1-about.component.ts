@@ -61,6 +61,9 @@ export class WizardStep1AboutComponent implements OnInit {
   // ─── Campos do formulário ──────────────────────────────────────────────────
   clinicName = '';
   clinicTypeIds: string[] = [];
+  readonly clinicTypeError = signal('');
+  private specialtyTypesLoaded = false;
+  private protectedClinicTypeIds = new Set<string>();
   private primaryClinicTypeId: number | null = null;
   shortDescription = '';
   city = '';
@@ -128,6 +131,23 @@ export class WizardStep1AboutComponent implements OnInit {
       this.configurationLoaded = true;
       this.configurationChanges.markSaved();
       if (!this.progress?.isConfigurationComplete()) this.restoreDraft();
+      try {
+        const [selected, catalog] = await Promise.all([
+          this.wizardService.getClientSpecialties(),
+          this.wizardService.getSpecialtiesByTypeClients(clientTypes.map(type => Number(type.id))),
+        ]);
+        const selectedIds = new Set(selected.specialties.map(item => Number(item.id)));
+        if (!this.progress?.isConfigurationComplete()) {
+          try {
+            const draft = JSON.parse(sessionStorage.getItem('wizard_step2_specialties_draft') ?? 'null');
+            if (Array.isArray(draft)) draft.forEach(id => selectedIds.add(Number(id)));
+          } catch { /* Ignore invalid drafts; saved specialties remain protected. */ }
+        }
+        this.protectedClinicTypeIds = new Set(catalog.filter(item => selectedIds.has(Number(item.id))).map(item => String(item.typeClientId)));
+        this.specialtyTypesLoaded = true;
+      } catch {
+        this.clinicTypeError.set('Não foi possível verificar as especialidades. Recarregue a tela antes de desmarcar uma área.');
+      }
     } catch {
       // Em caso de falha na API, mantém as listas vazias sem bloquear a tela
     } finally {
@@ -191,6 +211,18 @@ export class WizardStep1AboutComponent implements OnInit {
 
   // ─── Handlers de campo ───────────────────────────────────────────────────
 
+  onClinicTypesChange(nextIds: string[]): void {
+    const blocked = this.clinicTypeIds.filter(id => !nextIds.includes(id)
+      && (!this.specialtyTypesLoaded || this.protectedClinicTypeIds.has(id)));
+    this.clinicTypeIds = [...new Set([...nextIds, ...blocked])];
+    this.clinicTypeError.set(blocked.length
+      ? this.specialtyTypesLoaded
+        ? 'Remova as especialidades selecionadas dessa área na etapa de especialidades antes de desmarcá-la.'
+        : 'Não foi possível verificar as especialidades. Recarregue a tela antes de desmarcar uma área.'
+      : '');
+    this.saveDraft();
+  }
+
   onPhoneInput(event: Event): void {
     const input = event.target as HTMLInputElement;
     const formatted = this.formatPhoneNumber(input.value);
@@ -235,7 +267,7 @@ export class WizardStep1AboutComponent implements OnInit {
   }
 
   recommendByAi(): void {
-    this.clinicTypeIds = this.clinicTypes.length > 0 ? [this.clinicTypes[0].id] : [];
+    this.onClinicTypesChange(this.clinicTypes.length > 0 ? [this.clinicTypes[0].id] : []);
     this.shortDescription = 'Clínica odontológica moderna focada em implantes, estética e ortodontia de alta performance.';
     this.city = 'São Paulo';
     this.state = this.states.find(state => state.name === 'São Paulo')?.id ?? '';

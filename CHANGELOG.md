@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+## [0.9.2] - 2026-10-25
+
+### Alterado
+
+- Menu mobile totalmente oculto por padrão, aberto pelo ícone de sanduíche ao lado do nome da clínica, com a logo oculta.
+- Menu mobile fecha ao navegar, tocar fora ou pressionar Esc.
+
+### Corrigido
+
+- Etapa “Sobre a clínica” impede desmarcar áreas com especialidades selecionadas e orienta remover as especialidades primeiro.
+- Remoção de áreas bloqueada quando não é possível verificar as especialidades, com orientação para recarregar a tela.
+
 ## [0.9.1] - 2026-10-25
 
 ### Alterado

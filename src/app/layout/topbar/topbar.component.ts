@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AvatarModule } from 'primeng/avatar';
 import { BadgeModule } from 'primeng/badge';
@@ -24,6 +24,9 @@ interface Clinic {
 
       <!-- Left: clinic selector dropdown -->
       <div class="topbar-left">
+        <button type="button" class="mobile-menu-toggle" (click)="menuToggle.emit()" [attr.aria-expanded]="menuOpen" aria-controls="main-navigation" [attr.aria-label]="menuOpen ? 'Fechar menu' : 'Abrir menu'">
+          <i class="pi pi-bars" aria-hidden="true"></i>
+        </button>
         <div class="clinic-selector">
           <div class="clinic-dot"></div>
           <span class="clinic-name">{{ clinicName() }}</span>
@@ -95,6 +98,8 @@ interface Clinic {
   }
 })
 export class TopbarComponent {
+  @Input() menuOpen = false;
+  @Output() menuToggle = new EventEmitter<void>();
 
   userMenuOpen   = false;
   clinicMenuOpen = false;

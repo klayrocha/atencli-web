@@ -141,12 +141,6 @@ app-topbar {
 }
 @media (max-width: 760px) {
   .layout-wrapper {
-    .sidebar { width: 60px; min-width: 60px; }
-    .sidebar .logo-text, .sidebar .menu-label, .sidebar .collapse-btn span { display: none; }
-    .sidebar .sidebar-logo { padding: 18px 12px; }
-    .sidebar .menu-list { padding: 0 6px; }
-    .sidebar .menu-item { padding: 12px; justify-content: center; }
-    .sidebar .sidebar-footer { padding: 6px; }
     .layout-content { padding: 1rem; }
   }
 
@@ -160,9 +154,15 @@ app-topbar {
 
 @media (max-width: 480px) {
   .layout-wrapper {
-    .sidebar { width: 54px; min-width: 54px; }
-    .sidebar .menu-list { padding: 0 5px; }
-    .sidebar .menu-item { padding: 11px; }
     .layout-content { padding: 0.75rem; }
   }
+}
+
+.mobile-menu-backdrop { display: none; }
+@media (max-width: 760px) {
+  .layout-wrapper app-sidebar { display: none; }
+  .layout-wrapper.mobile-menu-open app-sidebar { display: block; position: fixed; top: 56px; left: 0; bottom: 0; z-index: 110; }
+  .layout-wrapper.mobile-menu-open .sidebar { width: min(280px, 85vw); height: 100%; box-shadow: 6px 0 24px #1f293722; }
+  .layout-wrapper .sidebar .sidebar-logo, .layout-wrapper .sidebar .sidebar-footer { display: none; }
+  .mobile-menu-backdrop { display: block; position: fixed; inset: 56px 0 0; z-index: 105; border: 0; background: #1f293755; }
 }
