@@ -77,6 +77,7 @@ export class EtapasComponent implements OnInit {
   stages: AttendanceStage[] = [];
   columns: StageColumn[] = [];
   collapsedGroups = new Set<string>();
+  layout: 'accordion' | 'horizontal' = 'accordion';
   search = '';
   movingConversationId: number | null = null;
   dragged: { conversation: ConversationSummary; sourceColumn: StageColumn } | null = null;
@@ -177,6 +178,10 @@ export class EtapasComponent implements OnInit {
 
   isGroupOpen(group: StageGroup): boolean {
     return !this.collapsedGroups.has(group.id);
+  }
+
+  toggleLayout(): void {
+    this.layout = this.layout === 'accordion' ? 'horizontal' : 'accordion';
   }
 
   toggleGroup(group: StageGroup): void {

@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-10-25
+
+### Adicionado
+
+- Toggle “Tipo de exibição” nas etapas do atendimento, com os modos “Padrão” (acordeões) e “Mesma linha” (todas as colunas com rolagem horizontal).
+- Confirmação individual de pausas da agenda, com validação na própria linha e bloqueio dos campos após confirmar.
+
+### Alterado
+
+- Pausas configuradas por dia de funcionamento, com ativação independente, máscara de horário e descrição obrigatória.
+- Salvamento da agenda exige confirmar as novas pausas e valida horários, limites do expediente e sobreposições.
+
 ## [0.8.0] - 2026-10-19
 
 ### Adicionado

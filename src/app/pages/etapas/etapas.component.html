@@ -17,6 +17,24 @@
     </div>
   </header>
 
+  <div class="layout-row">
+      <div class="layout-control">
+        <span id="layout-label">Tipo de exibição</span>
+        <button
+          type="button"
+          class="layout-toggle"
+          role="switch"
+          [attr.aria-checked]="layout === 'horizontal'"
+          aria-labelledby="layout-label"
+          aria-describedby="layout-mode"
+          aria-controls="attendance-board"
+          (click)="toggleLayout()">
+          <span class="layout-toggle-thumb" aria-hidden="true"></span>
+        </button>
+        <span id="layout-mode" class="layout-mode">{{ layout === 'accordion' ? 'Padrão' : 'Mesma linha' }}</span>
+      </div>
+  </div>
+
   <div class="feedback error" *ngIf="error" role="alert">{{ error }}</div>
   <div class="feedback success" *ngIf="success" role="status">{{ success }}</div>
 
@@ -31,101 +49,110 @@
     </article>
   </section>
 
-  <section class="stage-groups" aria-label="Conversas organizadas por grupos de etapas">
-    <article class="stage-group" *ngFor="let group of stageGroups">
-      <button
-        type="button"
-        class="group-header"
-        [attr.aria-expanded]="isGroupOpen(group)"
-        (click)="toggleGroup(group)">
-        <span class="group-icon"><i [class]="group.icon"></i></span>
-        <span>
-          <strong>{{ group.title }}</strong>
-          <small>{{ group.helper }}</small>
-        </span>
-        <span class="group-count">{{ groupTotal(group) }}</span>
-        <i class="pi pi-chevron-down group-chevron" [class.closed]="!isGroupOpen(group)"></i>
-      </button>
+  <section id="attendance-board" [class.stage-groups]="layout === 'accordion'" aria-label="Conversas organizadas por etapas">
+    <div *ngIf="layout === 'horizontal'" class="board board--horizontal" tabindex="0" role="region" aria-label="Todas as etapas em linha, com rolagem horizontal">
+      <ng-container *ngTemplateOutlet="stageColumns; context: { $implicit: columns }"></ng-container>
+    </div>
+    <ng-container *ngIf="layout === 'accordion'">
+      <article class="stage-group" *ngFor="let group of stageGroups">
+        <button
+          type="button"
+          class="group-header"
+          [attr.aria-expanded]="isGroupOpen(group)"
+          (click)="toggleGroup(group)">
+          <span class="group-icon"><i [class]="group.icon"></i></span>
+          <span>
+            <strong>{{ group.title }}</strong>
+            <small>{{ group.helper }}</small>
+          </span>
+          <span class="group-count">{{ groupTotal(group) }}</span>
+          <i class="pi pi-chevron-down group-chevron" [class.closed]="!isGroupOpen(group)"></i>
+        </button>
 
-      <div class="board" *ngIf="isGroupOpen(group)" [attr.aria-label]="group.title">
+        <div class="board" *ngIf="isGroupOpen(group)" [attr.aria-label]="group.title">
+          <ng-container *ngTemplateOutlet="stageColumns; context: { $implicit: columnsForGroup(group) }"></ng-container>
+        </div>
+      </article>
+    </ng-container>
+  </section>
+
+  <ng-template #stageColumns let-boardColumns>
+    <article
+      *ngFor="let column of boardColumns"
+      class="stage-column"
+      (dragover)="dragOver($event)"
+      (drop)="dropOnColumn($event, column)">
+      <header class="column-header">
+        <div>
+          <span class="stage-dot" [ngClass]="stageTone(column.stage)"></span>
+          <h2>{{ column.stage.name }}</h2>
+        </div>
+        <span class="count">{{ column.total }}</span>
+      </header>
+      <p class="column-subtitle">{{ stageDescription(column.stage) }}</p>
+
+      <div class="column-error" *ngIf="column.error">{{ column.error }}</div>
+
+      <div class="cards">
         <article
-          *ngFor="let column of columnsForGroup(group)"
-          class="stage-column"
-          (dragover)="dragOver($event)"
-          (drop)="dropOnColumn($event, column)">
-          <header class="column-header">
+          *ngFor="let conversation of visibleConversations(column)"
+          class="conversation-card"
+          draggable="true"
+          [class.moving]="movingConversationId === conversation.id"
+          (dragstart)="dragStart($event, conversation, column)"
+          (dragend)="dragEnd()">
+          <div class="card-heading">
+            <span class="avatar">{{ initials(conversation.profileName) }}</span>
             <div>
-              <span class="stage-dot" [ngClass]="stageTone(column.stage)"></span>
-              <h2>{{ column.stage.name }}</h2>
-            </div>
-            <span class="count">{{ column.total }}</span>
-          </header>
-          <p class="column-subtitle">{{ stageDescription(column.stage) }}</p>
-
-          <div class="column-error" *ngIf="column.error">{{ column.error }}</div>
-
-          <div class="cards">
-            <article
-              *ngFor="let conversation of visibleConversations(column)"
-              class="conversation-card"
-              draggable="true"
-              [class.moving]="movingConversationId === conversation.id"
-              (dragstart)="dragStart($event, conversation, column)"
-              (dragend)="dragEnd()">
-              <div class="card-heading">
-                <span class="avatar">{{ initials(conversation.profileName) }}</span>
-                <div>
-                  <h3>{{ conversation.profileName || 'Contato sem nome' }}</h3>
-                  <p>{{ stageDescription(column.stage) }}</p>
-                </div>
-              </div>
-
-              <div class="card-row">
-                <span>Atualizado</span>
-                <strong>{{ formatDate(conversation.updatedAt) }}</strong>
-              </div>
-              <p class="last-message">{{ conversation.lastMessageText || 'Sem mensagem recente.' }}</p>
-
-              <div class="card-footer">
-                <span class="priority" [ngClass]="priorityClass(cardPriority(conversation, column.stage))">
-                  {{ cardPriority(conversation, column.stage) }}
-                </span>
-                <a [routerLink]="['/conversas']" [queryParams]="{ conversationId: conversation.id }" title="Abrir conversa">
-                  <i class="pi pi-comments"></i>
-                </a>
-              </div>
-
-              <div class="drag-hint">
-                <i class="pi pi-arrows-alt"></i>
-                Arraste para alterar etapa
-              </div>
-            </article>
-
-            <div class="empty-column" *ngIf="!column.loading && !visibleConversations(column).length">
-              <i class="pi pi-inbox"></i>
-              <strong>Nenhuma conversa</strong>
-              <span>{{ search ? 'Nenhum resultado para a busca nesta etapa.' : 'Esta etapa ainda não tem conversas.' }}</span>
-            </div>
-
-            <div class="loading-column" *ngIf="column.loading">
-              <i class="pi pi-spin pi-spinner"></i>
-              Carregando...
+              <h3>{{ conversation.profileName || 'Contato sem nome' }}</h3>
+              <p>{{ stageDescription(column.stage) }}</p>
             </div>
           </div>
 
-          <button
-            type="button"
-            class="more-button"
-            *ngIf="column.page + 1 < column.totalPages"
-            (click)="loadMore(column)"
-            [disabled]="column.loading">
-            <i class="pi pi-plus"></i>
-            Ver mais {{ column.total - column.conversations.length }}
-          </button>
+          <div class="card-row">
+            <span>Atualizado</span>
+            <strong>{{ formatDate(conversation.updatedAt) }}</strong>
+          </div>
+          <p class="last-message">{{ conversation.lastMessageText || 'Sem mensagem recente.' }}</p>
+
+          <div class="card-footer">
+            <span class="priority" [ngClass]="priorityClass(cardPriority(conversation, column.stage))">
+              {{ cardPriority(conversation, column.stage) }}
+            </span>
+            <a [routerLink]="['/conversas']" [queryParams]="{ conversationId: conversation.id }" title="Abrir conversa">
+              <i class="pi pi-comments"></i>
+            </a>
+          </div>
+
+          <div class="drag-hint">
+            <i class="pi pi-arrows-alt"></i>
+            Arraste para alterar etapa
+          </div>
         </article>
+
+        <div class="empty-column" *ngIf="!column.loading && !visibleConversations(column).length">
+          <i class="pi pi-inbox"></i>
+          <strong>Nenhuma conversa</strong>
+          <span>{{ search ? 'Nenhum resultado para a busca nesta etapa.' : 'Esta etapa ainda não tem conversas.' }}</span>
+        </div>
+
+        <div class="loading-column" *ngIf="column.loading">
+          <i class="pi pi-spin pi-spinner"></i>
+          Carregando...
+        </div>
       </div>
+
+      <button
+        type="button"
+        class="more-button"
+        *ngIf="column.page + 1 < column.totalPages"
+        (click)="loadMore(column)"
+        [disabled]="column.loading">
+        <i class="pi pi-plus"></i>
+        Ver mais {{ column.total - column.conversations.length }}
+      </button>
     </article>
-  </section>
+  </ng-template>
 
   <footer class="hint-bar">
     <div>

@@ -1,3 +1,4 @@
+import { InputMaskModule } from 'primeng/inputmask';
 import { Optional } from '@angular/core';
 import { OnboardingProgressService } from '../wizard-shared/onboarding-progress.service';
 import { ConfigurationChanges } from '../wizard-shared/configuration-changes';
@@ -43,7 +44,7 @@ export interface ExceptionTypeOption {
 @Component({
   selector: 'app-wizard-step-4-schedule',
   standalone: true,
-  imports: [WizardStepperComponent,
+  imports: [InputMaskModule, WizardStepperComponent,
     CommonModule,
     FormsModule,
     RouterModule,
@@ -91,12 +92,60 @@ export class WizardStep4ScheduleComponent implements OnInit {
 
   savedAvailability: ClientAvailabilityOption[] = [];
   breaks: DayBreak[] = [];
+  readonly breakConfirmationError = signal<{ pause: DayBreak; message: string } | null>(null);
 
-  addBreak(): void {
+  private rejectBreak(pause: DayBreak, message: string): void {
+    this.breakConfirmationError.set({ pause, message });
+  }
+
+  private readonly draftBreaks = new WeakSet<DayBreak>();
+
+  isBreakConfirmed(pause: DayBreak): boolean {
+    return !this.draftBreaks.has(pause);
+  }
+
+  confirmBreak(pause: DayBreak): void {
+    if (this.loading() || this.saving() || this.loadFailed() || this.isBreakConfirmed(pause)) return;
+    const day = this.days[pause.dayOfWeek - 1];
+    if (!day?.active || !this.validTime(pause.start) || !this.validTime(pause.end) || pause.start >= pause.end) {
+      this.rejectBreak(pause, 'Informe início e fim válidos para a pausa.'); return;
+    }
+    if (!pause.description.trim() || pause.description.length > 255) {
+      this.rejectBreak(pause, 'Informe a descrição da pausa, com até 255 caracteres.'); return;
+    }
+    if (pause.start < day.start || pause.end > day.end) {
+      this.rejectBreak(pause, 'A pausa deve ficar dentro do horário de funcionamento.'); return;
+    }
+    if (this.breaks.some(other => other !== pause && other.dayOfWeek === pause.dayOfWeek && pause.start < other.end && pause.end > other.start)) {
+      this.rejectBreak(pause, 'As pausas do dia não podem se sobrepor.'); return;
+    }
+    pause.description = pause.description.trim();
+    this.draftBreaks.delete(pause);
+    this.breakConfirmationError.set(null);
+    this.error.set('');
+  }
+
+
+  breaksForDay(dayOfWeek: number): DayBreak[] {
+    return this.breaks.filter(pause => pause.dayOfWeek === dayOfWeek);
+  }
+
+  toggleDayBreak(dayOfWeek: number): void {
+    if (this.loading() || this.saving() || this.loadFailed() || !this.days[dayOfWeek - 1]?.active) return;
+    if (this.breaksForDay(dayOfWeek).length) {
+      this.breaks = this.breaks.filter(pause => pause.dayOfWeek !== dayOfWeek);
+    } else {
+      this.addBreak(dayOfWeek);
+    }
+  }
+
+  addBreak(dayOfWeek?: number): void {
     if (this.loading() || this.saving() || this.loadFailed()) return;
-    const day = this.days.findIndex(item => item.active);
-    if (day < 0) return;
-    this.breaks.push({ dayOfWeek: day + 1, start: '', end: '', description: '' });
+    const day = dayOfWeek === undefined ? this.days.findIndex(item => item.active) : dayOfWeek - 1;
+    if (day < 0 || !this.days[day]?.active) return;
+    const pause: DayBreak = { dayOfWeek: day + 1, start: '', end: '', description: '' };
+    this.draftBreaks.add(pause);
+    this.breaks.push(pause);
   }
 
   removeBreak(index: number): void {
@@ -124,6 +173,7 @@ export class WizardStep4ScheduleComponent implements OnInit {
       if (pause.start < day.start || pause.end > day.end) {
         return `A pausa de ${day.label} deve ficar dentro do horário de funcionamento.`;
       }
+      if (!pause.description.trim()) return `Informe a descrição da pausa de ${day.label}.`;
       if (pause.description.length > 255) return 'A descrição da pausa deve ter no máximo 255 caracteres.';
       if (this.breaks.slice(0, index).some(other => other.dayOfWeek === pause.dayOfWeek
         && pause.start < other.end && pause.end > other.start)) {
@@ -137,7 +187,7 @@ export class WizardStep4ScheduleComponent implements OnInit {
     return this.breaks.filter(pause => this.days[pause.dayOfWeek - 1]?.active).map(pause => ({
       availabilityType: 'BREAK', dayOfWeek: pause.dayOfWeek,
       startTime: `${pause.start}:00`, endTime: `${pause.end}:00`,
-      description: pause.description || undefined,
+      description: pause.description.trim(),
     }));
   }
 
@@ -339,6 +389,10 @@ export class WizardStep4ScheduleComponent implements OnInit {
     if (this.days.some(day => day.active && (!day.start || !day.end || day.start >= day.end)) ||
         this.exceptions.some(item => item.type === 'WORKING_HOURS' && (!item.start || !item.end || item.start >= item.end))) {
       this.error.set('Informe horários de término posteriores ao início.');
+      return false;
+    }
+    if (this.breaks.some(pause => this.days[pause.dayOfWeek - 1]?.active && !this.isBreakConfirmed(pause))) {
+      this.error.set('Confirme as pausas no botão ✓ antes de salvar.');
       return false;
     }
     const snapshot = this.configurationChanges.snapshot();

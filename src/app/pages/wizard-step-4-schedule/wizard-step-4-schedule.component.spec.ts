@@ -172,8 +172,8 @@ describe('Schedule appointment intervals', () => {
       expect(component.error()).toBeTruthy();
     }
     component.breaks = [
-      { dayOfWeek: 1, start: '12:00', end: '13:00', description: '' },
-      { dayOfWeek: 1, start: '12:30', end: '14:00', description: '' },
+      { dayOfWeek: 1, start: '12:00', end: '13:00', description: 'Almoço' },
+      { dayOfWeek: 1, start: '12:30', end: '14:00', description: 'Outra pausa' },
     ];
     await component.goNext();
     expect(component.error()).toContain('sobrepor');
@@ -200,4 +200,49 @@ describe('Schedule appointment intervals', () => {
     expect(api.updateAvailability).toHaveBeenCalledTimes(1);
     expect(router.navigate).toHaveBeenCalled();
   });
+  it('starts a selected working day without pauses and requires complete break details when enabled', async () => {
+    await component.ngOnInit();
+    expect(component.breaksForDay(1)).toEqual([]);
+    component.toggleDayBreak(1);
+    const pause = component.breaksForDay(1)[0];
+    expect(pause).toEqual({dayOfWeek: 1, start: '', end: '', description: ''});
+    expect(await component.saveConfiguration()).toBeFalse();
+    pause.start = '12:00'; pause.end = '13:00'; pause.description = '   ';
+    expect(await component.saveConfiguration()).toBeFalse();
+    expect(component.error()).toContain('descrição');
+    expect(api.createAvailability).not.toHaveBeenCalled();
+    component.toggleDayBreak(1);
+    expect(component.breaksForDay(1)).toEqual([]);
+    expect(component.scheduleError).toBe('');
+  });
+  it('does not enable pauses for a closed day and keeps other days independent', async () => {
+    await component.ngOnInit();
+    component.toggleDayBreak(2);
+    expect(component.breaksForDay(2)).toEqual([]);
+    component.toggleDay(component.days[1]);
+    expect(component.breaksForDay(2)).toEqual([]);
+    component.toggleDayBreak(2);
+    expect(component.breaksForDay(2).length).toBe(1);
+    expect(component.breaksForDay(1)).toEqual([]);
+  });
+
+  it('requires confirmation before persisting a new pause and locks it after confirmation', async () => {
+    await component.ngOnInit();
+    component.toggleDayBreak(1);
+    const pause = component.breaksForDay(1)[0];
+    expect(component.isBreakConfirmed(pause)).toBeFalse();
+    component.confirmBreak(pause);
+    expect(component.isBreakConfirmed(pause)).toBeFalse();
+    Object.assign(pause, { start: '12:00', end: '13:00', description: ' Almoço ' });
+    expect(await component.saveConfiguration()).toBeFalse();
+    expect(api.createAvailability).not.toHaveBeenCalled();
+    component.confirmBreak(pause);
+    expect(component.isBreakConfirmed(pause)).toBeTrue();
+    expect(pause.description).toBe('Almoço');
+    api.createAvailability.and.callFake(async request => ({ ...rule(), ...request, id: 2 }));
+    expect(await component.saveConfiguration()).toBeTrue();
+    component.removeBreak(component.breaks.indexOf(pause));
+    expect(component.breaksForDay(1)).toEqual([]);
+  });
+
 });

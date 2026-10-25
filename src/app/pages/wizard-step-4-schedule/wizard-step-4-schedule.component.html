@@ -147,32 +147,64 @@
           </div>
         </div>
       </div>
+      <div class="days-grid break-days-grid">
+        <ng-container *ngFor="let day of days; let d = index">
+          <div *ngIf="day.active" class="day-card break-day-card" [class.day-active]="breaksForDay(d + 1).length > 0">
+            <div class="day-card-header">
+              <span class="day-label">{{ day.label }}</span>
+              <button type="button" class="day-checkbox" [class.checked]="breaksForDay(d + 1).length > 0"
+                [attr.aria-pressed]="breaksForDay(d + 1).length > 0" [attr.aria-label]="'Ativar ou desativar pausas de ' + day.label"
+                [disabled]="loading() || saving() || loadFailed()" (click)="toggleDayBreak(d + 1)">
+                <i class="pi pi-check" *ngIf="breaksForDay(d + 1).length"></i>
+              </button>
+            </div>
+            <div class="closed-tag" *ngIf="!breaksForDay(d + 1).length">Sem pausa</div>
+            <div class="working-tag" *ngIf="breaksForDay(d + 1).length">Pausa ativada</div>
+            <fieldset class="break-fields" *ngIf="!breaksForDay(d + 1).length" disabled [attr.aria-label]="'Pausa de ' + day.label">
+              <div class="break-inline">
+                <input class="field-input break-description" placeholder="Ex.: almoço" aria-label="Descrição da pausa">
+                <div class="break-time-range">
+                  <input type="text" class="time-input" placeholder="--:--" aria-label="Início da pausa" disabled>
+                  <span>às</span>
+                  <input type="text" class="time-input" placeholder="--:--" aria-label="Fim da pausa" disabled>
+                </div>
+              </div>
+            </fieldset>
+            <div role="group" class="break-fields" *ngFor="let pause of breaksForDay(d + 1); let i = index"
+              [attr.aria-label]="(pause.description || 'Nova pausa') + ' de ' + day.label">
+              <div class="break-inline">
+                <input class="field-input break-description" [(ngModel)]="pause.description" [name]="'pause-description-' + d + '-' + i"
+                  [disabled]="isBreakConfirmed(pause) || loading() || saving() || loadFailed()" [class.confirmed-field]="isBreakConfirmed(pause)" required maxlength="255" placeholder="Ex.: almoço" aria-label="Descrição da pausa (obrigatória)">
+                <div class="break-time-range">
+                  <p-inputmask class="break-time-mask" mask="99:99" slotChar="-" placeholder="--:--" [autoClear]="false"
+                    [style]="{width: '100%', minWidth: '0', padding: '.55rem .35rem', textAlign: 'center'}"
+                    [class.confirmed-field]="isBreakConfirmed(pause)" [(ngModel)]="pause.start" [name]="'pause-start-' + d + '-' + i" [required]="true"
+                    [disabled]="isBreakConfirmed(pause) || loading() || saving() || loadFailed()" ariaLabel="Início da pausa (obrigatório)" />
+                  <span>às</span>
+                  <p-inputmask class="break-time-mask" mask="99:99" slotChar="-" placeholder="--:--" [autoClear]="false"
+                    [style]="{width: '100%', minWidth: '0', padding: '.55rem .35rem', textAlign: 'center'}"
+                    [class.confirmed-field]="isBreakConfirmed(pause)" [(ngModel)]="pause.end" [name]="'pause-end-' + d + '-' + i" [required]="true"
+                    [disabled]="isBreakConfirmed(pause) || loading() || saving() || loadFailed()" ariaLabel="Fim da pausa (obrigatório)" />
+                </div>
+                <button *ngIf="!isBreakConfirmed(pause)" type="button" [disabled]="loading() || saving() || loadFailed()" class="break-delete break-confirm" (click)="confirmBreak(pause)"
+                  [attr.aria-label]="'Confirmar pausa de ' + day.label" title="Adicionar pausa">
+                  <i class="pi pi-check" aria-hidden="true"></i>
+                </button>
+                <button *ngIf="isBreakConfirmed(pause)" type="button" [disabled]="loading() || saving() || loadFailed()" class="break-delete" (click)="removeBreak(breaks.indexOf(pause))"
+                  [attr.aria-label]="'Remover ' + (pause.description || 'pausa') + ' de ' + day.label" title="Remover pausa">
+                  <i class="pi pi-trash" aria-hidden="true"></i>
+                </button>
+              </div>
+              <p class="interval-error" role="alert" *ngIf="breakConfirmationError()?.pause === pause">{{ breakConfirmationError()?.message }}</p>
+            </div>
+            <button *ngIf="breaksForDay(d + 1).length" type="button" class="break-action" (click)="addBreak(d + 1)"
+              [disabled]="loading() || saving() || loadFailed()">Adicionar outra pausa</button>
+          </div>
+        </ng-container>
+      </div>
       <div class="day-breaks">
-        <p *ngIf="breaks.length === 0">Nenhuma pausa cadastrada.</p>
-        <fieldset class="day-break-row" *ngFor="let pause of breaks; let i = index"
-          [disabled]="loading() || saving() || loadFailed()">
-          <legend>Pausa {{ i + 1 }}</legend>
-          <label class="form-field">Dia da semana
-            <select class="field-input" [(ngModel)]="pause.dayOfWeek" [name]="'break-day-' + i">
-              <option *ngFor="let day of days; let d = index" [ngValue]="d + 1">{{ day.label }}{{ day.active ? '' : ' (fechado)' }}</option>
-            </select>
-          </label>
-          <label class="form-field">Início
-            <input type="time" class="field-input" [(ngModel)]="pause.start" [name]="'break-start-' + i" required>
-          </label>
-          <label class="form-field">Fim
-            <input type="time" class="field-input" [(ngModel)]="pause.end" [name]="'break-end-' + i" required>
-          </label>
-          <label class="form-field">Descrição (opcional)
-            <input class="field-input" [(ngModel)]="pause.description" [name]="'break-description-' + i"
-              maxlength="255" placeholder="Ex.: almoço ou jantar">
-          </label>
-          <button type="button" class="break-action" (click)="removeBreak(i)" [attr.aria-label]="'Remover pausa ' + (i + 1)">Remover</button>
-          <p class="interval-hint" *ngIf="!days[pause.dayOfWeek - 1].active">Esta pausa será removida ao salvar porque o dia está fechado.</p>
-        </fieldset>
-        <button type="button" class="break-action" (click)="addBreak()"
-          [disabled]="loading() || saving() || loadFailed() || activeDaysCount === 0">Adicionar pausa</button>
-        <p class="interval-hint">Você pode cadastrar várias pausas no mesmo dia. Elas devem ficar dentro do expediente e não podem se sobrepor.</p>
+        <p *ngIf="activeDaysCount === 0">Ative um dia nos horários de funcionamento padrão para configurar suas pausas.</p>
+        <p class="interval-hint">Informe início, fim e descrição e confirme no ✓. Após adicionar, só é possível excluir a pausa. As pausas devem ficar dentro do expediente e não podem se sobrepor.</p>
         <p class="interval-error" role="alert" *ngIf="!loading() && scheduleError">{{ scheduleError }}</p>
       </div>
     </section>

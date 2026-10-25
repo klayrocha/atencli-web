@@ -1,11 +1,11 @@
-:host { display: block; min-height: 100%; color: #1f2937; }
+:host { display: block; min-width: 0; min-height: 100%; color: #1f2937; }
 button, input, select { font: inherit; }
 button { border: 0; cursor: pointer; color: inherit; }
 button:disabled { cursor: not-allowed; opacity: .58; }
 button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible { outline: 2px solid #9fbd31; outline-offset: 3px; }
 h1, h2, h3, p { margin: 0; }
 
-.stages-board-page { display: grid; gap: 18px; min-height: 100%; }
+.stages-board-page { display: grid; min-width: 0; gap: 18px; min-height: 100%; }
 .topbar { display: flex; align-items: flex-start; justify-content: space-between; gap: 22px; }
 .clinic-name { display: inline-block; color: #293241; font-size: 13px; font-weight: 720; margin-bottom: 28px; }
 h1 { font-size: 28px; line-height: 1.15; font-weight: 760; letter-spacing: 0; }
@@ -108,4 +108,32 @@ h3 { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 
   .group-count { display: none; }
   .board { grid-template-columns: 1fr; }
   .stage-column { max-height: none; }
+}
+
+// Keep the horizontal board within the page, including on small screens.
+#attendance-board { min-width: 0; }
+.board.board--horizontal {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  overflow-x: auto;
+  padding-bottom: 14px;
+  scrollbar-width: auto;
+  scrollbar-color: #9fbd31 #eef2e8;
+}
+.board--horizontal .stage-column {
+  flex: 0 0 280px;
+  max-height: 520px;
+}
+.layout-row { display: flex; justify-content: flex-end; min-width: 0; }
+.layout-control { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; font-size: 12px; font-weight: 700; }
+.layout-toggle { position: relative; flex: 0 0 44px; width: 44px; height: 26px; padding: 3px; border-radius: 999px; background: #cbd5e1; transition: background .18s ease; }
+.layout-toggle-thumb { display: block; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 1px 4px #1f293733; transition: transform .18s ease; }
+.layout-toggle[aria-checked="true"] { background: #9fbd31; }
+.layout-toggle[aria-checked="true"] .layout-toggle-thumb { transform: translateX(18px); }
+.layout-mode { min-width: 94px; color: #64748b; font-size: 11px; font-weight: 500; }
+@media (prefers-reduced-motion: reduce) {
+  .layout-toggle, .layout-toggle-thumb { transition: none; }
 }
