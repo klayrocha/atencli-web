@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+## [0.9.1] - 2026-10-25
+
+### Alterado
+
+- Perfil Atendente oculta os menus Agenda, Configurações e Tarefas e o box de configuração da clínica na tela inicial.
+- Responsável pela conversa exibido à direita dos ícones da barra, com o texto “Atendente atribuído” seguido de um círculo com duas iniciais.
+
+### Corrigido
+
+- Sobreposição do avatar do atendente na barra de conversas, com espaço próprio e quebra de linha em telas menores.
+- Iniciais do responsável usam primeiro e último nomes; nomes únicos usam duas letras, com preenchimento quando necessário.
+
 ## [0.9.0] - 2026-10-25
 
 ### Adicionado

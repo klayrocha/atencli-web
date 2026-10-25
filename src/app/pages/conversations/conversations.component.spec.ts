@@ -134,4 +134,12 @@ describe('Conversations API integration', () => {
     await component.select(summary(2)); finish({ assignee: me, handlerType: 'HUMAN' }); await saving;
     expect(component.detail?.id).toBe(2); expect(component.detail?.assignee).toBeNull();
   });
+  it('uses two initials for full, single and blank names', () => {
+    expect(component.initials('Helder Gonzaga')).toBe('HG');
+    expect(component.initials('  Helder da Silva Gonzaga  ')).toBe('HG');
+    expect(component.initials('Maria')).toBe('MA');
+    expect(component.initials('H')).toBe('HH');
+    expect(component.initials('')).toBe('AT');
+  });
+
 });

@@ -26,7 +26,12 @@ export class ConversationsComponent implements OnInit, OnDestroy, AfterViewCheck
     return person.avatarUrl || (person.userUuid === this.currentUserUuid ? this.auth.currentUser()?.avatar : null) || null;
   }
   avatarFailed(person: ConversationAssignee) { this.failedAvatars.add(person.userUuid); }
-  initials(name: string) { return name.split(' ').filter(Boolean).slice(0, 2).map(part => part[0]).join('').toUpperCase(); }
+  initials(name: string): string {
+    const parts = (name || '').trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return 'AT';
+    if (parts.length > 1) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    return parts[0].slice(0, 2).padEnd(2, parts[0][0]).toUpperCase();
+  }
   async openAssignment() {
     if (!this.detail || this.loadingDetail || this.assigning) return;
     this.assignmentConversationId = this.detail.id;

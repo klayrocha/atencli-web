@@ -24,7 +24,7 @@
   </div>
 
   <!-- Banner de Destaque: Configuração da Clínica -->
-  <div class="setup-clinic-banner" *ngIf="!onboarding.complete()">
+  <div class="setup-clinic-banner" *ngIf="!isAttendant() && !onboarding.complete()">
     <div class="banner-left">
       <div class="banner-icon-wrap">
         <i class="pi pi-cog pi-spin-slow"></i>

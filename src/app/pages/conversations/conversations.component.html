@@ -42,10 +42,14 @@
       <div class="chat-person"><h2>{{ detail?.name || detail?.profileName || current.profileName || 'Contato sem nome' }}</h2><p>{{ detail?.origin || 'Origem não informada' }} <span *ngIf="detail?.stage">· {{ detail?.stage }}</span></p></div>
       <div class="tools chat-tools">
         <button class="icon-button" (click)="select(current, false)" [disabled]="loadingDetail || sending" aria-label="Atualizar mensagens"><i class="pi pi-refresh"></i></button>
-        <button class="icon-button assignment-trigger" (click)="openAssignment()" [disabled]="!detail || loadingDetail || assigning" aria-label="Atribuir atendimento humano" aria-haspopup="dialog" [title]="detail?.assignee?.fullName || 'Atribuir atendimento humano'">
-          <ng-container *ngIf="detail?.assignee as owner; else noOwner"><img *ngIf="avatar(owner) as photo; else ownerInitials" [src]="photo" [alt]="owner.fullName" (error)="avatarFailed(owner)"><ng-template #ownerInitials><span class="attendant-avatar">{{ initials(owner.fullName) }}</span></ng-template></ng-container><ng-template #noOwner><i class="pi pi-user"></i></ng-template>
-        </button>
         <button class="icon-button contact-toggle" (click)="contactOpen = !contactOpen" [disabled]="!detail" aria-label="Mostrar dados do contato"><i class="pi pi-id-card"></i></button>
+        <button class="assignment-trigger" [class.has-owner]="!!detail?.assignee" (click)="openAssignment()" [disabled]="!detail || loadingDetail || assigning" aria-label="Atribuir atendimento humano" aria-haspopup="dialog" [title]="detail?.assignee?.fullName || 'Atribuir atendimento humano'">
+          <ng-container *ngIf="detail?.assignee as owner; else noOwner">
+            <span>Atendente atribuído</span>
+            <span class="attendant-avatar" [attr.aria-label]="owner.fullName">{{ initials(owner.fullName) }}</span>
+          </ng-container>
+          <ng-template #noOwner><i class="pi pi-user"></i></ng-template>
+        </button>
       </div>
     </header>
     <div class="chat-body">

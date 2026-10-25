@@ -1,4 +1,5 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { AuthService } from '../../auth/auth.service';
+import { Component, Input, Output, EventEmitter, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, RouterLink, RouterLinkActive } from '@angular/router';
 import { TooltipModule } from 'primeng/tooltip';
@@ -26,7 +27,7 @@ interface MenuItem {
 
       <!-- Menu Items -->
       <ul class="menu-list">
-        <li *ngFor="let item of menuItems">
+        <li *ngFor="let item of visibleMenuItems()">
           <a
             [routerLink]="item.route"
             [queryParams]="item.queryParams"
@@ -69,6 +70,11 @@ export class SidebarComponent {
     { label: 'Configurações', icon: 'pi pi-sliders-h', route: '/wizard-step-9-review', queryParams: { source: 'menu' } },
     { label: 'Ajuda', icon: 'pi pi-question-circle', route: '/ajuda' },
   ];
+
+  private readonly auth = inject(AuthService);
+  readonly visibleMenuItems = computed(() => this.auth.isAttendant()
+    ? this.menuItems.filter(item => !['/agenda', '/tarefas', '/wizard-step-9-review'].includes(item.route))
+    : this.menuItems);
 
   toggleCollapse() {
     this.collapsed = !this.collapsed;

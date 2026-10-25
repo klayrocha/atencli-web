@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, computed, signal } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
@@ -46,6 +46,7 @@ export class AuthService {
   // Estado reativo
   readonly currentUser    = signal<User | null>(this.loadFromStorage());
   readonly currentProfile = signal<UserProfile | null>(this.loadProfileFromStorage());
+  readonly isAttendant = computed(() => this.currentProfile()?.roles?.includes('ATTENDANT') ?? false);
   readonly loading        = signal(false);
   readonly error          = signal<string | null>(null);
 

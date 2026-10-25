@@ -70,6 +70,7 @@ interface JornadaStep {
 export class DashboardComponent implements OnInit {
 
   private auth = inject(AuthService);
+  readonly isAttendant = this.auth.isAttendant;
   private dashboardHome = inject(DashboardHomeService);
   private router = inject(Router);
   readonly onboarding = inject(OnboardingProgressService);
