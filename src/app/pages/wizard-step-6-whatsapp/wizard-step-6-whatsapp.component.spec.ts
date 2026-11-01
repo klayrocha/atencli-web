@@ -4,6 +4,7 @@ import { AuthService } from '../../auth/auth.service';
 import { MetaEmbeddedSignupService } from '../../whatsapp/meta-embedded-signup.service';
 import { WhatsAppIntegration, WhatsAppService } from '../../whatsapp/whatsapp.service';
 import { WizardStep6WhatsappComponent } from './wizard-step-6-whatsapp.component';
+import { withPlanAccess } from '../subscription/plan-access.testing';
 
 describe('WhatsApp conditional PIN', () => {
   let component: WizardStep6WhatsappComponent;
@@ -14,7 +15,7 @@ describe('WhatsApp conditional PIN', () => {
     meta = jasmine.createSpyObj('MetaEmbeddedSignupService', ['start', 'cancel']);
     meta.start.and.callFake(async (_config, pin) => ({ code: 'temporary', wabaId: '1', phoneNumberId: '2', businessId: null, event: 'FINISH', pin }));
     const auth = { currentProfile: () => ({ roles: ['ADMIN'] }) } as unknown as AuthService;
-    component = new WizardStep6WhatsappComponent({} as Router, auth, api, meta);
+    component = withPlanAccess(() => new WizardStep6WhatsappComponent({} as Router, auth, api, meta));
     component.integration = { configured: false } as WhatsAppIntegration;
     component.configuration = { appId: 'app', configurationId: 'config', graphApiVersion: 'v25.0', sessionInfoEventType: 'WA_EMBEDDED_SIGNUP', coexistenceFinishEvent: 'FINISH_WHATSAPP_BUSINESS_APP_ONBOARDING' };
     component.loading.set(false);

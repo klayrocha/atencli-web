@@ -26,7 +26,8 @@ export type FollowUpFinishedReason =
   | 'TEMPLATE_DISABLED'
   | 'MANUAL_CANCELLED'
   | 'CHANNEL_WINDOW_EXPIRED'
-  | 'PERMANENT_ERROR';
+  | 'PERMANENT_ERROR'
+  | 'SUBSCRIPTION_INACTIVE';
 
 export interface FollowUpTemplate {
   id: number;

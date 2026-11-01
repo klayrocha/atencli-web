@@ -1,8 +1,11 @@
 import { WizardStepperComponent } from '../wizard-shared/wizard-stepper.component';
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, OnDestroy, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
+import { planRestrictionMessage } from '../subscription/plan-restriction';
+import { PlanAccessService } from '../subscription/plan-access.service';
+import { PlanLockNoticeComponent } from '../subscription/plan-lock-notice.component';
 import { WhatsAppService, WhatsAppIntegration, SignupConfig } from '../../whatsapp/whatsapp.service';
 import { MetaEmbeddedSignupService } from '../../whatsapp/meta-embedded-signup.service';
 import { Router } from '@angular/router';
@@ -15,7 +18,7 @@ type ConnectionStatus = 'NOT_CONFIGURED' | 'CONNECTED' | 'PAUSED' | 'DISCONNECTE
 @Component({
   selector: 'app-wizard-step-6-whatsapp',
   standalone: true,
-  imports: [WizardStepperComponent, CommonModule, FormsModule, WizardSummaryComponent],
+  imports: [WizardStepperComponent, CommonModule, FormsModule, WizardSummaryComponent, PlanLockNoticeComponent],
   templateUrl: './wizard-step-6-whatsapp.component.html',
   styleUrls: ['./wizard-step-6-whatsapp.component.scss'],
 })
@@ -77,7 +80,11 @@ export class WizardStep6WhatsappComponent implements OnInit, OnDestroy {
     return labels[this.connectionStatus];
   }
 
-  ngOnInit(): void { void this.load(); }
+  private readonly planAccess = inject(PlanAccessService);
+  /** Conectar ou reativar o WhatsApp exige assinatura ativa; null quando liberado. */
+  get planLock(): string | null { return this.planAccess.lockMessage(); }
+
+  ngOnInit(): void { void this.load(); void this.planAccess.load(); }
   ngOnDestroy(): void { this.destroyed = true; this.meta.cancel(); this.pin = ''; }
 
   async load(): Promise<void> {
@@ -165,6 +172,8 @@ export class WizardStep6WhatsappComponent implements OnInit, OnDestroy {
   }
 
   private errorMessage(error: unknown): string {
+    const restriction = planRestrictionMessage(error);
+    if (restriction) return restriction;
     if (!(error instanceof HttpErrorResponse)) {
       return error instanceof Error ? error.message : 'Não foi possível concluir a operação. Tente novamente.';
     }

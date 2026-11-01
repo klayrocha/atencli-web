@@ -2,6 +2,7 @@ import { AuthService } from '../../auth/auth.service';
 import { ActivatedRoute } from '@angular/router';
 import { ConversationsComponent } from './conversations.component';
 import { ApiPage, ConversationDetail, ConversationMessage, ConversationSummary, ConversationsService } from '../../whatsapp/conversations.service';
+import { withPlanAccess } from '../subscription/plan-access.testing';
 
 const page = <T>(content: T[], number = 0, totalPages = 1): ApiPage<T> => ({ content, page: { number, size: 50, totalElements: content.length, totalPages } });
 const summary = (id: number): ConversationSummary => ({ id, profileName: `Contato ${id}`, stage: 'Novo', updatedAt: '2026-09-27T12:00:00Z', lastMessageText: 'Olá' });
@@ -17,7 +18,7 @@ describe('Conversations API integration', () => {
     api.detail.and.callFake(async id => detail(id));
     api.messages.and.resolveTo(page([message(1)]));
     api.send.and.resolveTo(message(2));
-    component = new ConversationsComponent(api, {} as ActivatedRoute, { currentProfile: () => ({ userUuid: 'me' }), currentUser: () => null } as unknown as AuthService);
+    component = withPlanAccess(() => new ConversationsComponent(api, {} as ActivatedRoute, { currentProfile: () => ({ userUuid: 'me' }), currentUser: () => null } as unknown as AuthService));
   });
   it('loads summaries, contact data and messages without mock contacts', async () => {
     expect(component.conversations).toEqual([]);

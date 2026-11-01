@@ -35,11 +35,13 @@
           </div>
         </div>
 
-        <button type="button" class="btn-invite" (click)="toggleInviteForm()">
+        <button type="button" class="btn-invite" (click)="toggleInviteForm()" [disabled]="!showInviteForm() && !!seatLock">
           <i class="pi" [class.pi-plus]="!showInviteForm()" [class.pi-times]="showInviteForm()"></i>
           <span>{{ showInviteForm() ? 'Cancelar' : 'Convidar Novo Membro' }}</span>
         </button>
       </div>
+
+      <app-plan-lock-notice *ngIf="seatLock" [message]="seatLock" />
 
       <!-- Formulário de convite inline -->
       <div class="invite-form-panel" *ngIf="showInviteForm()">
@@ -89,7 +91,7 @@
           </div>
           <div class="invite-field invite-field--btn">
             <label class="field-label">&nbsp;</label>
-            <button type="button" class="btn-send-invite" (click)="sendInvite()" [disabled]="!inviteFullName.trim() || !inviteEmail.trim() || saving()">
+            <button type="button" class="btn-send-invite" (click)="sendInvite()" [disabled]="!inviteFullName.trim() || !inviteEmail.trim() || saving() || !!seatLock">
               <i class="pi pi-send"></i>
               <span>Enviar convite</span>
             </button>
@@ -97,6 +99,7 @@
         </div>
         <p *ngIf="inviteError()" class="invite-error" role="alert">{{ inviteError() }}</p>
       </div>
+      <p *ngIf="inviteError() && !showInviteForm()" class="invite-error" role="alert">{{ inviteError() }}</p>
 
       <!-- Tabela de membros -->
       <div class="members-table-wrap">
@@ -292,7 +295,8 @@
                     type="button"
                     class="action-btn action-btn--resend"
                     (click)="resendInvite(inv)"
-                    title="Reenviar convite"
+                    [disabled]="!!seatLock"
+                    [title]="seatLock ? 'Sem vaga no plano para reenviar este convite' : 'Reenviar convite'"
                     *ngIf="inv.status !== 'INVITATION_PENDING'"
                   >
                     <i class="pi pi-refresh"></i>

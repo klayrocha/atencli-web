@@ -1,9 +1,12 @@
 import { ConfigurationChanges } from '../wizard-shared/configuration-changes';
 import { WizardStepperComponent } from '../wizard-shared/wizard-stepper.component';
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, OnDestroy, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
+import { planRestrictionMessage } from '../subscription/plan-restriction';
+import { PlanAccessService } from '../subscription/plan-access.service';
+import { PlanLockNoticeComponent } from '../subscription/plan-lock-notice.component';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../auth/auth.service';
 import { InstagramAccount, InstagramIntegration, InstagramOAuthAccountsResponse, InstagramService } from '../../instagram/instagram.service';
@@ -15,7 +18,7 @@ type ConnectionStatus = 'NOT_CONFIGURED' | 'CONNECTED' | 'PAUSED' | 'DISCONNECTE
 @Component({
   selector: 'app-wizard-step-7-instagram',
   standalone: true,
-  imports: [WizardStepperComponent, CommonModule, FormsModule, WizardSummaryComponent],
+  imports: [WizardStepperComponent, CommonModule, FormsModule, WizardSummaryComponent, PlanLockNoticeComponent],
   templateUrl: './wizard-step-7-instagram.component.html',
   styleUrls: ['./wizard-step-7-instagram.component.scss'],
 })
@@ -51,6 +54,10 @@ export class WizardStep7InstagramComponent implements OnInit, OnDestroy {
     private api: InstagramService,
   ) {}
 
+  private readonly planAccess = inject(PlanAccessService);
+  /** Instagram exige plano Profissional ou Plus; null quando liberado. */
+  get planLock(): string | null { return this.planAccess.lockMessage('INSTAGRAM'); }
+
   get canManageIntegration(): boolean {
     const roles = this.authService.currentProfile()?.roles ?? [];
     return roles.some(role => role === 'ADMIN' || role === 'MANAGER');
@@ -80,6 +87,7 @@ export class WizardStep7InstagramComponent implements OnInit, OnDestroy {
   }
 
   async ngOnInit(): Promise<void> {
+    void this.planAccess.load();
     const callbackParams = this.route.snapshot.queryParamMap;
     if (window.opener
       && (callbackParams.has('code') || callbackParams.has('error') || callbackParams.has('error_message'))) {
@@ -243,6 +251,8 @@ export class WizardStep7InstagramComponent implements OnInit, OnDestroy {
   }
 
   private errorMessage(error: unknown): string {
+    const restriction = planRestrictionMessage(error);
+    if (restriction) return restriction;
     if (!(error instanceof HttpErrorResponse)) return error instanceof Error ? error.message : 'Não foi possível concluir a operação. Tente novamente.';
     const messages: Record<number, string> = {
       0: 'Não foi possível acessar o servidor. Verifique sua conexão e tente novamente.',

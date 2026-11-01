@@ -72,6 +72,9 @@ export const routes: Routes = [
       { path: 'wizard-step-9-review', component: WizardStep8ReviewComponent, canActivate: [settingsEntryGuard], runGuardsAndResolvers: 'paramsOrQueryParamsChange' },
       { path: 'equipe', component: DashboardComponent },
       { path: 'configuracoes', redirectTo: 'wizard-step-9-review', pathMatch: 'full' },
+      { path: 'subscription', loadComponent: () => import('./pages/subscription/subscription.component').then(m => m.SubscriptionComponent) },
+      { path: 'subscription/success', loadComponent: () => import('./pages/subscription/checkout-result.component').then(m => m.CheckoutResultComponent), data: { result: 'success' } },
+      { path: 'subscription/canceled', loadComponent: () => import('./pages/subscription/checkout-result.component').then(m => m.CheckoutResultComponent), data: { result: 'canceled' } },
 
     ]
   },

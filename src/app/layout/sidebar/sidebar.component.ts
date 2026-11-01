@@ -68,12 +68,13 @@ export class SidebarComponent {
     { label: 'Resultados', icon: 'pi pi-chart-bar', route: '/resultados' },
     //{ label: 'Equipe', icon: 'pi pi-cog', route: '/equipe' },
     { label: 'Configurações', icon: 'pi pi-sliders-h', route: '/wizard-step-9-review', queryParams: { source: 'menu' } },
+    { label: 'Assinatura', icon: 'pi pi-credit-card', route: '/subscription' },
     { label: 'Ajuda', icon: 'pi pi-question-circle', route: '/ajuda' },
   ];
 
   private readonly auth = inject(AuthService);
   readonly visibleMenuItems = computed(() => this.auth.isAttendant()
-    ? this.menuItems.filter(item => !['/agenda', '/tarefas', '/wizard-step-9-review'].includes(item.route))
+    ? this.menuItems.filter(item => !['/agenda', '/tarefas', '/wizard-step-9-review', '/subscription'].includes(item.route))
     : this.menuItems);
 
   toggleCollapse() {

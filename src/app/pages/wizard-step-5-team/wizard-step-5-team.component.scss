@@ -244,6 +244,8 @@
 
   i { font-size: 0.85rem; }
 
+  &:disabled { opacity: 0.45; cursor: not-allowed; pointer-events: none; }
+
   &:hover {
     background: #7abd12;
     box-shadow: 0 4px 12px rgba(132, 204, 22, 0.3);
@@ -533,6 +535,8 @@
   cursor: pointer;
   font-size: 0.8rem;
   transition: all 0.12s;
+
+  &:disabled { opacity: 0.4; cursor: not-allowed; }
 
   &--edit    { background: #f1f5f9; color: #475569; &:hover { background: #e2e8f0; color: #1e293b; } }
   &--delete  { background: #fef2f2; color: #ef4444; &:hover { background: #fee2e2; color: #dc2626; } }

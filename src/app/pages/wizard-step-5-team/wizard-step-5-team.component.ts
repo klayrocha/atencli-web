@@ -1,8 +1,11 @@
 import { ConfigurationChanges } from '../wizard-shared/configuration-changes';
 import { WizardStepperComponent } from '../wizard-shared/wizard-stepper.component';
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
+import { planRestrictionMessage } from '../subscription/plan-restriction';
+import { PlanAccessService } from '../subscription/plan-access.service';
+import { PlanLockNoticeComponent } from '../subscription/plan-lock-notice.component';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
 import { WizardStep, WIZARD_STEPS_DEFAULT } from '../wizard-shared/wizard.models';
@@ -56,7 +59,7 @@ export interface PendingInvite {
 @Component({
   selector: 'app-wizard-step-5-team',
   standalone: true,
-  imports: [WizardStepperComponent, CommonModule, FormsModule, RouterModule, WizardSummaryComponent],
+  imports: [WizardStepperComponent, CommonModule, FormsModule, RouterModule, WizardSummaryComponent, PlanLockNoticeComponent],
   templateUrl: './wizard-step-5-team.component.html',
   styleUrls: ['./wizard-step-5-team.component.scss'],
 })
@@ -143,6 +146,11 @@ export class WizardStep5TeamComponent implements OnInit {
       await this.loadTeam();
       return true;
     } catch (error) {
+      const restriction = planRestrictionMessage(error);
+      if (restriction) {
+        this.inviteError.set(restriction);
+        return false;
+      }
       const message = error instanceof HttpErrorResponse && typeof error.error?.message === 'string'
         ? error.error.message.trim() : '';
       const translations: Record<string, string> = {
@@ -227,12 +235,14 @@ export class WizardStep5TeamComponent implements OnInit {
   }
 
   async resendInvite(invite: PendingInvite): Promise<void> {
+    this.inviteError.set('');
     this.saving.set(true);
     try {
       await this.wizardService.resendInvitation(invite.id);
       await this.loadTeam();
-    } catch {
-      // Erro silenciado — pode adicionar toast aqui no futuro
+    } catch (error) {
+      const restriction = planRestrictionMessage(error);
+      if (restriction) this.inviteError.set(restriction);
     } finally {
       this.saving.set(false);
     }
@@ -248,6 +258,16 @@ export class WizardStep5TeamComponent implements OnInit {
     } finally {
       this.saving.set(false);
     }
+  }
+
+  private readonly planAccess = inject(PlanAccessService);
+  /** Usuários ativos e convites pendentes ocupam vaga do plano, como no backend; null enquanto houver vaga. */
+  get seatLock(): string | null {
+    const limit = this.planAccess.userLimit();
+    if (this.activeCount + this.pendingCount < limit) return null;
+    return limit === 1
+      ? 'Sem assinatura ativa, apenas o dono da clínica pode acessar o sistema. Assine um plano para convidar a equipe.'
+      : `O plano atual permite até ${limit} usuários, contando convites pendentes. Cancele um convite, desative um usuário ou faça o upgrade.`;
   }
 
   get activeCount(): number   { return this.members.filter(m => m.statuses.includes('ACTIVE')).length; }
@@ -349,6 +369,7 @@ export class WizardStep5TeamComponent implements OnInit {
   ) { this.configurationChanges.markSaved(); }
 
   async ngOnInit(): Promise<void> {
+    void this.planAccess.load();
     await this.loadTeam();
   }
 

@@ -15,10 +15,10 @@ describe('Sidebar role visibility', () => {
     fixture.detectChanges();
     const labels = () => Array.from(fixture.nativeElement.querySelectorAll('.menu-label'))
       .map(element => (element as HTMLElement).textContent?.trim());
-    for (const label of ['Agenda', 'Tarefas', 'Configurações']) expect(labels()).not.toContain(label);
+    for (const label of ['Agenda', 'Tarefas', 'Configurações', 'Assinatura']) expect(labels()).not.toContain(label);
     for (const label of ['Início', 'Conversas', 'Etapas do atendimento', 'Ajuda']) expect(labels()).toContain(label);
     attendant.set(false);
     fixture.detectChanges();
-    for (const label of ['Agenda', 'Tarefas', 'Configurações']) expect(labels()).toContain(label);
+    for (const label of ['Agenda', 'Tarefas', 'Configurações', 'Assinatura']) expect(labels()).toContain(label);
   });
 });

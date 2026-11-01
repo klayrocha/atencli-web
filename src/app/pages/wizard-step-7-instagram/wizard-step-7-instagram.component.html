@@ -48,18 +48,19 @@
             type="button"
             class="btn-connect"
             (click)="beginConnection()"
-            [disabled]="!canManageIntegration || busy"
+            [disabled]="!canManageIntegration || busy || !!planLock"
           >
             <i class="pi" [class.pi-spin]="starting()" [class.pi-spinner]="starting()" [class.pi-external-link]="!starting()"></i>
             <span>{{ starting() ? 'Abrindo Meta...' : 'Conectar Instagram' }}</span>
           </button>
 
           <div class="connection-actions" *ngIf="connectionStatus !== 'NOT_CONFIGURED'">
-            <button type="button" class="btn-manage" (click)="toggleIntegration()" [disabled]="!canManageIntegration || busy">
+            <button type="button" class="btn-manage" (click)="toggleIntegration()" [disabled]="!canManageIntegration || busy || (!integration?.enabled && !!planLock)">
               <i class="pi" [class.pi-pause]="connectionStatus === 'CONNECTED'" [class.pi-play]="connectionStatus === 'PAUSED'"></i>
               <span>{{ updating() ? 'Salvando...' : integration?.enabled ? 'Pausar integração' : 'Ativar integração' }}</span>
             </button>
           </div>
+          <app-plan-lock-notice *ngIf="planLock" [message]="planLock" />
         </div>
 
         <dl class="connection-details">
@@ -99,7 +100,8 @@
           </span>
         </label>
       </div>
-      <button type="button" class="btn-connect" (click)="connectSelectedAccount()" [disabled]="!selectedInstagramUserId || busy">
+      <app-plan-lock-notice *ngIf="planLock" [message]="planLock" />
+      <button type="button" class="btn-connect" (click)="connectSelectedAccount()" [disabled]="!selectedInstagramUserId || busy || !!planLock">
         <i class="pi" [class.pi-spin]="connecting()" [class.pi-spinner]="connecting()" [class.pi-check]="!connecting()"></i>
         <span>{{ connecting() ? 'Conectando...' : 'Confirmar conta selecionada' }}</span>
       </button>

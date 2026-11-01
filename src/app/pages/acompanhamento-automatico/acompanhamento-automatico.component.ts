@@ -1,6 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
+import { planRestrictionMessage } from '../subscription/plan-restriction';
+import { PlanAccessService } from '../subscription/plan-access.service';
+import { PlanLockNoticeComponent } from '../subscription/plan-lock-notice.component';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import {
@@ -23,7 +26,7 @@ interface TemplateForm extends FollowUpTemplatePayload {
 @Component({
   selector: 'app-acompanhamento-automatico',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, PlanLockNoticeComponent],
   templateUrl: './acompanhamento-automatico.component.html',
   styleUrls: ['./acompanhamento-automatico.component.scss'],
 })
@@ -62,9 +65,16 @@ export class AcompanhamentoAutomaticoComponent implements OnInit {
   success = '';
   executionError = '';
 
+  private readonly planAccess = inject(PlanAccessService);
+  /** Ativar modelos exige plano com acompanhamento automático; editar e pausar continuam livres. */
+  get followUpLock(): string | null { return this.planAccess.lockMessage('AUTOMATIC_FOLLOW_UP'); }
+  /** Informar um template novo exige plano com templates fora da janela. */
+  get templatesLock(): string | null { return this.planAccess.lockMessage('META_TEMPLATES_OUTSIDE_WINDOW'); }
+
   constructor(private api: FollowUpService) {}
 
   ngOnInit(): void {
+    void this.planAccess.load();
     void this.loadTemplates();
   }
 
@@ -242,7 +252,12 @@ export class AcompanhamentoAutomaticoComponent implements OnInit {
 
   executionResultLabel(execution: FollowUpExecution): string {
     if (execution.finishedReason === 'CHANNEL_WINDOW_EXPIRED') {
-      return 'Não enviado: janela de mensagens do canal expirada.';
+      return execution.lastError?.includes('plano atual')
+        ? 'Não enviado: janela do canal expirada e o plano atual não inclui templates do WhatsApp.'
+        : 'Não enviado: janela de mensagens do canal expirada.';
+    }
+    if (execution.finishedReason === 'SUBSCRIPTION_INACTIVE') {
+      return 'Cancelado: o plano atual não inclui acompanhamento automático ou a assinatura está inativa.';
     }
     if (execution.lastError) return execution.lastError;
     if (execution.finishedReason) return this.finishedReasonLabel(execution.finishedReason);
@@ -263,6 +278,7 @@ export class AcompanhamentoAutomaticoComponent implements OnInit {
       MANUAL_CANCELLED: 'Cancelado manualmente',
       CHANNEL_WINDOW_EXPIRED: 'Janela do canal expirada',
       PERMANENT_ERROR: 'Erro permanente',
+      SUBSCRIPTION_INACTIVE: 'Assinatura sem o recurso',
     };
     return labels[reason] ?? reason;
   }
@@ -345,6 +361,8 @@ export class AcompanhamentoAutomaticoComponent implements OnInit {
   }
 
   private errorMessage(error: unknown, fallback: string): string {
+    const restriction = planRestrictionMessage(error);
+    if (restriction) return restriction;
     if (error instanceof HttpErrorResponse) {
       if (error.status === 401) return 'Sua sessão expirou. Entre novamente.';
       if (error.status === 403) return 'Você não tem permissão para gerenciar o acompanhamento automático.';

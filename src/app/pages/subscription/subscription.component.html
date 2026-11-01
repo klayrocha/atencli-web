@@ -1,0 +1,126 @@
+<section class="subscription-page">
+  <header class="page-heading">
+    <div><h1>Assinatura</h1><p>Escolha o plano da clínica e acompanhe a cobrança mensal.</p></div>
+    <button class="refresh" (click)="load()" [disabled]="loading || busy"><i class="pi pi-refresh" aria-hidden="true"></i> Atualizar</button>
+  </header>
+
+  <p class="feedback success" role="status" *ngIf="notice">{{ notice }}</p>
+  <div class="feedback error" role="alert" *ngIf="error">{{ error }}</div>
+  <p class="feedback" role="status" *ngIf="!loading && !isAdmin()">Somente o administrador da clínica pode contratar ou alterar a assinatura.</p>
+
+  <ng-container *ngIf="!loading; else skeleton">
+    <article class="status-card" *ngIf="subscription" [attr.data-status]="subscription.status">
+      <div class="status-main">
+        <span class="status-icon"><i class="pi" aria-hidden="true" [ngClass]="{
+          'pi-check-circle': subscription.status === 'ACTIVE',
+          'pi-exclamation-triangle': subscription.status === 'PAST_DUE',
+          'pi-lock': subscription.status === 'SUSPENDED',
+          'pi-clock': subscription.status === 'PENDING',
+          'pi-times-circle': subscription.status === 'CANCELED' }"></i></span>
+        <div>
+          <span class="status-badge">{{ statusLabels[subscription.status] }}</span>
+          <h2>{{ subscription.plan && subscription.status !== 'PENDING'
+            ? 'Plano ' + subscription.plan.name + (subscription.billingInterval === 'YEARLY' ? ' · Anual' : ' · Mensal')
+            : 'Nenhum plano contratado' }}</h2>
+          <p [ngSwitch]="subscription.status">
+            <ng-container *ngSwitchCase="'ACTIVE'">
+              <ng-container *ngIf="!subscription.cancelAtPeriodEnd">Próxima renovação em {{ date(subscription.currentPeriodEnd) }}.</ng-container>
+              <ng-container *ngIf="subscription.cancelAtPeriodEnd">Cancelamento agendado: o acesso continua até {{ date(subscription.paidUntil) }}.</ng-container>
+            </ng-container>
+            <ng-container *ngSwitchCase="'PAST_DUE'">Não conseguimos cobrar a renovação. Regularize até {{ date(subscription.accessUntil) }} para não perder o acesso.</ng-container>
+            <ng-container *ngSwitchCase="'SUSPENDED'">O acesso aos recursos do plano está suspenso. Regularize o pagamento para reativar; seus dados foram preservados.</ng-container>
+            <ng-container *ngSwitchCase="'CANCELED'">A assinatura foi encerrada. Escolha um plano abaixo para voltar a usar os recursos.</ng-container>
+            <ng-container *ngSwitchDefault>Escolha um plano abaixo. O acesso é liberado assim que a Stripe confirmar o primeiro pagamento.</ng-container>
+          </p>
+        </div>
+      </div>
+      <div class="status-actions" *ngIf="isAdmin()">
+        <a *ngIf="subscription.pendingInvoiceUrl" class="button primary" [href]="subscription.pendingInvoiceUrl" target="_blank" rel="noopener">Pagar fatura pendente</a>
+        <button *ngIf="canManagePayment" (click)="managePayment()" [disabled]="busy"><i class="pi pi-credit-card" aria-hidden="true"></i> Gerenciar pagamento</button>
+      </div>
+      <div class="ai-usage" *ngIf="aiUsage as usage" [attr.data-level]="usage.level">
+        <div class="ai-usage-header">
+          <span>Mensagens de IA neste ciclo</span>
+          <strong>{{ number(usage.used) }} de {{ number(usage.limit) }}</strong>
+        </div>
+        <div class="ai-usage-bar" role="progressbar" aria-label="Consumo de mensagens de IA"
+             [attr.aria-valuenow]="usage.used" aria-valuemin="0" [attr.aria-valuemax]="usage.limit">
+          <span [style.width.%]="usage.percent"></span>
+        </div>
+        <p [ngSwitch]="usage.level">
+          <ng-container *ngSwitchCase="'full'">Limite atingido. Até {{ localDate(subscription.aiUsageCycleEnd) }} as novas conversas vão direto para a equipe. Faça o upgrade para continuar com a IA.</ng-container>
+          <ng-container *ngSwitchCase="'high'">Você já usou {{ usage.percent }}% da cota. Ela renova em {{ localDate(subscription.aiUsageCycleEnd) }}.</ng-container>
+          <ng-container *ngSwitchDefault>A cota renova em {{ localDate(subscription.aiUsageCycleEnd) }}, todo mês no dia do pagamento.</ng-container>
+        </p>
+      </div>
+      <dl class="status-details" *ngIf="subscription.paidUntil && subscription.status !== 'CANCELED'">
+        <div><dt>Período atual</dt><dd>{{ date(subscription.currentPeriodStart) }} a {{ date(subscription.currentPeriodEnd) }}</dd></div>
+        <div><dt>Pago até</dt><dd>{{ date(subscription.paidUntil) }}</dd></div>
+      </dl>
+    </article>
+
+    <div class="interval-bar" *ngIf="hasYearlyPrices">
+      <div class="interval-toggle" role="radiogroup" aria-label="Ciclo de cobrança">
+        <button type="button" role="radio" [attr.aria-checked]="!isYearlyView" [class.active]="!isYearlyView" (click)="interval = 'MONTHLY'">Mensal</button>
+        <button type="button" role="radio" [attr.aria-checked]="isYearlyView" [class.active]="isYearlyView" (click)="interval = 'YEARLY'">
+          Anual <span class="save-chip" *ngIf="maxYearlySavingsPercent">economize {{ maxYearlySavingsPercent }}%</span>
+        </button>
+      </div>
+      <p class="interval-note" *ngIf="blocksMonthlyFromYearly">Sua assinatura é anual. A troca para o pagamento mensal não está disponível.</p>
+    </div>
+
+    <div class="plans-grid" aria-label="Planos disponíveis">
+      <article class="plan-card" *ngFor="let plan of plans" [class.current]="isCurrent(plan)" [class.featured]="plan.code === 'PROFESSIONAL'">
+        <span class="plan-tag" *ngIf="isCurrent(plan)">Plano atual</span>
+        <span class="plan-tag featured-tag" *ngIf="!isCurrent(plan) && plan.code === 'PROFESSIONAL'">Mais escolhido</span>
+        <h2>{{ plan.name }}</h2>
+        <p class="price" *ngIf="!isYearlyView"><strong>{{ price(plan.monthlyPriceCents) }}</strong><span>/mês</span></p>
+        <div class="yearly-price" *ngIf="isYearlyView">
+          <p class="monthly-reference">Mensal: {{ price(plan.monthlyPriceCents) }}</p>
+          <p class="price"><strong>{{ price(yearly(plan).total) }}</strong><span>/ano</span></p>
+          <p class="equivalent">Equivale a {{ price(yearly(plan).perMonth) }}/mês</p>
+          <span class="savings"><i class="pi pi-tag" aria-hidden="true"></i> Economia de {{ price(yearly(plan).savings) }}</span>
+        </div>
+        <ul class="features">
+          <li *ngFor="let feature of features(plan)" [class.excluded]="!feature.included">
+            <i class="pi" [ngClass]="feature.included ? 'pi-check' : 'pi-minus'" aria-hidden="true"></i>
+            <span>{{ feature.label }}</span><span class="sr-only" *ngIf="!feature.included"> (não incluído)</span>
+          </li>
+        </ul>
+        <div class="plan-action">
+          <ng-container *ngIf="isAdmin()">
+            <button *ngIf="!hasLiveSubscription" class="primary" (click)="subscribe(plan)" [disabled]="busy">Assinar {{ plan.name }}{{ isYearlyView ? ' anual' : '' }}</button>
+            <button *ngIf="isUpgrade(plan) && subscription?.status === 'ACTIVE'" class="primary" (click)="openUpgrade(plan)" [disabled]="busy">
+              {{ !isIntervalChange ? 'Fazer upgrade' : plan.code === currentPlanCode ? 'Mudar para anual' : 'Upgrade para anual' }}
+            </button>
+            <p class="plan-note" *ngIf="isUpgrade(plan) && subscription?.status !== 'ACTIVE'">Upgrade disponível após regularizar o pagamento.</p>
+          </ng-container>
+          <p class="plan-note" *ngIf="isCurrent(plan)">Você está neste plano.</p>
+        </div>
+      </article>
+    </div>
+
+    <p class="footnote">No plano anual o valor é cobrado de uma vez no cartão e renovado a cada ano; a cota de mensagens de IA continua mensal. A mudança só é permitida para um plano superior ou do mensal para o anual.</p>
+  </ng-container>
+
+  <ng-template #skeleton><div class="skeleton status"></div><div class="plans-grid"><div class="skeleton" *ngFor="let n of [1,2,3]"></div></div></ng-template>
+</section>
+
+<dialog #upgradeDialog class="editor" aria-labelledby="upgrade-title" (cancel)="busy && $event.preventDefault()">
+  <header><div><h2 id="upgrade-title">{{ isIntervalChange ? 'Mudar para ' + upgradeTarget?.name + ' anual' : 'Upgrade para ' + upgradeTarget?.name }}</h2><p>Confirme a mudança de plano.</p></div>
+    <button type="button" class="icon-button" aria-label="Fechar" (click)="closeUpgrade()" [disabled]="busy"><i class="pi pi-times" aria-hidden="true"></i></button></header>
+  <ul class="upgrade-info" *ngIf="!isIntervalChange">
+    <li>A diferença proporcional até a próxima renovação será cobrada agora no cartão cadastrado.</li>
+    <li>Os novos limites são liberados assim que o pagamento for aprovado.</li>
+    <li *ngIf="currentInterval === 'MONTHLY'">A data de renovação continua a mesma: {{ date(subscription?.currentPeriodEnd ?? null) }}. A partir dela, a mensalidade passa a ser {{ upgradeTarget ? price(upgradeTarget.monthlyPriceCents) : '' }}.</li>
+    <li *ngIf="currentInterval === 'YEARLY'">A data de renovação continua a mesma: {{ date(subscription?.currentPeriodEnd ?? null) }}. A partir dela, a anuidade passa a ser {{ upgradeTarget ? price(upgradeTarget.yearlyPriceCents) : '' }}.</li>
+  </ul>
+  <ul class="upgrade-info" *ngIf="isIntervalChange && upgradeTarget">
+    <li>Será cobrado agora {{ price(upgradeTarget.yearlyPriceCents) }}, descontado o valor proporcional dos dias não usados da mensalidade atual.</li>
+    <li>Economia de {{ price(yearly(upgradeTarget).savings) }} em relação a 12 mensalidades.</li>
+    <li>A assinatura passa a renovar todo ano a partir de hoje, e a cota mensal de mensagens de IA passa a renovar no dia de hoje.</li>
+    <li>Depois da mudança não é possível voltar para o pagamento mensal.</li>
+  </ul>
+  <footer><button type="button" (click)="closeUpgrade()" [disabled]="busy">Voltar</button>
+    <button type="button" class="primary" (click)="confirmUpgrade()" [disabled]="busy">{{ busy ? 'Processando…' : isIntervalChange ? 'Confirmar mudança' : 'Confirmar upgrade' }}</button></footer>
+</dialog>

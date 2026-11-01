@@ -1,6 +1,7 @@
 import { fakeAsync, flushMicrotasks, tick } from '@angular/core/testing';
 import { convertToParamMap } from '@angular/router';
 import { WizardStep7InstagramComponent } from './wizard-step-7-instagram.component';
+import { withPlanAccess } from '../subscription/plan-access.testing';
 
 describe('Instagram OAuth popup', () => {
   let component: WizardStep7InstagramComponent;
@@ -8,10 +9,10 @@ describe('Instagram OAuth popup', () => {
   let popup: Window;
   beforeEach(() => {
     api = { getOAuthConfig: jasmine.createSpy().and.resolveTo({ appId: '123', scopes: ['instagram_business_basic'] }) };
-    component = new WizardStep7InstagramComponent(
+    component = withPlanAccess(() => new WizardStep7InstagramComponent(
       { navigate: jasmine.createSpy().and.resolveTo(true) } as any,
       { snapshot: { queryParamMap: convertToParamMap({}) } } as any,
-      { currentProfile: () => ({ roles: ['ADMIN'] }) } as any, api as any);
+      { currentProfile: () => ({ roles: ['ADMIN'] }) } as any, api as any));
     component.loading.set(false);
     popup = { closed: false, close: jasmine.createSpy(), location: { href: '' } } as unknown as Window;
   });

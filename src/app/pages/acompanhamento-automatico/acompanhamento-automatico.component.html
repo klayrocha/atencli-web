@@ -51,10 +51,11 @@
           <h2>{{ form.name }}</h2>
           <p>{{ templateDescriptions[form.code] }}</p>
         </div>
-        <button type="button" class="toggle-button" [class.enabled]="form.enabled" (click)="toggleTemplate(selectedTemplate!)" [disabled]="savingTemplate || !selectedTemplate">
+        <button type="button" class="toggle-button" [class.enabled]="form.enabled" (click)="toggleTemplate(selectedTemplate!)" [disabled]="savingTemplate || !selectedTemplate || (!form.enabled && !!followUpLock)">
           <i class="pi" [class.pi-pause]="form.enabled" [class.pi-play]="!form.enabled"></i>
           {{ form.enabled ? 'Pausar' : 'Ativar' }}
         </button>
+        <app-plan-lock-notice class="intro-lock" *ngIf="followUpLock && !form.enabled" [message]="followUpLock" />
       </section>
 
       <fieldset class="panel controls-panel" [disabled]="savingTemplate">
@@ -123,9 +124,10 @@
         <div class="fields-grid whatsapp-template-grid">
           <label class="field">
             Template WhatsApp aprovado para fora da janela
-            <input type="text" name="whatsappTemplateName" maxlength="120" [(ngModel)]="form.whatsappTemplateName" placeholder="ex: consulta_lembrete_24h">
+            <input type="text" name="whatsappTemplateName" maxlength="120" [(ngModel)]="form.whatsappTemplateName" placeholder="ex: consulta_lembrete_24h" [disabled]="!!templatesLock">
             <small>Nome exato do template aprovado na Meta. Se ficar vazio, o envio fora das 24 horas será ignorado.</small>
           </label>
+          <app-plan-lock-notice *ngIf="templatesLock" [message]="templatesLock" />
           <label class="field">
             Idioma do template
             <input type="text" name="whatsappTemplateLanguage" maxlength="20" [(ngModel)]="form.whatsappTemplateLanguage" placeholder="pt_BR">
@@ -139,7 +141,7 @@
               <strong>Parâmetros do corpo do template</strong>
               <small>Use a mesma ordem dos placeholders aprovados na Meta: {{ '{' }}{{ '{' }}1{{ '}' }}{{ '}' }}, {{ '{' }}{{ '{' }}2{{ '}' }}{{ '}' }}, {{ '{' }}{{ '{' }}3{{ '}' }}{{ '}' }}. Variáveis disponíveis: {{ '{' }}{{ '{' }}nome{{ '}' }}{{ '}' }}, {{ '{' }}{{ '{' }}clinica{{ '}' }}{{ '}' }} e {{ '{' }}{{ '{' }}interesse{{ '}' }}{{ '}' }}.</small>
             </div>
-            <button type="button" class="secondary-button compact" (click)="addTemplateParameter()" [disabled]="form.whatsappTemplateBodyParameters.length >= 20">
+            <button type="button" class="secondary-button compact" (click)="addTemplateParameter()" [disabled]="form.whatsappTemplateBodyParameters.length >= 20 || !!templatesLock">
               <i class="pi pi-plus"></i>Adicionar
             </button>
           </div>

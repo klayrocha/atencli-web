@@ -1,13 +1,16 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewChecked, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewChecked, Component, ElementRef, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
+import { planRestrictionMessage } from '../subscription/plan-restriction';
+import { PlanAccessService } from '../subscription/plan-access.service';
+import { PlanLockNoticeComponent } from '../subscription/plan-lock-notice.component';
 import { ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../auth/auth.service';
 import { ConversationAssignee, ConversationDetail, ConversationFilter, ConversationMessage, ConversationSummary, ConversationsService } from '../../whatsapp/conversations.service';
 
 @Component({
-  selector: 'app-conversations', standalone: true, imports: [CommonModule, FormsModule],
+  selector: 'app-conversations', standalone: true, imports: [CommonModule, FormsModule, PlanLockNoticeComponent],
   templateUrl: './conversations.component.html', styleUrls: ['./conversations.component.scss'],
 })
 export class ConversationsComponent implements OnInit, OnDestroy, AfterViewChecked {
@@ -106,7 +109,12 @@ export class ConversationsComponent implements OnInit, OnDestroy, AfterViewCheck
   }
 
   constructor(private api: ConversationsService, private route: ActivatedRoute, private auth: AuthService) {}
+  private readonly planAccess = inject(PlanAccessService);
+  /** Envio manual exige assinatura ativa; null quando liberado. */
+  get planLock(): string | null { return this.planAccess.lockMessage(); }
+
   ngOnInit(): void {
+    void this.planAccess.load();
     const queryFilter = this.route.snapshot.queryParamMap.get('filter');
     if (queryFilter === 'unassigned') this.filter = 'unassigned';
     const conversationId = Number(this.route.snapshot.queryParamMap.get('conversationId'));
@@ -122,7 +130,7 @@ export class ConversationsComponent implements OnInit, OnDestroy, AfterViewCheck
     const list = this.conversations.filter(c => normalize(`${c.profileName ?? ''} ${c.lastMessageText ?? ''}`).includes(normalize(this.query)));
     return this.ascending ? [...list].reverse() : list;
   }
-  get canSend() { return !!this.detail?.phone && !this.loadingDetail && !this.detailError && !this.sending && !!this.draft.trim() && this.draft.length <= 4096; }
+  get canSend() { return !this.planLock && !!this.detail?.phone && !this.loadingDetail && !this.detailError && !this.sending && !!this.draft.trim() && this.draft.length <= 4096; }
 
   async setFilter(filter: ConversationFilter): Promise<void> {
     if (filter === this.filter) return;
@@ -291,6 +299,8 @@ export class ConversationsComponent implements OnInit, OnDestroy, AfterViewCheck
   }
   private unique<T extends { id: number }>(items: T[]): T[] { return [...new Map(items.map(item => [item.id, item])).values()]; }
   private errorMessage(error: unknown, action: string): string {
+    const restriction = planRestrictionMessage(error);
+    if (restriction) return restriction;
     if (error instanceof HttpErrorResponse) {
       if (error.status === 401) return 'Sua sessão expirou. Entre novamente.';
       if (error.status === 403) return 'Você não tem permissão para esta ação.';
