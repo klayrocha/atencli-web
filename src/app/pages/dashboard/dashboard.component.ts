@@ -196,7 +196,7 @@ export class DashboardComponent implements OnInit {
       return;
     }
     if (action.targetType === 'conversation-list') {
-      void this.router.navigate(['/conversas'], { queryParams: { filter: 'unassigned' } });
+      void this.router.navigate(['/conversas'], { queryParams: { filter: 'waiting' } });
     }
   }
 
@@ -317,7 +317,7 @@ export class DashboardComponent implements OnInit {
   private iconForAction(type: string): string {
     const icons: Record<string, string> = {
       WAITING_RESPONSE: 'pi-clock',
-      UNASSIGNED_CONVERSATIONS: 'pi-users',
+      WAITING_FOR_TEAM: 'pi-users',
       UNCONFIRMED_APPOINTMENT: 'pi-calendar',
       OVERDUE_TASK: 'pi-check-square'
     };
@@ -325,8 +325,8 @@ export class DashboardComponent implements OnInit {
   }
 
   private priorityForAction(type: string): 'alta' | 'media' | 'baixa' {
-    if (type === 'WAITING_RESPONSE' || type === 'OVERDUE_TASK') return 'alta';
-    if (type === 'UNASSIGNED_CONVERSATIONS' || type === 'UNCONFIRMED_APPOINTMENT') return 'media';
+    if (type === 'WAITING_RESPONSE' || type === 'WAITING_FOR_TEAM' || type === 'OVERDUE_TASK') return 'alta';
+    if (type === 'UNCONFIRMED_APPOINTMENT') return 'media';
     return 'baixa';
   }
 

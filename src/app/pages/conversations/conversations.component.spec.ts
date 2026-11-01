@@ -3,6 +3,9 @@ import { ActivatedRoute } from '@angular/router';
 import { ConversationsComponent } from './conversations.component';
 import { ApiPage, ConversationDetail, ConversationMessage, ConversationSummary, ConversationsService } from '../../whatsapp/conversations.service';
 import { withPlanAccess } from '../subscription/plan-access.testing';
+import { WaitingConversationsService } from '../../whatsapp/waiting-conversations.service';
+import { TestBed } from '@angular/core/testing';
+import { signal } from '@angular/core';
 
 const page = <T>(content: T[], number = 0, totalPages = 1): ApiPage<T> => ({ content, page: { number, size: 50, totalElements: content.length, totalPages } });
 const summary = (id: number): ConversationSummary => ({ id, profileName: `Contato ${id}`, stage: 'Novo', updatedAt: '2026-09-27T12:00:00Z', lastMessageText: 'Olá' });
@@ -12,7 +15,10 @@ const message = (id: number): ConversationMessage => ({ id, metaMessageId: 'meta
 describe('Conversations API integration', () => {
   let component: ConversationsComponent;
   let api: jasmine.SpyObj<ConversationsService>;
+  let waiting: { count: ReturnType<typeof signal<number>>; refresh: jasmine.Spy };
   beforeEach(() => {
+    waiting = { count: signal(0), refresh: jasmine.createSpy('refresh').and.resolveTo() };
+    TestBed.configureTestingModule({ providers: [{ provide: WaitingConversationsService, useValue: waiting }] });
     api = jasmine.createSpyObj('ConversationsService', ['list', 'detail', 'messages', 'send', 'assignees', 'assign']);
     api.list.and.resolveTo(page([summary(1)]));
     api.detail.and.callFake(async id => detail(id));
@@ -35,8 +41,8 @@ describe('Conversations API integration', () => {
     await component.load(true);
     expect(api.list).toHaveBeenCalledWith('mine', 1);
     expect(component.conversations.map(c => c.id)).toEqual([2, 3]);
-    await component.setFilter('unassigned');
-    expect(api.list).toHaveBeenCalledWith('unassigned', 0);
+    await component.setFilter('waiting');
+    expect(api.list).toHaveBeenCalledWith('waiting', 0);
   });
   it('ignores a stale contact response after another conversation is selected', async () => {
     let finish!: (value: ConversationDetail) => void;
@@ -114,6 +120,31 @@ describe('Conversations API integration', () => {
     await component.assignTo(me);
     expect(api.assign).toHaveBeenCalledWith(1, 'me');
     expect(component.detail?.assignee).toEqual(me);
+  });
+  it('assigning a waiting conversation removes it from the waiting count', async () => {
+    api.list.and.resolveTo({ ...page([{ ...summary(1), waitingForTeam: true, handoffReason: 'IA: pergunta sobre medicação' }]),
+      page: { number: 0, size: 50, totalElements: 4, totalPages: 1 } });
+    api.detail.and.resolveTo({ ...detail(1), waitingForTeam: true, handoffReason: 'IA: pergunta sobre medicação', handoffAt: '2026-09-27T12:00:00Z' });
+    await component.setFilter('waiting');
+    expect(waiting.count()).toBe(4);
+    expect(component.handoffReason(component.detail?.handoffReason)).toBe('pergunta sobre medicação');
+    component.assignmentDialog = { nativeElement: { showModal: () => {}, close: () => {} } } as any;
+    const me = { userUuid: 'me', fullName: 'Atendente atual' };
+    api.assignees.and.resolveTo([me]);
+    api.assign.and.resolveTo({ assignee: me, handlerType: 'HUMAN' });
+    await component.openAssignment();
+    api.detail.and.resolveTo({ ...detail(1), assignee: me, waitingForTeam: false });
+    await component.assignTo(me);
+    expect(component.detail?.waitingForTeam).toBeFalse();
+    expect(waiting.refresh).toHaveBeenCalled();
+  });
+  it('describes how long the conversation has been waiting', () => {
+    const now = Date.parse('2026-09-27T12:00:00Z');
+    expect(component.waitingSince('2026-09-27T11:59:40Z', now)).toBe('agora');
+    expect(component.waitingSince('2026-09-27T11:48:00Z', now)).toBe('há 12 min');
+    expect(component.waitingSince('2026-09-27T09:00:00Z', now)).toBe('há 3 h');
+    expect(component.waitingSince('2026-09-25T12:00:00Z', now)).toBe('há 2 dias');
+    expect(component.handoffReason(null)).toBe('A IA transferiu a conversa para a equipe.');
   });
   it('preserves the assignee when assignment fails', async () => {
     await component.select(summary(1));

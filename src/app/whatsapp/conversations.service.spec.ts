@@ -16,13 +16,18 @@ describe('ConversationsService HTTP contract', () => {
   });
   afterEach(() => http.verify());
   it('uses authenticated server-side filtering and pagination', async () => {
-    const result = service.list('unassigned', 2);
+    const result = service.list('waiting', 2);
     const request = http.expectOne(r => r.url === `${base}/conversations`);
     expect(request.request.headers.get('Authorization')).toBe('Bearer test-token');
-    expect(request.request.params.get('responsibilityStatus')).toBe('UNASSIGNED');
+    expect(request.request.params.get('waitingForTeam')).toBe('true');
     expect(request.request.params.get('page')).toBe('2');
     request.flush({ content: [], page: { number: 2, size: 50, totalElements: 0, totalPages: 0 } });
     await result;
+  });
+  it('reads how many conversations wait for the team', async () => {
+    const result = service.waitingCount();
+    http.expectOne(`${base}/conversations/waiting-count`).flush({ count: 3 });
+    expect(await result).toBe(3);
   });
   it('sends only the recipient and message text to the send endpoint', async () => {
     const result = service.send('5561999998888', 'Olá');

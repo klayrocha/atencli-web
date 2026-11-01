@@ -8,6 +8,7 @@ import { PlanLockNoticeComponent } from '../subscription/plan-lock-notice.compon
 import { ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../auth/auth.service';
 import { ConversationAssignee, ConversationDetail, ConversationFilter, ConversationMessage, ConversationSummary, ConversationsService } from '../../whatsapp/conversations.service';
+import { WaitingConversationsService } from '../../whatsapp/waiting-conversations.service';
 
 @Component({
   selector: 'app-conversations', standalone: true, imports: [CommonModule, FormsModule, PlanLockNoticeComponent],
@@ -58,8 +59,10 @@ export class ConversationsComponent implements OnInit, OnDestroy, AfterViewCheck
       const result = await this.api.assign(id, person.userUuid);
       if (this.destroyed) return;
       if (version === this.selectionVersion && this.detail?.id === id) {
-        this.detail = { ...this.detail, assignee: result.assignee };
+        this.detail = { ...this.detail, assignee: result.assignee, waitingForTeam: false, handoffReason: null, handoffAt: null };
       }
+      this.conversations = this.conversations.map(c => c.id === id ? { ...c, waitingForTeam: false } : c);
+      void this.waiting.refresh();
       this.assignmentDialog.nativeElement.close();
       if (this.filter !== 'all') await this.load();
     } catch (error) {
@@ -110,13 +113,14 @@ export class ConversationsComponent implements OnInit, OnDestroy, AfterViewCheck
 
   constructor(private api: ConversationsService, private route: ActivatedRoute, private auth: AuthService) {}
   private readonly planAccess = inject(PlanAccessService);
+  readonly waiting = inject(WaitingConversationsService);
   /** Envio manual exige assinatura ativa; null quando liberado. */
   get planLock(): string | null { return this.planAccess.lockMessage(); }
 
   ngOnInit(): void {
     void this.planAccess.load();
     const queryFilter = this.route.snapshot.queryParamMap.get('filter');
-    if (queryFilter === 'unassigned') this.filter = 'unassigned';
+    if (queryFilter === 'waiting' || queryFilter === 'unassigned') this.filter = 'waiting';
     const conversationId = Number(this.route.snapshot.queryParamMap.get('conversationId'));
     this.targetConversationId = Number.isFinite(conversationId) && conversationId > 0 ? conversationId : null;
     void this.load();
@@ -153,6 +157,7 @@ export class ConversationsComponent implements OnInit, OnDestroy, AfterViewCheck
       this.listPage = result.page.number;
       this.listPages = result.page.totalPages;
       this.total = result.page.totalElements;
+      if (this.filter === 'waiting' && !more) this.waiting.count.set(result.page.totalElements);
       if (!more) {
         const target = this.targetConversationId
           ? this.conversations.find(c => c.id === this.targetConversationId)
@@ -281,6 +286,23 @@ export class ConversationsComponent implements OnInit, OnDestroy, AfterViewCheck
     } catch (error) {
       if (version === this.selectionVersion && !this.destroyed) this.sendError = this.errorMessage(error, 'enviar a mensagem');
     } finally { this.sending = false; }
+  }
+
+  /** Reason shown to the team, without the internal "IA:" prefix. */
+  handoffReason(reason: string | null | undefined): string {
+    const text = (reason ?? '').replace(/^IA:\s*/, '').trim();
+    return text || 'A IA transferiu a conversa para a equipe.';
+  }
+  /** "agora", "há 12 min", "há 3 h", "há 2 dias". */
+  waitingSince(since: string | null | undefined, now = Date.now()): string {
+    if (!since) return '';
+    const minutes = Math.max(0, Math.floor((now - new Date(since).getTime()) / 60_000));
+    if (minutes < 1) return 'agora';
+    if (minutes < 60) return `há ${minutes} min`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `há ${hours} h`;
+    const days = Math.floor(hours / 24);
+    return days === 1 ? 'há 1 dia' : `há ${days} dias`;
   }
 
   messageText(message: ConversationMessage): string {

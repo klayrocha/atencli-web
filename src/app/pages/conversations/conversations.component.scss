@@ -31,3 +31,11 @@ button:disabled { cursor: not-allowed; opacity: .55; }
 .assignment-trigger.has-owner { padding: 4px 6px 4px 10px; background: #f4f8ef; }
 .assignment-trigger:hover { background: #eff4e8; color: #55792a; }
 .assignment-trigger .attendant-avatar { width: 32px; height: 32px; flex: 0 0 32px; }
+.badges { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+.filters .waiting-count { background: #ea580c; color: #fff; font-weight: 700; padding: 1px 5px; }
+.handoff-notice { display: flex; align-items: flex-start; gap: 10px; margin: 10px; padding: 12px 14px; border-radius: 10px; background: #fff4ec; border: 1px solid #fed7aa; color: #7c2d12; font-size: 12px; line-height: 1.5; }
+.handoff-notice > i { margin-top: 2px; color: #ea580c; }
+.handoff-notice > div { flex: 1; min-width: 0; }
+.handoff-notice p { margin: 2px 0 0; }
+.handoff-notice button { flex-shrink: 0; border-radius: 8px; padding: 7px 12px; background: #ea580c; color: #fff; font-weight: 600; }
+.handoff-notice button:disabled { opacity: .6; }

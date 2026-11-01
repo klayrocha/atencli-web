@@ -41,8 +41,6 @@ export class WizardStep7AiComponent implements OnInit {
     ['BUSINESS_HOURS', 'Horários', 'Expediente, intervalos e dias sem atendimento.'],
     ['ADDRESS', 'Endereço', 'Localização cadastrada da clínica.'],
     ['HEALTH_PLANS', 'Planos de saúde', 'Somente convênios confirmados.'],
-    ['FREQUENTLY_ASKED_QUESTIONS', 'Perguntas frequentes', 'Respostas previamente aprovadas.'],
-    ['DOCUMENTS_AND_PROTOCOLS', 'Documentos e protocolos', 'Conteúdo aprovado pela clínica.'],
   ];
   readonly requiredTriggers = ['HUMAN_REQUEST', 'MEDICAL_QUESTION', 'PAIN_OR_URGENCY', 'MODEL_ERROR'];
   readonly triggers = [

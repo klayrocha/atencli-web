@@ -1,5 +1,6 @@
 import { AuthService } from '../../auth/auth.service';
-import { Component, Input, Output, EventEmitter, computed, inject } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnDestroy, OnInit, computed, inject } from '@angular/core';
+import { WaitingConversationsService } from '../../whatsapp/waiting-conversations.service';
 import { CommonModule } from '@angular/common';
 import { RouterModule, RouterLink, RouterLinkActive } from '@angular/router';
 import { TooltipModule } from 'primeng/tooltip';
@@ -38,6 +39,9 @@ interface MenuItem {
             tooltipPosition="right">
             <i [class]="item.icon"></i>
             <span class="menu-label" *ngIf="!collapsed">{{ item.label }}</span>
+            <span *ngIf="item.route === '/conversas' && waiting.count() > 0" class="menu-badge" [class.dot]="collapsed"
+              [attr.aria-label]="waiting.count() + ' aguardando a equipe'" [title]="waiting.count() + ' aguardando a equipe'">
+              {{ collapsed ? '' : (waiting.count() > 99 ? '99+' : waiting.count()) }}</span>
           </a>
         </li>
       </ul>
@@ -53,7 +57,7 @@ interface MenuItem {
   `,
   styleUrls: ['./sidebar.component.scss']
 })
-export class SidebarComponent {
+export class SidebarComponent implements OnInit, OnDestroy {
   @Input() collapsed = false;
   @Output() collapsedChange = new EventEmitter<boolean>();
 
@@ -73,6 +77,10 @@ export class SidebarComponent {
   ];
 
   private readonly auth = inject(AuthService);
+  readonly waiting = inject(WaitingConversationsService);
+
+  ngOnInit(): void { this.waiting.watch(); }
+  ngOnDestroy(): void { this.waiting.unwatch(); }
   readonly visibleMenuItems = computed(() => this.auth.isAttendant()
     ? this.menuItems.filter(item => !['/agenda', '/tarefas', '/wizard-step-9-review', '/subscription'].includes(item.route))
     : this.menuItems);

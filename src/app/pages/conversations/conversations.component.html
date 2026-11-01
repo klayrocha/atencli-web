@@ -15,7 +15,7 @@
     <div class="filters" aria-label="Filtrar conversas">
       <button [class.active]="filter === 'all'" [attr.aria-pressed]="filter === 'all'" (click)="setFilter('all')">Todas</button>
       <button [class.active]="filter === 'mine'" [attr.aria-pressed]="filter === 'mine'" (click)="setFilter('mine')">Minhas</button>
-      <button [class.active]="filter === 'unassigned'" [attr.aria-pressed]="filter === 'unassigned'" (click)="setFilter('unassigned')">Sem responsável</button>
+      <button [class.active]="filter === 'waiting'" [attr.aria-pressed]="filter === 'waiting'" (click)="setFilter('waiting')">Aguardando equipe <span *ngIf="waiting.count() > 0" class="waiting-count">{{ waiting.count() }}</span></button>
     </div>
     <div class="api-error" *ngIf="listError" role="alert">{{ listError }} <button (click)="load(listPage >= 0)" [disabled]="loading">Tentar novamente</button></div>
     <div class="conversation-list">
@@ -23,7 +23,7 @@
         <span class="avatar"><i class="pi pi-image" aria-hidden="true"></i><i class="pi pi-whatsapp channel" aria-hidden="true"></i></span>
         <span class="conversation-copy">
           <span class="conversation-title"><strong>{{ conversation.profileName || 'Contato sem nome' }}</strong><time>{{ conversation.updatedAt | date:'dd/MM HH:mm' }}</time></span>
-          <span class="conversation-bottom"><span class="preview">{{ conversation.lastMessageText || 'Sem mensagem de texto' }}</span><span *ngIf="conversation.stage" class="badge green">{{ conversation.stage }}</span></span>
+          <span class="conversation-bottom"><span class="preview">{{ conversation.lastMessageText || 'Sem mensagem de texto' }}</span><span class="badges"><span *ngIf="conversation.waitingForTeam" class="badge orange" [title]="handoffReason(conversation.handoffReason)">Aguarda equipe</span><span *ngIf="conversation.stage" class="badge green">{{ conversation.stage }}</span></span></span>
         </span>
       </button>
       <p class="empty" *ngIf="loading && !conversations.length" role="status">Carregando conversas...</p>
@@ -54,6 +54,12 @@
     </header>
     <div class="chat-body">
       <div *ngIf="detailError" class="api-error" role="alert">{{ detailError }} <button (click)="select(current, false)">Tentar novamente</button></div>
+      <div *ngIf="detail?.waitingForTeam" class="handoff-notice" role="status">
+        <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+        <div><strong>Aguardando a equipe<span *ngIf="detail?.handoffAt"> · {{ waitingSince(detail?.handoffAt) }}</span></strong>
+          <p>{{ handoffReason(detail?.handoffReason) }} A IA não responde mais esta conversa até alguém assumir.</p></div>
+        <button class="primary" (click)="openAssignment()" [disabled]="loadingDetail || assigning">Atribuir</button>
+      </div>
       <div class="messages" #messageList role="log" aria-label="Mensagens" aria-live="polite" [attr.aria-busy]="loadingDetail">
         <p *ngIf="loadingDetail" class="empty" role="status">Carregando mensagens...</p>
         <button *ngIf="messagePage + 1 < messagePages" class="older-button" (click)="loadOlder()" [disabled]="loadingOlder">{{ loadingOlder ? 'Carregando...' : 'Carregar mensagens anteriores' }}</button>

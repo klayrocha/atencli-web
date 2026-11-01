@@ -137,7 +137,7 @@ export class WizardStep5TeamComponent implements OnInit {
         email: this.inviteEmail.trim(),
         role: this.roleFromProfile(this.inviteProfile),
         authProvider: this.inviteAuthProvider,
-        canReceiveConversations: false,
+        canReceiveConversations: true,
         sendInvitationNow: true,
       });
       this.showInviteForm.set(false);

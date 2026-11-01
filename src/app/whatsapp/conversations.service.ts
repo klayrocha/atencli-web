@@ -5,7 +5,7 @@ import { AuthService } from '../auth/auth.service';
 import { environment } from '../../environments/environment.development';
 
 export interface ConversationAssignee { userUuid: string; fullName: string; avatarUrl?: string | null; }
-export type ConversationFilter = 'all' | 'mine' | 'unassigned';
+export type ConversationFilter = 'all' | 'mine' | 'waiting';
 export interface ApiPage<T> {
   content: T[];
   page: { size: number; number: number; totalElements: number; totalPages: number };
@@ -16,6 +16,10 @@ export interface ConversationSummary {
   stage: string | null;
   updatedAt: string | null;
   lastMessageText: string | null;
+  /** The AI handed the conversation to the team and nobody took it yet. */
+  waitingForTeam?: boolean;
+  handoffReason?: string | null;
+  handoffAt?: string | null;
 }
 export interface ConversationDetail {
   id: number;
@@ -31,6 +35,9 @@ export interface ConversationDetail {
   origin: string | null;
   stage: string | null;
   assignee: ConversationAssignee | null;
+  waitingForTeam?: boolean;
+  handoffReason?: string | null;
+  handoffAt?: string | null;
 }
 export interface ConversationMessage {
   id: number;
@@ -61,8 +68,12 @@ export class ConversationsService {
   list(filter: ConversationFilter, page = 0): Promise<ApiPage<ConversationSummary>> {
     let params = new HttpParams().set('page', page).set('size', 50);
     if (filter === 'mine') params = params.set('mine', true);
-    if (filter === 'unassigned') params = params.set('responsibilityStatus', 'UNASSIGNED');
+    if (filter === 'waiting') params = params.set('waitingForTeam', true);
     return firstValueFrom(this.http.get<ApiPage<ConversationSummary>>(`${this.url}/conversations`, { headers: this.headers, params }));
+  }
+  waitingCount(): Promise<number> {
+    return firstValueFrom(this.http.get<{ count: number }>(`${this.url}/conversations/waiting-count`, { headers: this.headers }))
+      .then(result => result.count);
   }
   detail(id: number): Promise<ConversationDetail> {
     return firstValueFrom(this.http.get<ConversationDetail>(`${this.url}/conversations/${id}`, { headers: this.headers }));
