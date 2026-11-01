@@ -1,7 +1,7 @@
 import { Router } from '@angular/router';
 import { AuthService } from '../../auth/auth.service';
 import { AiConfiguration, AiConfigurationService } from '../../ai/ai-configuration.service';
-import { WizardStep7AiComponent } from './wizard-step-7-ai.component';
+import { SUGGESTED_INTRODUCTION_MESSAGE, SUGGESTED_OUTSIDE_HOURS_MESSAGE, SUGGESTED_TONE, WizardStep7AiComponent } from './wizard-step-7-ai.component';
 
 describe('Wizard AI configuration', () => {
   let component: WizardStep7AiComponent;
@@ -108,5 +108,20 @@ describe('Wizard AI configuration', () => {
     finish(data);
     await review;
     expect(router.navigate).toHaveBeenCalledTimes(1);
+  });
+  it('prefills tone and messages with suggested texts while the clinic has no saved rules', async () => {
+    api.getConfiguration.and.resolveTo({ ...data, tone: 'Acolhedor e profissional', introductionMessage: null, outsideHoursMessage: 'Padrão', usingDefaults: true });
+    await component.load();
+    expect(component.model.tone).toBe(SUGGESTED_TONE);
+    expect(component.model.introductionMessage).toBe(SUGGESTED_INTRODUCTION_MESSAGE);
+    expect(component.model.outsideHoursMessage).toBe(SUGGESTED_OUTSIDE_HOURS_MESSAGE);
+    expect(component.dirty).toBeFalse();
+  });
+  it('keeps the texts the clinic already saved', async () => {
+    api.getConfiguration.and.resolveTo({ ...data, tone: 'Direto', introductionMessage: null, outsideHoursMessage: 'Voltamos às 8h.', usingDefaults: false });
+    await component.load();
+    expect(component.model.tone).toBe('Direto');
+    expect(component.model.introductionMessage).toBe('');
+    expect(component.model.outsideHoursMessage).toBe('Voltamos às 8h.');
   });
 });

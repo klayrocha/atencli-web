@@ -12,6 +12,15 @@ import { AiConfiguration, AiConfigurationPayload, AiConfigurationService } from 
 import { WIZARD_STEPS_DEFAULT } from '../wizard-shared/wizard.models';
 import { WizardSummaryComponent } from '../wizard-shared/wizard-summary/wizard-summary.component';
 
+/** Textos sugeridos para clínicas que ainda não salvaram regras próprias da IA. */
+export const SUGGESTED_TONE = 'Acolhedor, empático e profissional, com linguagem simples e respeitosa';
+export const SUGGESTED_INTRODUCTION_MESSAGE = 'Olá! Sou a assistente virtual da clínica e estou aqui para ajudar você. '
+  + 'Posso tirar dúvidas sobre nossos serviços, horários e localização, e também ajudar a agendar sua consulta. '
+  + 'Se preferir falar com alguém da nossa equipe, é só me avisar. Como posso ajudar?';
+export const SUGGESTED_OUTSIDE_HOURS_MESSAGE = 'Olá! Agradecemos o seu contato. No momento estamos fora do horário de atendimento, '
+  + 'mas sua mensagem foi recebida e nossa equipe responderá assim que retornarmos. '
+  + 'Em caso de urgência ou emergência, procure o pronto-socorro mais próximo ou ligue para o SAMU (192).';
+
 @Component({
   selector: 'app-wizard-step-7-ai',
   standalone: true,
@@ -50,9 +59,9 @@ export class WizardStep7AiComponent implements OnInit {
   ];
   readonly days = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
   model: AiConfigurationPayload = {
-    mode: this.automaticMode, tone: 'Acolhedor e profissional', responseLength: 'SHORT',
+    mode: this.automaticMode, tone: SUGGESTED_TONE, responseLength: 'SHORT',
     schedulePolicy: 'FOLLOW_CLINIC_HOURS', serviceStartTime: '07:00', serviceEndTime: '22:00',
-    activeDays: [1, 2, 3, 4, 5], introductionMessage: '', outsideHoursMessage: '',
+    activeDays: [1, 2, 3, 4, 5], introductionMessage: SUGGESTED_INTRODUCTION_MESSAGE, outsideHoursMessage: SUGGESTED_OUTSIDE_HOURS_MESSAGE,
     allowedTopics: [], handoffTriggers: [...this.requiredTriggers],
   };
   enabled = false;
@@ -77,13 +86,17 @@ export class WizardStep7AiComponent implements OnInit {
     finally { this.loading = false; }
   }
   private fill(data: AiConfiguration) {
+    // Sem regras salvas, o formulário já vem com os textos sugeridos; regras salvas são mantidas como estão.
+    const suggested = data.usingDefaults;
     this.model = {
-      mode: this.automaticMode, tone: data.tone, responseLength: data.responseLength,
+      mode: this.automaticMode, tone: suggested ? SUGGESTED_TONE : data.tone, responseLength: data.responseLength,
       schedulePolicy: data.schedulePolicy,
       serviceStartTime: data.serviceStartTime?.slice(0, 5) || '07:00',
       serviceEndTime: data.serviceEndTime?.slice(0, 5) || '22:00',
-      activeDays: [...data.activeDays], introductionMessage: data.introductionMessage || '',
-      outsideHoursMessage: data.outsideHoursMessage || '', allowedTopics: [...data.allowedTopics],
+      activeDays: [...data.activeDays],
+      introductionMessage: suggested ? SUGGESTED_INTRODUCTION_MESSAGE : data.introductionMessage || '',
+      outsideHoursMessage: suggested ? SUGGESTED_OUTSIDE_HOURS_MESSAGE : data.outsideHoursMessage || '',
+      allowedTopics: [...data.allowedTopics],
       handoffTriggers: [...new Set([...data.handoffTriggers, ...this.requiredTriggers])],
     };
     this.enabled = data.enabled;
