@@ -1,133 +1,340 @@
-<main class="period-dashboard">
-  <header class="page-header">
-    <div>
+<main class="results">
+  <header class="results-header">
+    <div class="results-title">
       <h1>Resultados</h1>
-      <p>Indicadores da {{ home?.clinic?.name || 'clínica' }}</p>
+      <p>
+        {{ data?.clinicName || 'Sua clínica' }}
+        <ng-container *ngIf="data"> · {{ periodLabel(data.period) }}</ng-container>
+      </p>
+    </div>
+
+    <div class="period-controls">
+      <div class="preset-group" role="group" aria-label="Período">
+        <button type="button" *ngFor="let item of presets"
+                [class.active]="preset === item.key"
+                [attr.aria-pressed]="preset === item.key"
+                [disabled]="loading && preset !== item.key"
+                (click)="selectPreset(item.key)">{{ item.label }}</button>
+      </div>
+      <form class="custom-range" *ngIf="preset === 'custom'" (ngSubmit)="applyCustom()">
+        <label>
+          <span>De</span>
+          <input name="fromDate" type="date" [(ngModel)]="fromDate" [max]="toDate || null" required>
+        </label>
+        <label>
+          <span>Até</span>
+          <input name="toDate" type="date" [(ngModel)]="toDate" [min]="fromDate || null" required>
+        </label>
+        <button type="submit" class="apply" [disabled]="loading || !fromDate || !toDate">Aplicar</button>
+      </form>
+      <p class="compare-note" *ngIf="data">
+        <i class="pi pi-arrow-right-arrow-left" aria-hidden="true"></i>
+        Comparado com {{ periodLabel(data.previousPeriod) }}
+      </p>
     </div>
   </header>
 
-  <form class="period-filter" (ngSubmit)="loadPeriod()">
-    <div class="date-field">
-      <label for="period-from">Data inicial</label>
-      <input id="period-from" name="fromDate" type="date" [(ngModel)]="fromDate" [max]="toDate || null" required>
-    </div>
-    <div class="date-field">
-      <label for="period-to">Data final</label>
-      <input id="period-to" name="toDate" type="date" [(ngModel)]="toDate" [min]="fromDate || null" required>
-    </div>
-    <button type="submit" [disabled]="loading || !fromDate || !toDate">
-      <i class="pi pi-search" aria-hidden="true"></i>
-      Consultar
-    </button>
-  </form>
-
-  <div class="page-state error" role="alert" *ngIf="errorMessage">
+  <div class="state error" role="alert" *ngIf="errorMessage">
     <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
     <span>{{ errorMessage }}</span>
   </div>
-  <div class="page-state" role="status" *ngIf="loading">
-    <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
-    <span>Carregando resultados...</span>
+
+  <!-- Loading skeleton keeps the layout stable while data arrives -->
+  <div class="skeleton" *ngIf="loading && !data" role="status" aria-label="Carregando resultados">
+    <div class="kpi-grid"><div class="card sk" *ngFor="let i of [1,2,3,4,5,6]"></div></div>
+    <div class="grid-2-1"><div class="card sk tall"></div><div class="card sk tall"></div></div>
   </div>
 
-  <ng-container *ngIf="home && !loading">
-    <section class="results-section" aria-labelledby="pulse-title">
-      <div class="section-heading">
-        <h2 id="pulse-title">Pulso da clínica</h2>
-        <p>{{ home.attentionPulse.total }} situações precisam de atenção agora. Estes indicadores mostram as pendências atuais.</p>
-      </div>
-      <div class="metrics-grid pulse-grid">
-        <div class="metric" *ngFor="let card of home.attentionPulse.cards">
-          <i class="pi {{ metricIcon(card.key) }}" aria-hidden="true"></i>
-          <strong>{{ metricValue(card) }}</strong>
-          <span class="metric-label">{{ card.label }}</span>
-          <small>{{ metricHelper(card) }}</small>
-        </div>
-      </div>
-    </section>
+  <ng-container *ngIf="data">
+    <div class="content" [class.refreshing]="loading">
 
-    <section class="results-section" aria-labelledby="journey-title">
-      <div class="section-heading">
-        <h2 id="journey-title">Jornada do atendimento</h2>
-        <p>{{ appliedPeriod }} · De novos contatos a pacientes conquistados.</p>
-      </div>
-      <div class="metrics-grid">
-        <div class="metric" *ngFor="let card of home.journey">
-          <i class="pi {{ metricIcon(card.key) }}" aria-hidden="true"></i>
-          <strong>{{ metricValue(card) }}</strong>
-          <span class="metric-label">{{ card.label }}</span>
-          <small>{{ metricHelper(card) }}</small>
-        </div>
-      </div>
-    </section>
-
-    <section class="results-section" aria-labelledby="results-title">
-      <div class="section-heading">
-        <h2 id="results-title">Resultados</h2>
-        <p>{{ appliedPeriod }}</p>
-      </div>
-      <div class="metrics-grid three-columns">
-        <div class="metric" *ngFor="let card of home.resultsPreview.cards">
-          <i class="pi {{ metricIcon(card.key) }}" aria-hidden="true"></i>
-          <strong>{{ metricValue(card) }}</strong>
-          <span class="metric-label">{{ card.label }}</span>
-          <small>{{ metricHelper(card) }}</small>
-        </div>
-      </div>
-    </section>
-
-    <section class="results-section" aria-labelledby="summary-title">
-      <div class="section-heading">
-        <h2 id="summary-title">Resumo do período</h2>
-        <p>{{ appliedPeriod }}</p>
-      </div>
-      <div class="metrics-grid three-columns">
-        <div class="metric" *ngFor="let card of home.daySummary.cards">
-          <i class="pi {{ metricIcon(card.key) }}" aria-hidden="true"></i>
-          <strong>{{ metricValue(card) }}</strong>
-          <span class="metric-label">{{ card.label }}</span>
-          <small>{{ metricHelper(card) }}</small>
-        </div>
-      </div>
-    </section>
-
-    <section class="results-section" aria-labelledby="appointments-title">
-      <div class="section-heading">
-        <h2 id="appointments-title">Consultas no período</h2>
-        <p>{{ appliedPeriod }} · {{ home.todayAppointments.length }} consultas</p>
-      </div>
-      <div class="appointments-list" *ngIf="home.todayAppointments.length; else noAppointments">
-        <div class="appointment-row" *ngFor="let appointment of appointmentPageItems">
-          <time>{{ appointmentDate(appointment.startsAt) }}</time>
-          <div class="appointment-person">
-            <strong>{{ appointment.contactName }}</strong>
-            <span>{{ appointment.serviceName }}<ng-container *ngIf="appointment.professionalName"> · {{ appointment.professionalName }}</ng-container></span>
+      <!-- KPIs -->
+      <section class="kpi-grid" aria-label="Indicadores principais">
+        <article class="card kpi" *ngFor="let item of kpiViews">
+          <div class="kpi-head">
+            <span class="kpi-icon"><i class="pi {{ kpiIcon(item.kpi.key) }}" aria-hidden="true"></i></span>
+            <h2>{{ item.kpi.label }}</h2>
           </div>
-          <span class="appointment-status">{{ appointmentStatus(appointment.status) }}</span>
-        </div>
-      </div>
-      <ng-template #noAppointments><p class="empty-state">Nenhuma consulta no período selecionado.</p></ng-template>
-      <nav class="appointment-pagination" aria-label="Páginas de consultas" *ngIf="appointmentPageCount > 1">
-        <button type="button" aria-label="Página anterior" [disabled]="appointmentsPage === 0" (click)="appointmentsPage = appointmentsPage - 1"><i class="pi pi-chevron-left" aria-hidden="true"></i></button>
-        <span>{{ appointmentsPage + 1 }} de {{ appointmentPageCount }}</span>
-        <button type="button" aria-label="Próxima página" [disabled]="appointmentsPage + 1 >= appointmentPageCount" (click)="appointmentsPage = appointmentsPage + 1"><i class="pi pi-chevron-right" aria-hidden="true"></i></button>
-      </nav>
-    </section>
+          <div class="kpi-value">{{ item.value }}</div>
+          <div class="kpi-delta {{ item.delta.tone }}" *ngIf="item.delta; else noDelta"
+               [attr.aria-label]="'Variação: ' + item.delta.text + ' em relação ao período anterior'">
+            <i class="pi {{ item.delta.icon }}" aria-hidden="true"></i>
+            {{ item.delta.text }}
+            <span class="vs">vs. anterior ({{ formatValue(item.kpi.previousValue, item.kpi.unit) }})</span>
+          </div>
+          <ng-template #noDelta><div class="kpi-delta neutral"><span class="vs">Sem base de comparação</span></div></ng-template>
+          <p class="kpi-helper">{{ item.kpi.helper }}</p>
+          <svg *ngIf="item.sparkline; else noSpark" class="sparkline" viewBox="0 0 120 32" preserveAspectRatio="none" aria-hidden="true">
+            <path [attr.d]="item.sparkline" />
+          </svg>
+          <ng-template #noSpark><div class="spark-spacer"></div></ng-template>
+        </article>
+      </section>
 
-    <section class="savings-section" aria-labelledby="savings-title">
-      <div class="section-heading">
-        <h2 id="savings-title">Economia com IA</h2>
-        <p>{{ home.aiSavings.helper }}</p>
+      <!-- Timeline + funnel -->
+      <div class="grid-2-1">
+        <section class="card" aria-labelledby="timeline-title">
+          <div class="card-head">
+            <div>
+              <h2 id="timeline-title">Evolução {{ granularityLabel() }}</h2>
+              <p>Contatos que chegaram e consultas que foram marcadas</p>
+            </div>
+            <button type="button" class="link-btn" (click)="showTimelineTable = !showTimelineTable">
+              <i class="pi" [class.pi-table]="!showTimelineTable" [class.pi-chart-line]="showTimelineTable" aria-hidden="true"></i>
+              {{ showTimelineTable ? 'Ver gráfico' : 'Ver tabela' }}
+            </button>
+          </div>
+          <div class="legend">
+            <span><i class="swatch line" [style.background]="seriesColors.contacts"></i>Novos contatos <strong>{{ number(timelineTotal('newContacts')) }}</strong></span>
+            <span><i class="swatch line" [style.background]="seriesColors.scheduled"></i>Consultas agendadas <strong>{{ number(timelineTotal('scheduledAppointments')) }}</strong></span>
+          </div>
+          <div class="chart-box" *ngIf="!showTimelineTable">
+            <p-chart type="line" [data]="timelineData" [options]="timelineOptions" height="280px"></p-chart>
+          </div>
+          <div class="table-wrap scroll" *ngIf="showTimelineTable">
+            <table class="data-table">
+              <thead><tr><th>Período</th><th class="num">Novos contatos</th><th class="num">Agendadas</th><th class="num">Realizadas</th><th class="num">Conquistados</th></tr></thead>
+              <tbody>
+                <tr *ngFor="let point of data.timeline">
+                  <td>{{ bucketTooltip(point.bucket, data.granularity) }}</td>
+                  <td class="num">{{ point.newContacts }}</td>
+                  <td class="num">{{ point.scheduledAppointments }}</td>
+                  <td class="num">{{ point.completedAppointments }}</td>
+                  <td class="num">{{ point.patientsWon }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="card" aria-labelledby="funnel-title">
+          <div class="card-head">
+            <div>
+              <h2 id="funnel-title">Funil de conversão</h2>
+              <p>O que aconteceu com os contatos que chegaram no período</p>
+            </div>
+          </div>
+          <ol class="funnel" *ngIf="data.funnel[0].value; else funnelEmpty">
+            <li *ngFor="let step of data.funnel; let i = index">
+              <div class="funnel-label">
+                <span>{{ step.label }}</span>
+                <strong>{{ number(step.value) }}</strong>
+              </div>
+              <div class="funnel-track">
+                <div class="funnel-bar" [style.width.%]="funnelWidth(step.value)" [style.background]="funnelColor(i)"></div>
+              </div>
+              <div class="funnel-rate" *ngIf="i > 0">
+                <span>{{ percent(step.rateFromPrevious) }} da etapa anterior</span>
+                <span class="muted">{{ percent(step.rateFromStart) }} do total</span>
+              </div>
+            </li>
+          </ol>
+          <ng-template #funnelEmpty><p class="empty">Nenhum contato novo no período.</p></ng-template>
+        </section>
       </div>
-      <div class="savings-grid">
-        <div class="savings-primary">
-          <span>Economia estimada</span>
-          <strong>{{ savingsAmount() }}</strong>
+
+      <!-- Appointments health -->
+      <div class="grid-2-1">
+        <section class="card" aria-labelledby="status-title">
+          <div class="card-head">
+            <div>
+              <h2 id="status-title">Situação das consultas</h2>
+              <p>{{ number(statusTotal) }} consultas com data no período</p>
+            </div>
+          </div>
+          <ng-container *ngIf="statusTotal; else statusEmpty">
+            <div class="stacked-bar" role="img" [attr.aria-label]="statusAriaLabel()">
+              <ng-container *ngFor="let segment of statusSegments">
+                <div class="segment" *ngIf="segment.value"
+                     [style.flex-grow]="segment.value" [style.background]="segment.color"
+                     [attr.title]="segment.label + ': ' + segment.value + ' (' + number(segment.share, 1) + '%)'"></div>
+              </ng-container>
+            </div>
+            <ul class="status-legend">
+              <li *ngFor="let segment of statusSegments" [class.zero]="!segment.value">
+                <i class="swatch" [style.background]="segment.color" aria-hidden="true"></i>
+                <span class="name">{{ segment.label }}</span>
+                <strong>{{ number(segment.value) }}</strong>
+                <span class="share">{{ number(segment.share, 1) }}%</span>
+              </li>
+            </ul>
+          </ng-container>
+          <ng-template #statusEmpty><p class="empty">Nenhuma consulta com data no período.</p></ng-template>
+        </section>
+
+        <section class="card" aria-labelledby="sources-title">
+          <div class="card-head">
+            <div>
+              <h2 id="sources-title">Origem</h2>
+              <p>Quem agendou e por onde os contatos chegaram</p>
+            </div>
+          </div>
+
+          <div class="meter-block">
+            <div class="meter-head">
+              <span>Agendamentos pela IA</span>
+              <strong>{{ number(sliceShare(data.appointmentOrigin, 'AI'), 1) }}%</strong>
+            </div>
+            <div class="meter"><div class="meter-fill" [style.width.%]="sliceShare(data.appointmentOrigin, 'AI')"></div></div>
+            <p class="meter-foot">
+              {{ number(sliceValue(data.appointmentOrigin, 'AI')) }} pela IA ·
+              {{ number(sliceValue(data.appointmentOrigin, 'MANUAL')) }} pela equipe
+            </p>
+          </div>
+
+          <div class="meter-block" *ngFor="let channel of data.channels">
+            <div class="meter-head">
+              <span>{{ channel.label }}</span>
+              <strong>{{ number(channel.value) }} <small>({{ number(sliceShare(data.channels, channel.key), 1) }}%)</small></strong>
+            </div>
+            <div class="meter"><div class="meter-fill alt" [style.width.%]="sliceShare(data.channels, channel.key)"></div></div>
+          </div>
+          <p class="empty small" *ngIf="!data.channels.length">Nenhum contato novo no período.</p>
+        </section>
+      </div>
+
+      <!-- Rankings -->
+      <div class="grid-2">
+        <section class="card" aria-labelledby="services-title">
+          <div class="card-head"><div><h2 id="services-title">Serviços mais procurados</h2><p>Consultas com data no período</p></div></div>
+          <ol class="rank" *ngIf="data.topServices.length; else rankEmpty">
+            <li *ngFor="let item of data.topServices; let i = index">
+              <span class="pos">{{ i + 1 }}</span>
+              <div class="rank-body">
+                <div class="rank-line"><span class="rank-name" [title]="item.name">{{ item.name }}</span><strong>{{ number(item.total) }}</strong></div>
+                <div class="rank-track"><div class="rank-bar" [style.width.%]="rankWidth(item, data.topServices)"></div></div>
+                <span class="rank-meta">{{ item.completed }} realizadas · {{ item.noShows }} {{ item.noShows === 1 ? 'falta' : 'faltas' }}</span>
+              </div>
+            </li>
+          </ol>
+        </section>
+
+        <section class="card" aria-labelledby="professionals-title">
+          <div class="card-head"><div><h2 id="professionals-title">Profissionais</h2><p>Consultas com data no período</p></div></div>
+          <ol class="rank" *ngIf="data.topProfessionals.length; else rankEmpty">
+            <li *ngFor="let item of data.topProfessionals; let i = index">
+              <span class="pos">{{ i + 1 }}</span>
+              <div class="rank-body">
+                <div class="rank-line"><span class="rank-name" [title]="item.name">{{ item.name }}</span><strong>{{ number(item.total) }}</strong></div>
+                <div class="rank-track"><div class="rank-bar" [style.width.%]="rankWidth(item, data.topProfessionals)"></div></div>
+                <span class="rank-meta">{{ item.completed }} realizadas · {{ item.noShows }} {{ item.noShows === 1 ? 'falta' : 'faltas' }}</span>
+              </div>
+            </li>
+          </ol>
+        </section>
+        <ng-template #rankEmpty><p class="empty">Nenhuma consulta no período.</p></ng-template>
+      </div>
+
+      <!-- Peak hours + response time -->
+      <div class="grid-2-1">
+        <section class="card" aria-labelledby="heat-title">
+          <div class="card-head">
+            <div>
+              <h2 id="heat-title">Horários de maior procura</h2>
+              <p>Mensagens recebidas por dia da semana e hora</p>
+            </div>
+          </div>
+          <p class="heat-caption" aria-live="polite">
+            <ng-container *ngIf="hoveredCell; else peak">{{ cellLabel(hoveredCell.weekday, hoveredCell.hour) }}</ng-container>
+            <ng-template #peak>
+              <ng-container *ngIf="peakLabel; else noPeak"><span class="muted">Pico:</span> {{ peakLabel }}</ng-container>
+              <ng-template #noPeak><span class="muted">Nenhuma mensagem recebida no período.</span></ng-template>
+            </ng-template>
+          </p>
+          <div class="heatmap-scroll">
+            <div class="heatmap" (mouseleave)="hoveredCell = null">
+              <span class="corner"></span>
+              <span class="hour-label" *ngFor="let hour of hours">{{ hour % 3 === 0 ? hour + 'h' : '' }}</span>
+              <ng-container *ngFor="let day of weekdays; let d = index">
+                <span class="day-label">{{ day }}</span>
+                <span class="cell" *ngFor="let hour of hours"
+                      [style.background]="heatColor(heatGrid[d][hour])"
+                      [class.active]="hoveredCell?.weekday === d && hoveredCell?.hour === hour"
+                      [attr.aria-label]="cellLabel(d, hour)" role="img"
+                      (mouseenter)="hoveredCell = { weekday: d, hour: hour }"></span>
+              </ng-container>
+            </div>
+          </div>
+          <div class="heat-scale" aria-hidden="true">
+            <span>Menos</span>
+            <i *ngFor="let color of heatRamp" [style.background]="color"></i>
+            <span>Mais</span>
+          </div>
+        </section>
+
+        <section class="card" aria-labelledby="response-title">
+          <div class="card-head">
+            <div>
+              <h2 id="response-title">Tempo de primeira resposta</h2>
+              <p>Da 1ª mensagem do contato até a resposta</p>
+            </div>
+          </div>
+          <ng-container *ngIf="data.responseTime.sampleSize; else responseEmpty">
+            <div class="hero">
+              <span class="hero-value">{{ duration(data.responseTime.medianMinutes) }}</span>
+              <span class="hero-label">mediana</span>
+            </div>
+            <div class="meter-block">
+              <div class="meter-head">
+                <span>Respondidas em até 5 min</span>
+                <strong>{{ percent(data.responseTime.within5MinutesRate === null ? null : data.responseTime.within5MinutesRate * 100) }}</strong>
+              </div>
+              <div class="meter"><div class="meter-fill" [style.width.%]="(data.responseTime.within5MinutesRate ?? 0) * 100"></div></div>
+            </div>
+            <dl class="facts">
+              <div><dt>Média</dt><dd>{{ duration(data.responseTime.averageMinutes) }}</dd></div>
+              <div><dt>Conversas medidas</dt><dd>{{ number(data.responseTime.sampleSize) }}</dd></div>
+            </dl>
+          </ng-container>
+          <ng-template #responseEmpty><p class="empty">Nenhuma conversa respondida no período.</p></ng-template>
+        </section>
+      </div>
+
+      <!-- AI savings -->
+      <section class="savings" aria-labelledby="savings-title">
+        <div class="savings-main">
+          <span class="savings-kicker"><i class="pi pi-sparkles" aria-hidden="true"></i> Economia com IA</span>
+          <h2 id="savings-title">{{ currency(data.aiSavings.estimatedAmount, data.aiSavings.currency) }}</h2>
+          <p>Estimativa com custo de {{ currency(data.aiSavings.hourlyCost) }}/hora da equipe:
+            {{ data.aiSavings.minutesSavedPerAssistedContact }} min por contato atendido e
+            {{ data.aiSavings.minutesSavedPerScheduledAppointment }} min por agendamento feito pela IA.</p>
         </div>
-        <div class="savings-detail"><strong>{{ savingsTime() }}</strong><span>tempo poupado</span></div>
-        <div class="savings-detail"><strong>{{ home.aiSavings.assistedContacts }}</strong><span>contatos atendidos pela IA</span></div>
-        <div class="savings-detail"><strong>{{ home.aiSavings.aiScheduledAppointments }}</strong><span>agendamentos pela IA</span></div>
-      </div>
-    </section>
+        <dl class="savings-facts">
+          <div><dt>Tempo poupado</dt><dd>{{ savedTime() }}</dd></div>
+          <div><dt>Contatos atendidos pela IA</dt><dd>{{ number(data.aiSavings.assistedContacts) }}</dd></div>
+          <div><dt>Agendamentos pela IA</dt><dd>{{ number(data.aiSavings.aiScheduledAppointments) }}</dd></div>
+        </dl>
+      </section>
+
+      <!-- Appointment list -->
+      <section class="card" aria-labelledby="appointments-title">
+        <div class="card-head">
+          <div>
+            <h2 id="appointments-title">Consultas no período</h2>
+            <p>{{ number(data.appointments.length) }} consultas, sem as canceladas</p>
+          </div>
+        </div>
+        <div class="table-wrap" *ngIf="data.appointments.length; else appointmentsEmpty">
+          <table class="data-table">
+            <thead><tr><th>Data</th><th>Paciente</th><th>Serviço</th><th>Profissional</th><th>Situação</th></tr></thead>
+            <tbody>
+              <tr *ngFor="let appointment of appointmentPageItems">
+                <td class="nowrap">{{ appointmentDate(appointment.startsAt) }}</td>
+                <td class="strong">{{ appointment.contactName }}</td>
+                <td>{{ appointment.serviceName }}</td>
+                <td>{{ appointment.professionalName || '—' }}</td>
+                <td><span class="status-pill"><i [style.background]="statusColor(appointment.status)" aria-hidden="true"></i>{{ appointmentStatus(appointment.status) }}</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <ng-template #appointmentsEmpty><p class="empty">Nenhuma consulta no período.</p></ng-template>
+        <nav class="pagination" aria-label="Páginas de consultas" *ngIf="appointmentPageCount > 1">
+          <button type="button" aria-label="Página anterior" [disabled]="appointmentsPage === 0" (click)="appointmentsPage = appointmentsPage - 1"><i class="pi pi-chevron-left" aria-hidden="true"></i></button>
+          <span>{{ appointmentsPage + 1 }} de {{ appointmentPageCount }}</span>
+          <button type="button" aria-label="Próxima página" [disabled]="appointmentsPage + 1 >= appointmentPageCount" (click)="appointmentsPage = appointmentsPage + 1"><i class="pi pi-chevron-right" aria-hidden="true"></i></button>
+        </nav>
+      </section>
+    </div>
   </ng-container>
 </main>
