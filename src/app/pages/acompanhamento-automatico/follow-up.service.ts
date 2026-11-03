@@ -8,7 +8,11 @@ export type FollowUpTemplateCode =
   | 'INFORMATION_REQUEST_STOPPED'
   | 'INTEREST_WITHOUT_APPOINTMENT'
   | 'APPOINTMENT_REMINDER_ONE_DAY_BEFORE'
-  | 'NO_SHOW';
+  | 'NO_SHOW'
+  | 'APPOINTMENT_CANCELLED'
+  | 'POST_APPOINTMENT_FEEDBACK'
+  | 'PATIENT_RECALL'
+  | 'LEAD_REACTIVATION';
 
 export type FollowUpExecutionStatus = 'SCHEDULED' | 'PROCESSING' | 'PAUSED' | 'COMPLETED' | 'CANCELLED' | 'FAILED';
 export type FollowUpFinishedReason =
@@ -30,6 +34,8 @@ export interface FollowUpTemplate {
   id: number;
   code: FollowUpTemplateCode;
   name: string;
+  /** Sent days or months after the last patient message: needs an approved WhatsApp template. */
+  requiresWhatsappTemplate: boolean;
   enabled: boolean;
   firstDelayMinutes: number;
   maxMessages: number;

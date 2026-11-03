@@ -28,19 +28,43 @@
 
   <section *ngIf="activeTab === 'templates'" class="templates-layout">
     <aside class="template-list" aria-label="Modelos de acompanhamento">
-      <button
-        type="button"
-        *ngFor="let template of templates"
-        class="template-item"
-        [class.selected]="template.code === selectedCode"
-        (click)="selectTemplate(template)">
-        <span class="status-dot" [class.enabled]="template.enabled"></span>
-        <span>
-          <strong>{{ template.name }}</strong>
-          <small>{{ templateDescriptions[template.code] }}</small>
-        </span>
-        <i class="pi pi-chevron-right"></i>
-      </button>
+      <ng-template #templateItem let-template>
+        <button
+          type="button"
+          class="template-item"
+          [class.selected]="template.code === selectedCode"
+          (click)="selectTemplate(template)">
+          <span class="status-dot" [class.enabled]="template.enabled"></span>
+          <span>
+            <strong>{{ template.name }}</strong>
+            <small>{{ describe(template) }}</small>
+            <em class="template-warning" *ngIf="missingWhatsappTemplate(template)"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i>Template não configurado</em>
+          </span>
+          <i class="pi pi-chevron-right"></i>
+        </button>
+      </ng-template>
+
+      <section class="template-group" *ngIf="freeFormTemplates.length" aria-labelledby="free-form-heading">
+        <header>
+          <h2 id="free-form-heading">Não precisam de template</h2>
+          <p>Enviados dentro da janela de 24 horas após a última mensagem do contato. É só ativar.</p>
+        </header>
+        <ng-container *ngFor="let template of freeFormTemplates">
+          <ng-container *ngTemplateOutlet="templateItem; context: { $implicit: template }"></ng-container>
+        </ng-container>
+      </section>
+
+      <section class="template-group" *ngIf="templateRequiredTemplates.length" aria-labelledby="template-required-heading">
+        <header>
+          <h2 id="template-required-heading">Precisam de template WhatsApp</h2>
+          <p>Enviados dias ou meses depois da conversa, fora da janela de 24 horas. Ative e informe o template aprovado na Meta. Pode gerar custo por mensagem.</p>
+          <app-plan-lock-notice *ngIf="templatesLock" [message]="templatesLock" />
+        </header>
+        <ng-container *ngFor="let template of templateRequiredTemplates">
+          <ng-container *ngTemplateOutlet="templateItem; context: { $implicit: template }"></ng-container>
+        </ng-container>
+      </section>
+
       <div class="state" *ngIf="loadingTemplates"><i class="pi pi-spin pi-spinner"></i>Carregando modelos...</div>
       <div class="state error" *ngIf="error && !form">{{ error }}</div>
     </aside>
@@ -61,7 +85,15 @@
       <fieldset class="panel controls-panel" [disabled]="savingTemplate">
         <legend>Regras de envio</legend>
         <div class="fields-grid">
-          <label class="field">
+          <label class="field" *ngIf="isRecall">
+            Enviar após a última consulta, em meses
+            <span class="input-with-unit">
+              <input type="number" name="recallMonths" min="1" max="12" [(ngModel)]="recallMonths" required>
+              <span>meses</span>
+            </span>
+            <small>Contado a partir da consulta concluída. Se o paciente marcar outra consulta antes, o envio é cancelado.</small>
+          </label>
+          <label class="field" *ngIf="!isRecall">
             Aguardar antes do primeiro envio, em minutos
             <span class="input-with-unit">
               <input type="number" name="firstDelayMinutes" min="5" max="43200" [(ngModel)]="form.firstDelayMinutes" required>

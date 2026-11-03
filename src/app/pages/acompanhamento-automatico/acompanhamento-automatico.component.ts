@@ -18,6 +18,8 @@ import {
 
 type Tab = 'templates' | 'executions';
 
+const MINUTES_PER_MONTH = 30 * 24 * 60;
+
 interface TemplateForm extends FollowUpTemplatePayload {
   code: FollowUpTemplateCode;
   name: string;
@@ -44,8 +46,12 @@ export class AcompanhamentoAutomaticoComponent implements OnInit {
   readonly templateDescriptions: Record<FollowUpTemplateCode, string> = {
     INFORMATION_REQUEST_STOPPED: 'Para conversas em que o contato pediu uma informação e parou de responder. Até 2 mensagens dentro da janela de 24 horas.',
     INTEREST_WITHOUT_APPOINTMENT: 'Para contatos que demonstraram interesse, mas ainda não marcaram. Até 2 mensagens dentro da janela de 24 horas.',
-    APPOINTMENT_REMINDER_ONE_DAY_BEFORE: 'Lembra o paciente um dia antes e pede a confirmação da consulta. No WhatsApp, normalmente exige template aprovado.',
-    NO_SHOW: 'Para contatos que faltaram à consulta e precisam de uma retomada cuidadosa. No WhatsApp, normalmente exige template aprovado.',
+    APPOINTMENT_REMINDER_ONE_DAY_BEFORE: 'Lembra o paciente um dia antes e pede a confirmação da consulta.',
+    NO_SHOW: 'Para pacientes que faltaram à consulta e precisam de uma retomada cuidadosa.',
+    APPOINTMENT_CANCELLED: 'Oferece um novo horário no dia seguinte ao cancelamento, se nenhuma outra consulta foi marcada.',
+    POST_APPOINTMENT_FEEDBACK: 'Pergunta como foi o atendimento no dia seguinte à consulta concluída. Inclua o link de avaliação da clínica na mensagem.',
+    PATIENT_RECALL: 'Convida o paciente para o retorno alguns meses após a última consulta concluída.',
+    LEAD_REACTIVATION: 'Última tentativa, dias depois de um contato sem resposta encerrar as mensagens dentro da janela.',
   };
 
   activeTab: Tab = 'templates';
@@ -73,6 +79,37 @@ export class AcompanhamentoAutomaticoComponent implements OnInit {
   ngOnInit(): void {
     void this.planAccess.load();
     void this.loadTemplates();
+  }
+
+  /** Models sent inside the 24h channel window: work without an approved WhatsApp template. */
+  get freeFormTemplates(): FollowUpTemplate[] {
+    return this.templates.filter(item => !item.requiresWhatsappTemplate);
+  }
+
+  /** Models sent outside the 24h channel window: need an approved WhatsApp template. */
+  get templateRequiredTemplates(): FollowUpTemplate[] {
+    return this.templates.filter(item => item.requiresWhatsappTemplate);
+  }
+
+  describe(template: FollowUpTemplate): string {
+    return this.templateDescriptions[template.code] ?? '';
+  }
+
+  missingWhatsappTemplate(template: FollowUpTemplate): boolean {
+    return template.requiresWhatsappTemplate && !template.whatsappTemplateName?.trim();
+  }
+
+  get isRecall(): boolean {
+    return this.form?.code === 'PATIENT_RECALL';
+  }
+
+  /** Recall delay is edited in months (30 days each) and stored in minutes. */
+  get recallMonths(): number {
+    return this.form ? Math.round(this.form.firstDelayMinutes / MINUTES_PER_MONTH) : 0;
+  }
+
+  set recallMonths(value: number) {
+    if (this.form) this.form.firstDelayMinutes = Math.round(Number(value) * MINUTES_PER_MONTH);
   }
 
   get selectedTemplate(): FollowUpTemplate | null {
@@ -329,7 +366,9 @@ export class AcompanhamentoAutomaticoComponent implements OnInit {
   }
 
   private validate(form: TemplateForm): string {
-    if (form.firstDelayMinutes < 5 || form.firstDelayMinutes > 43200) return 'O primeiro atraso deve ficar entre 5 minutos e 30 dias.';
+    if (form.code === 'PATIENT_RECALL') {
+      if (form.firstDelayMinutes < MINUTES_PER_MONTH || form.firstDelayMinutes > 12 * MINUTES_PER_MONTH) return 'O retorno deve ficar entre 1 e 12 meses após a consulta.';
+    } else if (form.firstDelayMinutes < 5 || form.firstDelayMinutes > 43200) return 'O primeiro atraso deve ficar entre 5 minutos e 30 dias.';
     if (form.intervalMinutes < 15 || form.intervalMinutes > 43200) return 'O intervalo entre mensagens deve ficar entre 15 minutos e 30 dias.';
     if (form.maxMessages < 1 || form.maxMessages > 3) return 'A quantidade de mensagens deve ficar entre 1 e 3.';
     if (!form.messageOne?.trim()) return 'Informe a primeira mensagem.';
