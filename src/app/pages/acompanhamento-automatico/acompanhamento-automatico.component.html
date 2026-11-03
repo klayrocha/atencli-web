@@ -67,7 +67,8 @@
               <input type="number" name="firstDelayMinutes" min="5" max="43200" [(ngModel)]="form.firstDelayMinutes" required>
               <span>minutos</span>
             </span>
-            <small>{{ minutesHint(form.firstDelayMinutes) }} após a conversa entrar neste modelo. Mínimo: 5 minutos. Máximo: 43200 minutos = 30 dias.</small>
+            <small *ngIf="form.code !== 'APPOINTMENT_REMINDER_ONE_DAY_BEFORE'">{{ minutesHint(form.firstDelayMinutes) }} após a conversa entrar neste modelo. Mínimo: 5 minutos. Máximo: 43200 minutos = 30 dias.</small>
+            <small *ngIf="form.code === 'APPOINTMENT_REMINDER_ONE_DAY_BEFORE'">Não se aplica: o lembrete é enviado 24 horas antes do horário da consulta.</small>
           </label>
           <label class="field">
             Máximo de mensagens
@@ -76,7 +77,8 @@
               <option [ngValue]="2">2 mensagens</option>
               <option [ngValue]="3">3 mensagens</option>
             </select>
-            <small>&nbsp;</small>
+            <small *ngIf="form.maxMessages > 2">A 3ª mensagem costuma cair fora da janela de 24 horas e só é enviada com template WhatsApp aprovado.</small>
+            <small *ngIf="form.maxMessages <= 2">&nbsp;</small>
           </label>
           <label class="field">
             Intervalo entre mensagens, em minutos
@@ -103,7 +105,7 @@
           </label -->
         </div>
         <p class="timing-note">
-          Se o tempo de espera terminar fora da janela diária, o envio será feito no próximo horário permitido.
+          Se o tempo de espera terminar fora da janela diária, o envio será feito no próximo horário permitido. Nos modelos de contato sem resposta, quando isso ultrapassaria a janela de 24 horas do canal e não há template aprovado, o envio é antecipado para o último horário permitido antes de a janela fechar.
         </p>
         <p class="channel-note">
           <i class="pi pi-instagram" aria-hidden="true"></i>

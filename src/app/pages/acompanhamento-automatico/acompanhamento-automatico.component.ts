@@ -42,13 +42,10 @@ export class AcompanhamentoAutomaticoComponent implements OnInit {
   ];
   readonly statuses: FollowUpExecutionStatus[] = ['SCHEDULED', 'PROCESSING', 'PAUSED', 'COMPLETED', 'CANCELLED', 'FAILED'];
   readonly templateDescriptions: Record<FollowUpTemplateCode, string> = {
-    INFORMATION_REQUEST_STOPPED: 'Para conversas em que o contato pediu uma informação e parou de responder.',
-    INTEREST_WITHOUT_APPOINTMENT: 'Para contatos qualificados que demonstraram interesse, mas ainda não marcaram.',
-    APPOINTMENT_CONFIRMATION: 'Para consultas agendadas que precisam de confirmação antes do atendimento.',
-    APPOINTMENT_REMINDER_ONE_DAY_BEFORE: 'Para lembrar o paciente um dia antes da consulta marcada.',
-    NO_SHOW: 'Para contatos que faltaram à consulta e precisam de uma retomada cuidadosa.',
-    RETURN_REQUESTED: 'Para contatos que pediram retorno em outra data ou ficaram para reativação futura.',
-    STAGE_PATIENT_WON: 'Para enviar uma mensagem quando a conversa chegar em Paciente conquistado.',
+    INFORMATION_REQUEST_STOPPED: 'Para conversas em que o contato pediu uma informação e parou de responder. Até 2 mensagens dentro da janela de 24 horas.',
+    INTEREST_WITHOUT_APPOINTMENT: 'Para contatos que demonstraram interesse, mas ainda não marcaram. Até 2 mensagens dentro da janela de 24 horas.',
+    APPOINTMENT_REMINDER_ONE_DAY_BEFORE: 'Lembra o paciente um dia antes e pede a confirmação da consulta. No WhatsApp, normalmente exige template aprovado.',
+    NO_SHOW: 'Para contatos que faltaram à consulta e precisam de uma retomada cuidadosa. No WhatsApp, normalmente exige template aprovado.',
   };
 
   activeTab: Tab = 'templates';

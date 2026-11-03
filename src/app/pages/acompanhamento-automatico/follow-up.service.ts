@@ -7,11 +7,8 @@ import { AuthService } from '../../auth/auth.service';
 export type FollowUpTemplateCode =
   | 'INFORMATION_REQUEST_STOPPED'
   | 'INTEREST_WITHOUT_APPOINTMENT'
-  | 'APPOINTMENT_CONFIRMATION'
   | 'APPOINTMENT_REMINDER_ONE_DAY_BEFORE'
-  | 'NO_SHOW'
-  | 'RETURN_REQUESTED'
-  | 'STAGE_PATIENT_WON';
+  | 'NO_SHOW';
 
 export type FollowUpExecutionStatus = 'SCHEDULED' | 'PROCESSING' | 'PAUSED' | 'COMPLETED' | 'CANCELLED' | 'FAILED';
 export type FollowUpFinishedReason =
