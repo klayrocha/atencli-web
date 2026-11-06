@@ -1,0 +1,22 @@
+<aside *ngIf="guidance() as tip" class="assistant" aria-label="Assistente de configuração AtenClin">
+  <section *ngIf="expanded()" id="wizard-assistant-message" class="bubble" aria-live="polite">
+    <button type="button" class="close" aria-label="Recolher dicas de configuração" (click)="expanded.set(false)">
+      <i class="pi pi-times" aria-hidden="true"></i>
+    </button>
+    <span class="eyebrow">ASSISTENTE ATENCLIN</span>
+    <h2>{{ tip.title }}</h2>
+    <p>Os dados já vêm previamente configurados com as melhores práticas. Se desejar alterar, fique à vontade!</p>
+    <p>{{ tip.text }}</p>
+    <a class="guide" [href]="'ajuda-docs/artigos/' + tip.guide" target="_blank" rel="noopener noreferrer">
+      Ver guia de configuração <i class="pi pi-external-link" aria-hidden="true"></i>
+      <span class="sr-only"> (abre em outra aba)</span>
+    </a>
+  </section>
+  <div class="avatar-row">
+    <button *ngIf="!expanded()" type="button" class="show-tip" (click)="expanded.set(true)" aria-controls="wizard-assistant-message" [attr.aria-expanded]="expanded()">Mostrar dica</button>
+    <a class="avatar" [href]="'ajuda-docs/artigos/' + tip.guide" target="_blank" rel="noopener noreferrer" aria-label="Abrir guia de configuração AtenClin em outra aba">
+      <img src="logo.png" alt="AtenClin" width="64" height="64">
+      <span class="badge" aria-hidden="true"><i class="pi pi-question"></i></span>
+    </a>
+  </div>
+</aside>

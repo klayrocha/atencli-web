@@ -68,4 +68,36 @@ describe('Pending configuration navigation', () => {
     expect(modal.visible()).toBeTrue();
     modal.cancel(); expect(await navigation).toBeFalse();
   });
+  it('discards local drafts and allows departure without saving after a validation error', async () => {
+    const discard = jasmine.createSpy('discard');
+    editor.configurationChanges = new ConfigurationChanges(() => value, save, () => 'Área com serviços vinculados.', discard);
+    editor.configurationChanges.markSaved();
+    value = 'changed';
+    const navigation = leave();
+    save.and.resolveTo(false);
+    await modal.save();
+    save.calls.reset();
+    modal.discard();
+    expect(discard).toHaveBeenCalledTimes(1);
+    expect(save).not.toHaveBeenCalled();
+    expect(modal.visible()).toBeFalse();
+    expect(modal.error()).toBe('');
+    expect(await navigation).toBeTrue();
+  });
+  it('shows the clinic type dependency error inside the modal and clears it on retry', async () => {
+    let error = '';
+    editor.configurationChanges = new ConfigurationChanges(() => value, save, () => error);
+    editor.configurationChanges.markSaved();
+    value = 'changed';
+    const navigation = leave();
+    const message = 'Remova as especialidades e os serviços dessa área nos próximos passos antes de excluí-la.';
+    save.and.callFake(async () => { error = message; return false; });
+    await modal.save();
+    expect(modal.error()).toBe(message);
+    expect(modal.visible()).toBeTrue();
+    save.and.callFake(async () => { error = ''; editor.configurationChanges.markSaved(); return true; });
+    await modal.save();
+    expect(modal.error()).toBe('');
+    expect(await navigation).toBeTrue();
+  });
 });

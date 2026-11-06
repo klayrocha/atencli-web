@@ -55,7 +55,7 @@ interface Step1Draft {
   styleUrls: ['./wizard-step-1-about.component.scss'],
 })
 export class WizardStep1AboutComponent implements OnInit {
-  readonly configurationChanges = new ConfigurationChanges(() => [this.clinicName, [...this.clinicTypeIds].sort(), this.shortDescription, this.city, this.state, this.clinicPhone, this.clinicEmail, this.acceptsHealthPlan, [...this.healthPlanIds].sort()], () => this.saveConfiguration());
+  readonly configurationChanges = new ConfigurationChanges(() => [this.clinicName, [...this.clinicTypeIds].sort(), this.shortDescription, this.city, this.state, this.clinicPhone, this.clinicEmail, this.acceptsHealthPlan, [...this.healthPlanIds].sort()], () => this.saveConfiguration(), () => this.saveError(), () => sessionStorage.removeItem(DRAFT_KEY));
 
 
   // ─── Campos do formulário ──────────────────────────────────────────────────

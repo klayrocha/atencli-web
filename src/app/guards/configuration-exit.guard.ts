@@ -22,6 +22,12 @@ export class ConfigurationExitService {
     return new Promise(resolve => { this.resolve = resolve; });
   }
   cancel(): void { if (!this.saving()) this.finish(false); }
+  discard(): void {
+    if (this.saving() || !this.editor) return;
+    this.editor.configurationChanges.discard();
+    this.error.set('');
+    this.finish(true);
+  }
   async save(): Promise<void> {
     if (this.saving() || !this.editor) return;
     this.saving.set(true);
@@ -30,7 +36,7 @@ export class ConfigurationExitService {
       if (await this.editor.configurationChanges.save() && !this.editor.configurationChanges.hasChanges()) {
         this.finish(true);
       } else {
-        this.error.set('Não foi possível salvar. Volte à tela para conferir os campos ou tente novamente.');
+        this.error.set(this.editor.configurationChanges.saveError() || 'Não foi possível salvar. Volte à tela para conferir os campos ou tente novamente.');
       }
     } catch {
       this.error.set('Não foi possível salvar as configurações. Tente novamente.');

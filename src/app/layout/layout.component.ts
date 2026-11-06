@@ -1,4 +1,5 @@
 import { ConfigurationEditor } from '../guards/configuration-exit.guard';
+import { WizardAssistantComponent } from '../pages/wizard-shared/wizard-assistant.component';
 import { OnboardingProgressService } from '../pages/wizard-shared/onboarding-progress.service';
 import { ConfigurationExitDialogComponent } from '../pages/wizard-shared/configuration-exit-dialog.component';
 import { Component, DestroyRef, HostListener, OnInit, inject } from '@angular/core';
@@ -12,9 +13,10 @@ import { TopbarComponent } from './topbar/topbar.component';
 @Component({
   selector: 'app-layout',
   standalone: true,
-  imports: [ConfigurationExitDialogComponent, CommonModule, RouterOutlet, SidebarComponent, TopbarComponent],
+  imports: [WizardAssistantComponent, ConfigurationExitDialogComponent, CommonModule, RouterOutlet, SidebarComponent, TopbarComponent],
   template: `
     <app-configuration-exit-dialog />
+    <app-wizard-assistant *ngIf="!mobileMenuOpen" />
     <div class="layout-wrapper" [class.mobile-menu-open]="mobileMenuOpen">
       <button *ngIf="mobileMenuOpen" class="mobile-menu-backdrop" (click)="mobileMenuOpen = false" aria-label="Fechar menu"></button>
       <app-sidebar id="main-navigation" [collapsed]="isMobile ? false : sidebarCollapsed" (collapsedChange)="sidebarCollapsed = $event"></app-sidebar>

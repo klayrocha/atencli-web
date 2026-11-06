@@ -38,7 +38,7 @@ export interface SpecialtyItem {
   styleUrls: ['./wizard-step-2-specialty.component.scss'],
 })
 export class WizardStep2SpecialtyComponent implements OnInit {
-  readonly configurationChanges = new ConfigurationChanges(() => [...this.selectedSpecialties.map(item => item.id)].sort(), () => this.saveConfiguration());
+  readonly configurationChanges = new ConfigurationChanges(() => [...this.selectedSpecialties.map(item => item.id)].sort(), () => this.saveConfiguration(), () => '', () => sessionStorage.removeItem(DRAFT_KEY));
 
   searchTerm = '';
   saving = signal(false);

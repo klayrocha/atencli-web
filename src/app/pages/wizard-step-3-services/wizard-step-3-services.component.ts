@@ -1,4 +1,5 @@
 import { Optional } from '@angular/core';
+import { serviceTypeIcon } from './service-type-icons';
 import { OnboardingProgressService } from '../wizard-shared/onboarding-progress.service';
 import { ConfigurationChanges } from '../wizard-shared/configuration-changes';
 import { WizardStepperComponent } from '../wizard-shared/wizard-stepper.component';
@@ -253,8 +254,8 @@ export class WizardStep3ServicesComponent implements OnInit {
         return {
           id: Number(service.id),
           name: service.name,
-          icon: 'pi-briefcase',
-          category: typeIds.length > 1 ? typeNames.get(service.typeClientId) ?? 'Serviço' : 'Serviço',
+          icon: serviceTypeIcon(service.typeClientId),
+          category: typeNames.get(service.typeClientId) ?? 'Serviço',
           suggestedPrice: service.valor ?? configuredService?.defaultValue ?? null,
           practicePrice: configuredService?.price ?? null,
           insurancePrice: configuredService?.planPrice ?? null,

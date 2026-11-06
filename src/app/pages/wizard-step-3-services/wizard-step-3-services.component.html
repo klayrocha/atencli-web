@@ -118,8 +118,10 @@
               <!-- Nome do serviço -->
               <td class="col-name">
                 <div class="service-name-cell">
-                  <div class="service-icon">
-                    <i class="pi {{ service.icon }}"></i>
+                  <div class="service-icon" aria-hidden="true">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" focusable="false">
+                      <path [attr.d]="service.icon"></path>
+                    </svg>
                   </div>
                   <div class="service-info">
                     <span class="service-name">{{ service.name }}</span>
