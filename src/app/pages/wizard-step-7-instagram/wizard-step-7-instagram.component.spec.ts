@@ -5,12 +5,21 @@ import { withPlanAccess } from '../subscription/plan-access.testing';
 
 describe('Instagram OAuth popup', () => {
   let component: WizardStep7InstagramComponent;
-  let api: { getOAuthConfig: jasmine.Spy };
+  let api: { getOAuthConfig: jasmine.Spy; getOAuthAccounts: jasmine.Spy; connect: jasmine.Spy };
+  let router: { navigate: jasmine.Spy };
   let popup: Window;
   beforeEach(() => {
-    api = { getOAuthConfig: jasmine.createSpy().and.resolveTo({ appId: '123', scopes: ['instagram_business_basic'] }) };
+    api = {
+      getOAuthConfig: jasmine.createSpy().and.resolveTo({ appId: '123', scopes: ['instagram_business_basic'] }),
+      getOAuthAccounts: jasmine.createSpy().and.resolveTo({
+        connectionToken: 'encrypted-token',
+        accounts: [{ instagramUserId: 'ig-account', username: 'clinic' }],
+      }),
+      connect: jasmine.createSpy().and.resolveTo({ id: 1, instagramUserId: 'ig-account', enabled: true, connectionStatus: 'CONNECTED' }),
+    };
+    router = { navigate: jasmine.createSpy().and.resolveTo(true) };
     component = withPlanAccess(() => new WizardStep7InstagramComponent(
-      { navigate: jasmine.createSpy().and.resolveTo(true) } as any,
+      router as any,
       { snapshot: { queryParamMap: convertToParamMap({}) } } as any,
       { currentProfile: () => ({ roles: ['ADMIN'] }) } as any, api as any));
     component.loading.set(false);
@@ -50,6 +59,15 @@ describe('Instagram OAuth popup', () => {
     expect(popup.close).toHaveBeenCalled();
     expect(component.starting()).toBeFalse();
   }));
+  it('connects the sole authorized account after OAuth without another click', async () => {
+    sessionStorage.setItem('atenclin:instagram-oauth-state', 'expected-state');
+    await component.exchangeCode('oauth-code', 'expected-state');
+    expect(api.getOAuthAccounts).toHaveBeenCalledWith('oauth-code', jasmine.any(String));
+    expect(api.connect).toHaveBeenCalledWith('encrypted-token', 'ig-account');
+    expect(component.integration?.id).toBe(1);
+    expect(component.connectionStatus).toBe('CONNECTED');
+    expect(router.navigate).not.toHaveBeenCalled();
+  });
   it('allows retry when the popup is closed', fakeAsync(() => {
     spyOn(window, 'open').and.returnValue(popup);
     void component.beginConnection();

@@ -12,6 +12,7 @@ export interface ApiPage<T> {
 }
 export interface ConversationSummary {
   id: number;
+  channel?: 'WHATSAPP' | 'INSTAGRAM';
   profileName: string | null;
   stage: string | null;
   updatedAt: string | null;
@@ -23,6 +24,8 @@ export interface ConversationSummary {
 }
 export interface ConversationDetail {
   id: number;
+  channel?: 'WHATSAPP' | 'INSTAGRAM';
+  externalContactId?: string | null;
   profileName: string | null;
   name: string | null;
   email: string | null;
@@ -43,7 +46,7 @@ export interface ConversationMessage {
   id: number;
   metaMessageId: string | null;
   direction: 'INBOUND' | 'OUTBOUND';
-  source: 'CLOUD_API' | 'BUSINESS_APP' | 'HISTORY';
+  source: 'CLOUD_API' | 'BUSINESS_APP' | 'HISTORY' | 'INSTAGRAM_API';
   messageType: string;
   textBody: string | null;
   status: string;
@@ -82,6 +85,9 @@ export class ConversationsService {
     return firstValueFrom(this.http.get<ApiPage<ConversationMessage>>(`${this.url}/conversations/${id}/messages`, {
       headers: this.headers, params: new HttpParams().set('page', page).set('size', 100),
     }));
+  }
+  sendInstagram(to: string, text: string): Promise<ConversationMessage> {
+    return firstValueFrom(this.http.post<ConversationMessage>(`${environment.apiBaseUrl}/api/v1/instagram/messages`, { to, text }, { headers: this.headers }));
   }
   send(to: string, text: string): Promise<ConversationMessage> {
     return firstValueFrom(this.http.post<ConversationMessage>(`${this.url}/messages`, { to, text }, { headers: this.headers }));

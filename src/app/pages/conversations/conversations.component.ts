@@ -115,7 +115,9 @@ export class ConversationsComponent implements OnInit, OnDestroy, AfterViewCheck
   private readonly planAccess = inject(PlanAccessService);
   readonly waiting = inject(WaitingConversationsService);
   /** Envio manual exige assinatura ativa; null quando liberado. */
-  get planLock(): string | null { return this.planAccess.lockMessage(); }
+  get planLock(): string | null { return this.planAccess.lockMessage(this.channel === 'INSTAGRAM' ? 'INSTAGRAM' : undefined); }
+  get channel(): 'WHATSAPP' | 'INSTAGRAM' { return this.detail?.channel ?? this.selected?.channel ?? 'WHATSAPP'; }
+  get recipient(): string | null { return this.channel === 'INSTAGRAM' ? this.detail?.externalContactId ?? null : this.detail?.phone ?? null; }
 
   ngOnInit(): void {
     void this.planAccess.load();
@@ -134,7 +136,7 @@ export class ConversationsComponent implements OnInit, OnDestroy, AfterViewCheck
     const list = this.conversations.filter(c => normalize(`${c.profileName ?? ''} ${c.lastMessageText ?? ''}`).includes(normalize(this.query)));
     return this.ascending ? [...list].reverse() : list;
   }
-  get canSend() { return !this.planLock && !!this.detail?.phone && !this.loadingDetail && !this.detailError && !this.sending && !!this.draft.trim() && this.draft.length <= 4096; }
+  get canSend() { return !this.planLock && !!this.recipient && !this.loadingDetail && !this.detailError && !this.sending && !!this.draft.trim() && this.draft.length <= 4096; }
 
   async setFilter(filter: ConversationFilter): Promise<void> {
     if (filter === this.filter) return;
@@ -231,6 +233,7 @@ export class ConversationsComponent implements OnInit, OnDestroy, AfterViewCheck
       const latestMessage = messages.content.length ? messages.content[messages.content.length - 1] : null;
       this.selected = {
         id: detail.id,
+        channel: detail.channel,
         profileName: detail.profileName || detail.name,
         stage: detail.stage,
         updatedAt: latestMessage?.createdAt ?? null,
@@ -263,14 +266,16 @@ export class ConversationsComponent implements OnInit, OnDestroy, AfterViewCheck
   }
 
   async send(): Promise<void> {
-    if (!this.canSend || !this.selected || !this.detail?.phone) return;
+    if (!this.canSend || !this.selected || !this.recipient) return;
     const id = this.selected.id;
     const draft = this.draft;
     const version = this.selectionVersion;
     this.sending = true;
     this.sendError = '';
     try {
-      const message = await this.api.send(this.detail.phone, draft.trim());
+      const message = this.channel === 'INSTAGRAM'
+        ? await this.api.sendInstagram(this.recipient, draft.trim())
+        : await this.api.send(this.recipient, draft.trim());
       if (this.destroyed) return;
       if (message.status === 'FAILED') {
         if (version === this.selectionVersion) this.sendError = 'Não foi possível enviar a mensagem. O texto foi mantido para você tentar novamente.';
@@ -311,7 +316,7 @@ export class ConversationsComponent implements OnInit, OnDestroy, AfterViewCheck
     return `${types[message.messageType.toLowerCase()] ?? 'Mensagem sem texto'} (visualização indisponível)`;
   }
   messageStatus(status: string): string {
-    const labels: Record<string, string> = { SENT: 'Enviada', DELIVERED: 'Entregue', READ: 'Lida', FAILED: 'Falha no envio', PENDING: 'Pendente', RECEIVED: 'Recebida' };
+    const labels: Record<string, string> = { ACCEPTED: 'Aceita pela Meta', SENT: 'Enviada', DELIVERED: 'Entregue', READ: 'Lida', FAILED: 'Falha no envio', PENDING: 'Pendente', RECEIVED: 'Recebida' };
     return labels[status.toUpperCase()] ?? status;
   }
   private clearSelection(): void {

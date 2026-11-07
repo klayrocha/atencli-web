@@ -19,11 +19,12 @@ describe('Conversations API integration', () => {
   beforeEach(() => {
     waiting = { count: signal(0), refresh: jasmine.createSpy('refresh').and.resolveTo() };
     TestBed.configureTestingModule({ providers: [{ provide: WaitingConversationsService, useValue: waiting }] });
-    api = jasmine.createSpyObj('ConversationsService', ['list', 'detail', 'messages', 'send', 'assignees', 'assign']);
+    api = jasmine.createSpyObj('ConversationsService', ['list', 'detail', 'messages', 'send', 'sendInstagram', 'assignees', 'assign']);
     api.list.and.resolveTo(page([summary(1)]));
     api.detail.and.callFake(async id => detail(id));
     api.messages.and.resolveTo(page([message(1)]));
     api.send.and.resolveTo(message(2));
+    api.sendInstagram.and.resolveTo({ ...message(2), source: 'INSTAGRAM_API' });
     component = withPlanAccess(() => new ConversationsComponent(api, {} as ActivatedRoute, { currentProfile: () => ({ userUuid: 'me' }), currentUser: () => null } as unknown as AuthService));
   });
   it('loads summaries, contact data and messages without mock contacts', async () => {
@@ -66,6 +67,16 @@ describe('Conversations API integration', () => {
     expect(component.draft).toBe('');
     await component.select(summary(1));
     expect(component.draft).toBe('Rascunho 1');
+  });
+  it('sends Instagram replies using the Instagram account ID without a phone', async () => {
+    api.list.and.resolveTo(page([{ ...summary(1), channel: 'INSTAGRAM' }]));
+    api.detail.and.resolveTo({ ...detail(1), channel: 'INSTAGRAM', externalContactId: 'ig-contact', phone: null });
+    await component.load();
+    component.draft = 'Resposta no Instagram';
+    expect(component.canSend).toBeTrue();
+    await component.send();
+    expect(api.sendInstagram).toHaveBeenCalledWith('ig-contact', 'Resposta no Instagram');
+    expect(api.send).not.toHaveBeenCalled();
   });
   it('preserves the draft after send failure and prevents duplicate sends', async () => {
     await component.select(summary(1));

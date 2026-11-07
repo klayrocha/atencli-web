@@ -20,7 +20,7 @@
     <div class="api-error" *ngIf="listError" role="alert">{{ listError }} <button (click)="load(listPage >= 0)" [disabled]="loading">Tentar novamente</button></div>
     <div class="conversation-list">
       <button *ngFor="let conversation of filteredConversations" class="conversation" [class.selected]="selected?.id === conversation.id" [attr.aria-pressed]="selected?.id === conversation.id" (click)="select(conversation)">
-        <span class="avatar"><i class="pi pi-image" aria-hidden="true"></i><i class="pi pi-whatsapp channel" aria-hidden="true"></i></span>
+        <span class="avatar"><i class="pi pi-image" aria-hidden="true"></i><i class="pi channel" [class.pi-instagram]="conversation.channel === 'INSTAGRAM'" [class.pi-whatsapp]="conversation.channel !== 'INSTAGRAM'" aria-hidden="true"></i></span>
         <span class="conversation-copy">
           <span class="conversation-title"><strong>{{ conversation.profileName || 'Contato sem nome' }}</strong><time>{{ conversation.updatedAt | date:'dd/MM HH:mm' }}</time></span>
           <span class="conversation-bottom"><span class="preview">{{ conversation.lastMessageText || 'Sem mensagem de texto' }}</span><span class="badges"><span *ngIf="conversation.waitingForTeam" class="badge orange" [title]="handoffReason(conversation.handoffReason)">Aguarda equipe</span><span *ngIf="conversation.stage" class="badge green">{{ conversation.stage }}</span></span></span>
@@ -38,7 +38,7 @@
   <section class="chat" aria-label="Conversa selecionada" *ngIf="selected as current; else noSelection">
     <header class="chat-heading">
       <button class="icon-button back-button" (click)="mobileChat = false" aria-label="Voltar para conversas"><i class="pi pi-arrow-left"></i></button>
-      <span class="avatar"><i class="pi pi-image" aria-hidden="true"></i><i class="pi pi-whatsapp channel" aria-hidden="true"></i></span>
+      <span class="avatar"><i class="pi pi-image" aria-hidden="true"></i><i class="pi channel" [class.pi-instagram]="channel === 'INSTAGRAM'" [class.pi-whatsapp]="channel !== 'INSTAGRAM'" aria-hidden="true"></i></span>
       <div class="chat-person"><h2>{{ detail?.name || detail?.profileName || current.profileName || 'Contato sem nome' }}</h2><p>{{ detail?.origin || 'Origem não informada' }} <span *ngIf="detail?.stage">· {{ detail?.stage }}</span></p></div>
       <div class="tools chat-tools">
         <button class="icon-button" (click)="select(current, false)" [disabled]="loadingDetail || sending" aria-label="Atualizar mensagens"><i class="pi pi-refresh"></i></button>
@@ -75,12 +75,12 @@
       <div class="composer">
         <div class="composer-tabs"><span class="composer-label">Mensagem</span></div>
         <form (ngSubmit)="send()" class="message-input">
-          <p class="window-warning"><i class="pi pi-info-circle" aria-hidden="true"></i> Mensagens livres no WhatsApp só podem ser enviadas dentro da janela de 24 horas após a última mensagem do cliente.</p>
+          <p class="window-warning"><i class="pi pi-info-circle" aria-hidden="true"></i> Mensagens no {{ channel === 'INSTAGRAM' ? 'Instagram' : 'WhatsApp' }} só podem ser enviadas dentro da janela de 24 horas após a última mensagem do cliente.</p>
           <textarea name="message" [(ngModel)]="draft" maxlength="4096" [disabled]="!detail || loadingDetail || sending || !!detailError || !!planLock" placeholder="Digite sua mensagem..." aria-label="Mensagem"></textarea>
           <div class="composer-bottom"><small>{{ draft.length }}/4096</small><button type="submit" class="send-button" [disabled]="!canSend" aria-label="Enviar mensagem"><i class="pi" [class.pi-send]="!sending" [class.pi-spinner]="sending" [class.pi-spin]="sending"></i></button></div>
         </form>
         <app-plan-lock-notice *ngIf="planLock" [message]="planLock" />
-        <p class="contact-hint" *ngIf="detail && !detail.phone">O contato não tem um número disponível para envio.</p>
+        <p class="contact-hint" *ngIf="detail && !recipient">{{ channel === 'INSTAGRAM' ? 'O contato do Instagram não está disponível para resposta.' : 'O contato não tem um número disponível para envio.' }}</p>
       </div>
       <div *ngIf="sendError" class="api-error" role="alert">{{ sendError }}</div>
     </div>

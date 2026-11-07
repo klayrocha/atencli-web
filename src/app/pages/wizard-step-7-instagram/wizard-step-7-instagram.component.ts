@@ -247,7 +247,14 @@ export class WizardStep7InstagramComponent implements OnInit, OnDestroy {
   }
 
   private async clearCallbackUrl(): Promise<void> {
-    await this.router.navigate(['/wizard-step-7-instagram'], { replaceUrl: true });
+    const params = this.route.snapshot.queryParamMap;
+    if (!['code', 'state', 'error', 'error_message'].some(key => params.has(key))) return;
+    await this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { code: null, state: null, error: null, error_message: null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
   }
 
   private errorMessage(error: unknown): string {
