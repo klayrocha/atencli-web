@@ -30,7 +30,9 @@ export class OAuth2CallbackComponent implements OnInit {
     } else if (token) {
       this.auth.handleGoogleCallback(token);
     } else {
-      if (error === 'email_already_registered') {
+      if (error === 'google_email_not_verified') {
+        this.auth.error.set('O e-mail desta conta Google ainda não foi verificado pelo Google. Verifique o e-mail na sua conta Google ou cadastre-se com e-mail e senha.');
+      } else if (error === 'email_already_registered') {
         this.auth.error.set('Este e-mail já está cadastrado com login local. Entre com e-mail e senha.');
       } else if (error) {
         this.auth.error.set('Não foi possível entrar com o Google. Tente novamente ou use e-mail e senha.');
