@@ -139,12 +139,13 @@ export class RegisterComponent {
       await this.auth.registerUser(payload);
       this.registered.set(true);
     } catch (err: any) {
-      if (err?.error?.message) {
+      if (err?.status === 429) {
+        // Checked first: the rate-limit body carries an English message.
+        this.error.set('Muitas tentativas de cadastro. Aguarde um pouco e tente novamente.');
+      } else if (err?.error?.message) {
         this.error.set(err.error.message);
       } else if (err?.status === 400) {
         this.error.set('Dados inválidos. Verifique as informações preenchidas.');
-      } else if (err?.status === 409) {
-        this.error.set('Este e-mail já está cadastrado.');
       } else {
         this.error.set('Ocorreu um erro ao processar o cadastro. Tente novamente mais tarde.');
       }

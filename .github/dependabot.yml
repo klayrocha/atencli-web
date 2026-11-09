@@ -1,0 +1,34 @@
+# Dependabot: weekly pull requests for outdated npm dependencies. Security fixes for known vulnerabilities
+# also arrive as pull requests once "Dependabot alerts" and "Dependabot security updates" are enabled in
+# GitHub: Settings > Code security.
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    groups:
+      # Minor and patch updates in a single pull request; major versions come one by one.
+      minor-and-patch:
+        update-types: ["minor", "patch"]
+    ignore:
+      # The Angular/PrimeNG major upgrade is a planned piece of work (ng update, version by version), not a
+      # pull request bump. Remove these entries when that upgrade is done.
+      - dependency-name: "@angular/*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@angular-devkit/*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "primeng"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "primeicons"
+        update-types: ["version-update:semver-major"]
+  - package-ecosystem: "npm"
+    directory: "/help"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 3
+    groups:
+      docusaurus:
+        patterns: ["*"]
