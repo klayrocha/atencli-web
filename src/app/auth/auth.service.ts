@@ -99,6 +99,8 @@ export class AuthService {
       if (err instanceof HttpErrorResponse) {
         if (err.status === 401 || err.status === 403) {
           this.error.set('E-mail ou senha incorretos.');
+        } else if (err.status === 429) {
+          this.error.set('Muitas tentativas de acesso. Aguarde alguns minutos e tente novamente.');
         } else {
           this.error.set(`Erro ao conectar com o servidor (${err.status}).`);
         }
@@ -147,6 +149,15 @@ export class AuthService {
     });
   }
 
+  // ─── Redefinir senha (link recebido por e-mail) ──────────────────────────
+
+  async resetPassword(token: string, newPassword: string, confirmNewPassword: string): Promise<void> {
+    await firstValueFrom(
+      this.http.post(`${environment.apiBaseUrl}/api/v1/user/reset-password`,
+        { token, newPassword, confirmNewPassword })
+    );
+  }
+
   // ─── Google OAuth ─────────────────────────────────────────────────────────
 
   /** Redireciona para o fluxo OAuth2 do backend */
@@ -154,7 +165,26 @@ export class AuthService {
     window.location.href = `${environment.apiBaseUrl}/oauth2/authorization/google`;
   }
 
-  /** Processa o token recebido no callback do OAuth2 */
+  /**
+   * Troca o código de uso único do callback do Google pelo token de acesso.
+   * O backend não coloca mais o token na URL (ficaria no histórico e em logs).
+   */
+  async handleGoogleCode(code: string): Promise<void> {
+    try {
+      const response: HttpResponse<string> = await firstValueFrom(
+        this.http.post(`${environment.apiBaseUrl}/api/v1/auth/google/exchange`, { code },
+          { observe: 'response', responseType: 'text' })
+      ) as HttpResponse<string>;
+      const authHeader = response.headers.get('Authorization');
+      if (!authHeader) throw new Error('missing token');
+      await this.handleGoogleCallback(authHeader.startsWith('Bearer ') ? authHeader.slice(7) : authHeader);
+    } catch {
+      this.error.set('Não foi possível entrar com o Google. Tente novamente ou use e-mail e senha.');
+      this.router.navigate(['/login']);
+    }
+  }
+
+  /** Processa o token de acesso do login com Google */
   async handleGoogleCallback(token: string): Promise<void> {
     try {
       const payload = this.decodeJwt(token);

@@ -162,7 +162,7 @@
 
         <div class="form-header">
           <h1 class="form-title">Recuperar senha</h1>
-          <p class="form-sub">Informe seu e-mail e enviaremos as instruções de acesso.</p>
+          <p class="form-sub">Informe seu e-mail e enviaremos um link para você criar uma nova senha.</p>
         </div>
 
         <!-- Mensagem de erro -->
@@ -175,7 +175,7 @@
         <!-- Confirmação de envio -->
         <div class="success-alert" *ngIf="forgotSent()">
           <i class="pi pi-check-circle"></i>
-          <span>Suas credenciais foram enviadas para o e-mail de cadastro.</span>
+          <span>Se o e-mail estiver cadastrado, você receberá um link para criar uma nova senha. O link vale por 30 minutos.</span>
         </div>
 
         <!-- Formulário (oculto após envio) -->

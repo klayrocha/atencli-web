@@ -16,10 +16,18 @@ export class OAuth2CallbackComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    const code = this.route.snapshot.queryParamMap.get('code');
+    // "token" é o formato antigo do backend, mantido só durante a transição do deploy.
     const token = this.route.snapshot.queryParamMap.get('token');
     const error = this.route.snapshot.queryParamMap.get('error');
 
-    if (token) {
+    if (code || token) {
+      // Tira o código/token da barra de endereço e do histórico antes de qualquer outra coisa.
+      history.replaceState(null, '', location.pathname);
+    }
+    if (code) {
+      this.auth.handleGoogleCode(code);
+    } else if (token) {
       this.auth.handleGoogleCallback(token);
     } else {
       if (error === 'email_already_registered') {
