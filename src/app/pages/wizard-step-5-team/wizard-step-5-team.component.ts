@@ -156,6 +156,8 @@ export class WizardStep5TeamComponent implements OnInit {
       const translations: Record<string, string> = {
         'Email already registered': 'Usuário já cadastrado com este e-mail.',
         'There is already a pending invitation for this email': 'Já existe um convite pendente para este e-mail.',
+        'Too many team invitations. Try again in an hour.':
+          'Muitos convites enviados na última hora. Aguarde um pouco e tente novamente.',
       };
       this.inviteError.set(translations[message] || message || (
         error instanceof HttpErrorResponse && error.status === 409
