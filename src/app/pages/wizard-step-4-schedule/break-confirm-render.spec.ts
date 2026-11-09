@@ -25,8 +25,10 @@ describe('Break confirmation button', () => {
     fixture.detectChanges(); await fixture.whenStable();
     const page = fixture.componentInstance;
     page.days[0].active = true; page.days[0].start = '08:00'; page.days[0].end = '18:00';
+    page.breaks = [];
     page.toggleDayBreak(1); fixture.detectChanges(); await fixture.whenStable();
     const pause = page.breaksForDay(1)[0];
+    pause.start = '';
     const button: HTMLButtonElement = fixture.nativeElement.querySelector('.break-confirm');
     expect(button.matches(':disabled')).toBeFalse();
     button.click(); fixture.detectChanges();

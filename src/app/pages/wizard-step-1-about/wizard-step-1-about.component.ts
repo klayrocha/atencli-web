@@ -2,7 +2,7 @@ import { Optional } from '@angular/core';
 import { OnboardingProgressService } from '../wizard-shared/onboarding-progress.service';
 import { ConfigurationChanges } from '../wizard-shared/configuration-changes';
 import { WizardStepperComponent } from '../wizard-shared/wizard-stepper.component';
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, ViewChild, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -11,7 +11,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { DropdownModule } from 'primeng/dropdown';
-import { MultiSelectModule } from 'primeng/multiselect';
+import { MultiSelect, MultiSelectModule } from 'primeng/multiselect';
 import { WizardStep, WIZARD_STEPS_DEFAULT } from '../wizard-shared/wizard.models';
 import { WizardSummaryComponent } from '../wizard-shared/wizard-summary/wizard-summary.component';
 import {
@@ -55,6 +55,7 @@ interface Step1Draft {
   styleUrls: ['./wizard-step-1-about.component.scss'],
 })
 export class WizardStep1AboutComponent implements OnInit {
+  @ViewChild('clinicTypeSelect') clinicTypeSelect?: MultiSelect;
   readonly configurationChanges = new ConfigurationChanges(() => [this.clinicName, [...this.clinicTypeIds].sort(), this.shortDescription, this.city, this.state, this.clinicPhone, this.clinicEmail, this.acceptsHealthPlan, [...this.healthPlanIds].sort()], () => this.saveConfiguration(), () => this.saveError(), () => sessionStorage.removeItem(DRAFT_KEY));
 
 
@@ -62,7 +63,7 @@ export class WizardStep1AboutComponent implements OnInit {
   clinicName = '';
   clinicTypeIds: string[] = [];
   readonly clinicTypeError = signal('');
-  private specialtyTypesLoaded = false;
+  private clinicDependenciesLoaded = false;
   private protectedClinicTypeIds = new Set<string>();
   private primaryClinicTypeId: number | null = null;
   shortDescription = '';
@@ -113,7 +114,7 @@ export class WizardStep1AboutComponent implements OnInit {
   ) {}
 
   async ngOnInit(): Promise<void> {
-
+    this.clinicDependenciesLoaded = false;
 
     try {
       const [states, clientTypes, healthPlans, about, clientHealthPlans] = await Promise.all([
@@ -132,9 +133,11 @@ export class WizardStep1AboutComponent implements OnInit {
       this.configurationChanges.markSaved();
       if (!this.progress?.isConfigurationComplete()) this.restoreDraft();
       try {
-        const [selected, catalog] = await Promise.all([
+        const [selected, catalog, configuredServices, servicesCatalog] = await Promise.all([
           this.wizardService.getClientSpecialties(),
           this.wizardService.getSpecialtiesByTypeClients(clientTypes.map(type => Number(type.id))),
+          this.wizardService.getClientServices(),
+          this.wizardService.getServicesByTypeClients(clientTypes.map(type => Number(type.id))),
         ]);
         const selectedIds = new Set(selected.specialties.map(item => Number(item.id)));
         if (!this.progress?.isConfigurationComplete()) {
@@ -144,9 +147,16 @@ export class WizardStep1AboutComponent implements OnInit {
           } catch { /* Ignore invalid drafts; saved specialties remain protected. */ }
         }
         this.protectedClinicTypeIds = new Set(catalog.filter(item => selectedIds.has(Number(item.id))).map(item => String(item.typeClientId)));
-        this.specialtyTypesLoaded = true;
+        const serviceIds = new Set(configuredServices.services.map(item => Number(item.id)));
+        const relatedServices = servicesCatalog.filter(item => serviceIds.has(Number(item.id)));
+        // Sem identificar a área de algum serviço cadastrado, não permita removê-la.
+        if (new Set(relatedServices.map(item => Number(item.id))).size !== serviceIds.size) {
+          throw new Error('Serviços cadastrados não encontrados no catálogo.');
+        }
+        relatedServices.forEach(item => this.protectedClinicTypeIds.add(String(item.typeClientId)));
+        this.clinicDependenciesLoaded = true;
       } catch {
-        this.clinicTypeError.set('Não foi possível verificar as especialidades. Recarregue a tela antes de desmarcar uma área.');
+        this.clinicTypeError.set('Não foi possível verificar os serviços e as especialidades. Recarregue a tela antes de desmarcar uma área.');
       }
     } catch {
       // Em caso de falha na API, mantém as listas vazias sem bloquear a tela
@@ -213,13 +223,14 @@ export class WizardStep1AboutComponent implements OnInit {
 
   onClinicTypesChange(nextIds: string[]): void {
     const blocked = this.clinicTypeIds.filter(id => !nextIds.includes(id)
-      && (!this.specialtyTypesLoaded || this.protectedClinicTypeIds.has(id)));
+      && (!this.clinicDependenciesLoaded || this.protectedClinicTypeIds.has(id)));
     this.clinicTypeIds = [...new Set([...nextIds, ...blocked])];
     this.clinicTypeError.set(blocked.length
-      ? this.specialtyTypesLoaded
-        ? 'Remova as especialidades selecionadas dessa área na etapa de especialidades antes de desmarcá-la.'
-        : 'Não foi possível verificar as especialidades. Recarregue a tela antes de desmarcar uma área.'
+      ? this.clinicDependenciesLoaded
+        ? 'Esta área possui serviços cadastrados ou especialidades selecionadas. Remova os vínculos nas etapas de Serviços e Especialidades antes de desmarcá-la.'
+        : 'Não foi possível verificar os serviços e as especialidades. Recarregue a tela antes de desmarcar uma área.'
       : '');
+    if (blocked.length) this.clinicTypeSelect?.hide(true);
     this.saveDraft();
   }
 

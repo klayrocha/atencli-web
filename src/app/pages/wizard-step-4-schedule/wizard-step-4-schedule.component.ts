@@ -143,7 +143,7 @@ export class WizardStep4ScheduleComponent implements OnInit {
     if (this.loading() || this.saving() || this.loadFailed()) return;
     const day = dayOfWeek === undefined ? this.days.findIndex(item => item.active) : dayOfWeek - 1;
     if (day < 0 || !this.days[day]?.active) return;
-    const pause: DayBreak = { dayOfWeek: day + 1, start: '', end: '', description: '' };
+    const pause = this.lunchBreak(day + 1);
     this.draftBreaks.add(pause);
     this.breaks.push(pause);
   }
@@ -260,6 +260,14 @@ export class WizardStep4ScheduleComponent implements OnInit {
 
   toggleDay(day: DaySchedule): void {
     day.active = !day.active;
+    const dayOfWeek = this.days.indexOf(day) + 1;
+    if (day.active && !this.breaksForDay(dayOfWeek).length) {
+      this.breaks.push(this.lunchBreak(dayOfWeek));
+    }
+  }
+
+  private lunchBreak(dayOfWeek: number): DayBreak {
+    return { dayOfWeek, start: '12:00', end: '13:00', description: 'Pausa para almoço' };
   }
 
   get exceptionDateError(): string {
@@ -317,6 +325,13 @@ export class WizardStep4ScheduleComponent implements OnInit {
       .filter(item => item.availabilityType === 'BREAK' && item.dayOfWeek !== null)
       .map(item => ({ dayOfWeek: item.dayOfWeek!, start: this.toTimeInput(item.startTime, ''),
         end: this.toTimeInput(item.endTime, ''), description: item.description ?? '' }));
+
+    // Todo dia exibido recebe o almoço padrão quando não tem pausas salvas.
+    this.days.forEach((day, index) => {
+      if ((day.active || this.savedAvailability.length === 0) && !this.breaksForDay(index + 1).length) {
+        this.breaks.push(this.lunchBreak(index + 1));
+      }
+    });
 
     this.exceptions = this.savedAvailability
       .filter(item => item.specificDate && ['NON_WORKING_DAY', 'WORKING_HOURS'].includes(item.availabilityType))

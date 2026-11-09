@@ -2,6 +2,27 @@
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-11-09
+
+### Adicionado
+
+- Assistente flutuante com a logo do AtenClin, dicas por etapa do wizard e acesso ao guia de configuração.
+- Ícones por área na lista de serviços, incluindo dente para odontologia e estetoscópio para medicina.
+- Opção “Descartar e sair” na confirmação de alterações, com remoção dos rascunhos locais.
+
+### Alterado
+
+- Pausas dos dias de atendimento sem pausas cadastradas vêm habilitadas com “Pausa para almoço”, das 12h às 13h, preservando pausas existentes.
+- Dias ativados e novas pausas recebem o horário de almoço preenchido por padrão.
+- Botões da confirmação ordenados como “Descartar e sair”, “Continuar editando” e “OK, salvar”.
+
+### Corrigido
+
+- Remoção de tipos de clínica bloqueada também quando existem serviços vinculados, com orientação junto ao campo.
+- Dropdown de áreas fecha ao bloquear a remoção, deixando a mensagem de validação visível.
+- Erro específico do salvamento da clínica exibido dentro do alerta da modal de confirmação.
+- Aviso de assinatura na configuração do WhatsApp ocupa toda a largura interna do box.
+
 ## [0.9.2] - 2026-10-25
 
 ### Alterado

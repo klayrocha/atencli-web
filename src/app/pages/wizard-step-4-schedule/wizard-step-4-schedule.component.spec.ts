@@ -10,10 +10,25 @@ describe('Schedule appointment intervals', () => {
   beforeEach(() => {
     api = jasmine.createSpyObj('WizardService', ['getClientAvailability', 'createAvailability', 'updateAvailability', 'deleteAvailability']);
     api.deleteAvailability.and.resolveTo();
+    api.createAvailability.and.callFake(async request => ({ ...rule(), ...request, id: 100 + (request.dayOfWeek ?? 0) }));
     router = jasmine.createSpyObj('Router', ['navigate']);
     api.getClientAvailability.and.resolveTo([rule()]);
     api.updateAvailability.and.callFake(async (id, request) => ({ ...rule(), ...request, id }));
     component = new WizardStep4ScheduleComponent(router, api);
+  });
+  it('prefills a confirmed lunch break for every day in a new schedule', async () => {
+    api.getClientAvailability.and.resolveTo([]);
+    await component.ngOnInit();
+    expect(component.breaks).toEqual(Array.from({ length: 7 }, (_, index) => ({
+      dayOfWeek: index + 1, start: '12:00', end: '13:00', description: 'Pausa para almoço',
+    })));
+    expect(component.breaks.every(pause => component.isBreakConfirmed(pause))).toBeTrue();
+    expect(api.createAvailability).not.toHaveBeenCalled();
+  });
+  it('prefills lunch for an existing working day without pauses', async () => {
+    await component.ngOnInit();
+    expect(component.breaksForDay(1)).toEqual([{ dayOfWeek: 1, start: '12:00', end: '13:00', description: 'Pausa para almoço' }]);
+    expect(component.breaksForDay(2)).toEqual([]);
   });
   it('restores the saved interval and updates the existing rule when disabled', async () => {
     await component.ngOnInit();
@@ -23,7 +38,7 @@ describe('Schedule appointment intervals', () => {
     component.changeInterval();
     await component.goNext();
     expect(api.updateAvailability).toHaveBeenCalledWith(1, jasmine.objectContaining({ appointmentIntervalMinutes: 0 }));
-    expect(api.createAvailability).not.toHaveBeenCalled();
+    expect(api.createAvailability).toHaveBeenCalledWith(jasmine.objectContaining({ availabilityType: 'BREAK', startTime: '12:00:00', endTime: '13:00:00' }));
   });
   it('rejects empty, fractional and out-of-range rest durations', async () => {
     await component.ngOnInit();
@@ -44,8 +59,9 @@ describe('Schedule appointment intervals', () => {
     component.intervalMinutes = 20;
     component.changeInterval();
     await component.goNext();
-    expect(api.updateAvailability).toHaveBeenCalledTimes(2);
-    expect(api.updateAvailability.calls.allArgs().every(([, request]) => request.appointmentIntervalMinutes === 20)).toBeTrue();
+    const workingUpdates = api.updateAvailability.calls.allArgs().filter(([, request]) => request.availabilityType === 'WORKING_HOURS');
+    expect(workingUpdates.length).toBe(2);
+    expect(workingUpdates.every(([, request]) => request.appointmentIntervalMinutes === 20)).toBeTrue();
   });
   it('prevents saving when loading existing settings fails', async () => {
     api.getClientAvailability.and.rejectWith(new Error('offline'));
@@ -200,12 +216,13 @@ describe('Schedule appointment intervals', () => {
     expect(api.updateAvailability).toHaveBeenCalledTimes(1);
     expect(router.navigate).toHaveBeenCalled();
   });
-  it('starts a selected working day without pauses and requires complete break details when enabled', async () => {
+  it('prefills lunch when pauses are re-enabled and validates edited details', async () => {
     await component.ngOnInit();
+    component.toggleDayBreak(1);
     expect(component.breaksForDay(1)).toEqual([]);
     component.toggleDayBreak(1);
     const pause = component.breaksForDay(1)[0];
-    expect(pause).toEqual({dayOfWeek: 1, start: '', end: '', description: ''});
+    expect(pause).toEqual({dayOfWeek: 1, start: '12:00', end: '13:00', description: 'Pausa para almoço'});
     expect(await component.saveConfiguration()).toBeFalse();
     pause.start = '12:00'; pause.end = '13:00'; pause.description = '   ';
     expect(await component.saveConfiguration()).toBeFalse();
@@ -220,17 +237,19 @@ describe('Schedule appointment intervals', () => {
     component.toggleDayBreak(2);
     expect(component.breaksForDay(2)).toEqual([]);
     component.toggleDay(component.days[1]);
-    expect(component.breaksForDay(2)).toEqual([]);
+    expect(component.breaksForDay(2)[0]).toEqual({dayOfWeek: 2, start: '12:00', end: '13:00', description: 'Pausa para almoço'});
     component.toggleDayBreak(2);
-    expect(component.breaksForDay(2).length).toBe(1);
-    expect(component.breaksForDay(1)).toEqual([]);
+    expect(component.breaksForDay(2)).toEqual([]);
+    expect(component.breaksForDay(1).length).toBe(1);
   });
 
   it('requires confirmation before persisting a new pause and locks it after confirmation', async () => {
     await component.ngOnInit();
     component.toggleDayBreak(1);
+    component.toggleDayBreak(1);
     const pause = component.breaksForDay(1)[0];
     expect(component.isBreakConfirmed(pause)).toBeFalse();
+    pause.start = '';
     component.confirmBreak(pause);
     expect(component.isBreakConfirmed(pause)).toBeFalse();
     Object.assign(pause, { start: '12:00', end: '13:00', description: ' Almoço ' });

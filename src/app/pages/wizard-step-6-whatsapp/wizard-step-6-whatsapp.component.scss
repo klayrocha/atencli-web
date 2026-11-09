@@ -224,6 +224,12 @@
   gap: 0.65rem;
 }
 
+.connection-summary > app-plan-lock-notice {
+  grid-column: 1 / -1;
+  width: 100%;
+  min-width: 0;
+}
+
 .btn-manage,
 .btn-disconnect {
   display: inline-flex;

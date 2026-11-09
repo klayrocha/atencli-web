@@ -47,6 +47,7 @@
           <div class="form-group clinic-types-selection">
             <label for="clinicTypeIds">Áreas de atendimento <span class="required">*</span></label>
             <p-multiSelect
+              #clinicTypeSelect
               id="clinicTypeIds"
               [options]="clinicTypes"
               [ngModel]="clinicTypeIds"
@@ -61,9 +62,10 @@
               styleClass="w-full"
               [disabled]="loadingLists()"
               [class.ng-invalid]="submitAttempted() && clinicTypeIds.length === 0"
+              [attr.aria-describedby]="clinicTypeError() ? 'clinic-type-error' : null"
               (ngModelChange)="onClinicTypesChange($event)"
             ></p-multiSelect>
-            <small class="field-error" *ngIf="clinicTypeError()" role="alert">{{ clinicTypeError() }}</small>
+            <small id="clinic-type-error" class="field-error" *ngIf="clinicTypeError()" role="alert">{{ clinicTypeError() }}</small>
             <small class="field-hint" *ngIf="!(submitAttempted() && clinicTypeIds.length === 0)">
               Selecione todas as áreas em que a clínica atende.
             </small>
