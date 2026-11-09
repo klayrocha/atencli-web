@@ -21,8 +21,17 @@ describe('Public invitation flow', () => {
   });
   afterEach(() => component.ngOnDestroy());
   it('registers the invitation outside both authentication guards', () => {
-    const route = routes.find(r => r.path === 'invite/:token');
-    expect(route).toBeDefined(); expect(route?.canActivate).toBeUndefined(); expect(route?.loadComponent).toBeDefined();
+    for (const path of ['invite', 'invite/:token']) {
+      const route = routes.find(r => r.path === path);
+      expect(route).toBeDefined(); expect(route?.canActivate).toBeUndefined(); expect(route?.loadComponent).toBeDefined();
+    }
+  });
+  it('reads the token after "#", which the browser never sends to the server', async () => {
+    const fromFragment = new InviteComponent({ paramMap: of(convertToParamMap({})),
+      snapshot: { fragment: 'token=fragment-token' } } as unknown as ActivatedRoute, api);
+    fromFragment.ngOnInit(); await fromFragment.load();
+    expect(api.getInvitationDetails).toHaveBeenCalledWith('fragment-token');
+    fromFragment.ngOnDestroy();
   });
   it('loads invitation details without accepting on page opening', () => {
     expect(api.getInvitationDetails).toHaveBeenCalledWith('test-token');
@@ -60,11 +69,15 @@ describe('Invitation public HTTP requests', () => {
     TestBed.configureTestingModule({ providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()] });
     const api = TestBed.inject(WizardService); const http = TestBed.inject(HttpTestingController);
     const details = api.getInvitationDetails('test-token');
-    const get = http.expectOne(r => r.url.endsWith('/api/v1/invitations/test-token'));
-    expect(get.request.headers.has('Authorization')).toBeFalse(); get.flush(invitation); await details;
+    const lookup = http.expectOne(r => r.url.endsWith('/api/v1/invitations/details'));
+    expect(lookup.request.url).not.toContain('test-token');
+    expect(lookup.request.body).toEqual({ token: 'test-token' });
+    expect(lookup.request.headers.has('Authorization')).toBeFalse(); lookup.flush(invitation); await details;
     const accepted = api.acceptLocalInvitation('test-token', 'TestPassword123');
-    const post = http.expectOne(r => r.url.endsWith('/api/v1/invitations/test-token/accept-local'));
-    expect(post.request.headers.has('Authorization')).toBeFalse(); expect(post.request.body).toEqual({ password: 'TestPassword123' });
+    const post = http.expectOne(r => r.url.endsWith('/api/v1/invitations/accept-local'));
+    expect(post.request.url).not.toContain('test-token');
+    expect(post.request.headers.has('Authorization')).toBeFalse();
+    expect(post.request.body).toEqual({ token: 'test-token', password: 'TestPassword123' });
     post.flush({}); await accepted; http.verify();
   });
 });

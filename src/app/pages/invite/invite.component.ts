@@ -25,7 +25,10 @@ export class InviteComponent implements OnInit, OnDestroy {
   constructor(private route: ActivatedRoute, private api: WizardService) {}
   ngOnInit() {
     this.subscription = this.route.paramMap.subscribe(params => {
-      this.token = params.get('token') ?? '';
+      // Links use "/invite#token=..." so the token never reaches the server (or its logs).
+      // "/invite/<token>" is the old format, still accepted for invitations sent before the change.
+      const fragment = new URLSearchParams(this.route.snapshot?.fragment ?? '');
+      this.token = fragment.get('token') ?? params.get('token') ?? '';
       this.accepted = false; this.password = ''; this.confirmation = '';
       void this.load();
     });

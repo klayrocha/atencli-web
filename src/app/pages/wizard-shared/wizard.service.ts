@@ -424,25 +424,32 @@ export class WizardService {
     );
   }
 
+  // The invitation token always travels in the request body, never in the URL: URLs end up in access logs.
+
   async getInvitationDetails(token: string): Promise<InvitationDetailsResponse> {
     return firstValueFrom(
-      this.http.get<InvitationDetailsResponse>(
-        `${environment.apiBaseUrl}/api/v1/invitations/${encodeURIComponent(token)}`
-      )
+      this.http.post<InvitationDetailsResponse>(`${environment.apiBaseUrl}/api/v1/invitations/details`, { token })
     );
   }
 
   async acceptLocalInvitation(token: string, password: string): Promise<void> {
     await firstValueFrom(
-      this.http.post(
-        `${environment.apiBaseUrl}/api/v1/invitations/${encodeURIComponent(token)}/accept-local`,
-        { password }
-      )
+      this.http.post(`${environment.apiBaseUrl}/api/v1/invitations/accept-local`, { token, password })
     );
   }
 
+  /** A form POST (not a link): the browser follows the backend redirect to Google with the token in the body. */
   startGoogleInvitation(token: string): void {
-    window.location.href = `${environment.apiBaseUrl}/api/v1/invitations/${encodeURIComponent(token)}/google/start`;
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `${environment.apiBaseUrl}/api/v1/invitations/google/start`;
+    const field = document.createElement('input');
+    field.type = 'hidden';
+    field.name = 'token';
+    field.value = token;
+    form.appendChild(field);
+    document.body.appendChild(form);
+    form.submit();
   }
 
   async saveHealthPlans(healthPlanIds: number[]): Promise<void> {

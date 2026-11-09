@@ -22,6 +22,10 @@ import { settingsEntryGuard } from './guards/settings-entry.guard';
 
 export const routes: Routes = [
   {
+    path: 'invite',
+    loadComponent: () => import('./pages/invite/invite.component').then(m => m.InviteComponent),
+  },
+  {
     path: 'invite/:token',
     loadComponent: () => import('./pages/invite/invite.component').then(m => m.InviteComponent),
   },
