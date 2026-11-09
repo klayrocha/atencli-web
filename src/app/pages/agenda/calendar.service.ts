@@ -29,7 +29,9 @@ export class CalendarService {
   status(id: number, status: AppointmentStatus) { return firstValueFrom(this.http.patch<Appointment>(`${this.url}/appointments/${id}/status`, { status }, this.options)); }
   assignExternal(eventId: string, professionalUuid: string) { return firstValueFrom(this.http.put<void>(`${this.url}/google/events/${encodeURIComponent(eventId)}/professional`, { professionalUuid }, this.options)); }
   unassignExternal(eventId: string) { return firstValueFrom(this.http.delete<void>(`${this.url}/google/events/${encodeURIComponent(eventId)}/professional`, this.options)); }
-  connect() { return firstValueFrom(this.http.post<{ authorizationUrl: string }>(`${this.url}/google/connect`, {}, this.options)); }
+  // withCredentials: the backend answers with a cookie that ties Google's callback to this browser; without it the
+  // browser drops the cookie when the API is on another origin (local development).
+  connect() { return firstValueFrom(this.http.post<{ authorizationUrl: string }>(`${this.url}/google/connect`, {}, { ...this.options, withCredentials: true })); }
   disconnect() { return firstValueFrom(this.http.delete<CalendarConfiguration>(`${this.url}/google/connection`, this.options)); }
   internal() { return firstValueFrom(this.http.put<CalendarConfiguration>(`${this.url}/configuration`, { source: 'INTERNAL' }, this.options)); }
 }

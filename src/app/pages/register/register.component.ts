@@ -38,13 +38,21 @@ export class RegisterComponent {
 
   constructor(private auth: AuthService) {}
 
-  // Regras de validação de senha
+  // Regras de validação de senha (as mesmas do backend: PasswordPolicyValidator)
   get hasMinLength(): boolean {
-    return this.password.length >= 8;
+    return this.password.length >= 8 && new TextEncoder().encode(this.password).length <= 72;
+  }
+
+  get hasLowercase(): boolean {
+    return /\p{Ll}/u.test(this.password);
+  }
+
+  get hasNoSpaces(): boolean {
+    return !/\s/.test(this.password);
   }
 
   get hasUppercase(): boolean {
-    return /[A-Z]/.test(this.password);
+    return /\p{Lu}/u.test(this.password);
   }
 
   get hasNumber(): boolean {
@@ -52,7 +60,7 @@ export class RegisterComponent {
   }
 
   get isPasswordValid(): boolean {
-    return this.hasMinLength && this.hasUppercase && this.hasNumber;
+    return this.hasMinLength && this.hasUppercase && this.hasLowercase && this.hasNumber && this.hasNoSpaces;
   }
 
   get passwordsMatch(): boolean {
@@ -116,7 +124,7 @@ export class RegisterComponent {
     }
 
     if (!this.isPasswordValid) {
-      this.error.set('A senha deve ter no mínimo 8 caracteres, pelo menos uma letra maiúscula e pelo menos um número.');
+      this.error.set('A senha deve ter de 8 a 72 caracteres, com letra maiúscula, letra minúscula e número, sem espaços.');
       return;
     }
 

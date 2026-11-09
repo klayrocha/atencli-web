@@ -226,15 +226,23 @@
             <div class="password-requirements" *ngIf="password">
               <div class="req-item" [class.valid]="hasMinLength">
                 <i [class]="hasMinLength ? 'pi pi-check' : 'pi pi-circle'"></i>
-                <span>Mínimo 8 caracteres</span>
+                <span>De 8 a 72 caracteres</span>
               </div>
               <div class="req-item" [class.valid]="hasUppercase">
                 <i [class]="hasUppercase ? 'pi pi-check' : 'pi pi-circle'"></i>
                 <span>Pelo menos 1 letra maiúscula</span>
               </div>
+              <div class="req-item" [class.valid]="hasLowercase">
+                <i [class]="hasLowercase ? 'pi pi-check' : 'pi pi-circle'"></i>
+                <span>Pelo menos 1 letra minúscula</span>
+              </div>
               <div class="req-item" [class.valid]="hasNumber">
                 <i [class]="hasNumber ? 'pi pi-check' : 'pi pi-circle'"></i>
                 <span>Pelo menos 1 número</span>
+              </div>
+              <div class="req-item" [class.valid]="hasNoSpaces">
+                <i [class]="hasNoSpaces ? 'pi pi-check' : 'pi pi-circle'"></i>
+                <span>Sem espaços</span>
               </div>
             </div>
           </div>
