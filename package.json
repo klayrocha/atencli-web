@@ -21,14 +21,14 @@
     "@angular/platform-browser": "^18.2.0",
     "@angular/platform-browser-dynamic": "^18.2.0",
     "@angular/router": "^18.2.0",
-    "@primeuix/themes": "^3.0.0",
-    "chart.js": "^4.5.1",
+    "@primeuix/themes": "^3.1.0",
+    "chart.js": "^4.6.1",
     "primeflex": "^4.0.0",
-    "primeicons": "^8.0.0",
+    "primeicons": "^8.0.2",
     "primeng": "^18.0.2",
     "rxjs": "~7.8.0",
-    "tslib": "^2.3.0",
-    "zone.js": "~0.14.10"
+    "tslib": "^2.9.1",
+    "zone.js": "~0.16.3"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^18.2.21",
@@ -40,7 +40,7 @@
     "karma-chrome-launcher": "~3.2.0",
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
-    "karma-jasmine-html-reporter": "~2.1.0",
+    "karma-jasmine-html-reporter": "~2.3.0",
     "typescript": "~5.5.2"
   }
 }
