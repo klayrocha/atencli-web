@@ -5,9 +5,9 @@ import { routes } from '../../app.routes';
 
 describe('Password reset page', () => {
   let auth: jasmine.SpyObj<AuthService>;
-  const page = (query: Record<string, string>) => {
+  const page = (query: Record<string, string>, fragment: string | null = null) => {
     const component = new ResetPasswordComponent(
-      { snapshot: { queryParamMap: convertToParamMap(query) } } as unknown as ActivatedRoute, auth);
+      { snapshot: { queryParamMap: convertToParamMap(query), fragment } } as unknown as ActivatedRoute, auth);
     component.ngOnInit();
     return component;
   };
@@ -24,7 +24,15 @@ describe('Password reset page', () => {
     expect(route?.loadComponent).toBeDefined();
   });
 
-  it('removes the token from the address bar and submits it with the new password', async () => {
+  it('reads the token after "#", which the browser never sends to the server', async () => {
+    const component = page({}, 'token=from-fragment');
+    expect(history.replaceState).toHaveBeenCalled();
+    component.password = component.confirmation = 'NovaSenha123';
+    await component.submit();
+    expect(auth.resetPassword).toHaveBeenCalledWith('from-fragment', 'NovaSenha123', 'NovaSenha123');
+  });
+
+  it('still accepts links in the old "?token=" format', async () => {
     const component = page({ token: 'one-time' });
     expect(history.replaceState).toHaveBeenCalled();
     component.password = component.confirmation = 'NovaSenha123';

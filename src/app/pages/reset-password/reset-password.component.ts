@@ -20,7 +20,10 @@ export class ResetPasswordComponent implements OnInit {
   constructor(private route: ActivatedRoute, private auth: AuthService) {}
 
   ngOnInit() {
-    this.token = this.route.snapshot.queryParamMap.get('token') ?? '';
+    // O link usa "#token=..." para o token não chegar ao servidor (nem aos logs do nginx).
+    // "?token=" é o formato antigo, aceito enquanto houver links enviados antes da mudança.
+    const fragment = new URLSearchParams(this.route.snapshot.fragment ?? '');
+    this.token = fragment.get('token') ?? this.route.snapshot.queryParamMap.get('token') ?? '';
     if (this.token) {
       // O token não fica na barra de endereço nem no histórico.
       history.replaceState(null, '', location.pathname);
