@@ -220,6 +220,13 @@ export class AuthService {
   // ─── Utilitários ──────────────────────────────────────────────────────────
 
   logout(): void {
+    // Encerra a sessão também no servidor: cópias do token deixam de valer. Sem esperar a resposta,
+    // para a saída ser imediata; se falhar (rede, token já expirado), a sessão local é limpa do mesmo jeito.
+    const token = this.getToken();
+    if (token && this.isAuthenticated()) {
+      this.http.post(`${environment.apiBaseUrl}/api/v1/auth/logout`, null,
+        { headers: { Authorization: `Bearer ${token}` } }).subscribe({ error: () => {} });
+    }
     this.currentUser.set(null);
     this.currentProfile.set(null);
     sessionStorage.removeItem(this.STORAGE_KEY);
