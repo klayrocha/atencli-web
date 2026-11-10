@@ -38,6 +38,10 @@ export class RegisterComponent {
 
   constructor(private auth: AuthService) {}
 
+  onGoogleRegister(): void {
+    if (!this.loading()) this.auth.loginWithGoogle();
+  }
+
   // Regras de validação de senha (as mesmas do backend: PasswordPolicyValidator)
   get hasMinLength(): boolean {
     return this.password.length >= 8 && new TextEncoder().encode(this.password).length <= 72;

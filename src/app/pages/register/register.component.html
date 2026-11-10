@@ -136,6 +136,18 @@
           <button class="error-close" (click)="clearError()"><i class="pi pi-times"></i></button>
         </div>
 
+        <button type="button" class="google-register-btn" (click)="onGoogleRegister()" [disabled]="loading()">
+          <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true" focusable="false">
+            <path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.84-1.57 2.4v2h2.54c1.49-1.38 2.35-3.4 2.35-5.86 0-.57-.05-1.12-.09-1.54z"/>
+            <path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.54-2c-.72.48-1.63.76-2.76.76-2.12 0-3.92-1.43-4.56-3.36H1.8v2.07C3.12 15.1 5.88 17 8.98 17z"/>
+            <path fill="#FBBC05" d="M4.42 10.46A5.1 5.1 0 0 1 4.17 9c0-.51.09-1 .25-1.46V5.47H1.8A8.98 8.98 0 0 0 .98 9c0 1.45.35 2.82.96 4.02z"/>
+            <path fill="#EA4335" d="M8.98 3.58c1.19 0 2.26.41 3.1 1.21l2.33-2.33C12.95 1.19 11.13.4 8.98.4 5.88.4 3.12 2.3 1.8 5.03l2.62 2.07c.64-1.93 2.44-3.52 4.56-3.52z"/>
+          </svg>
+          <span>Cadastre-se com Google</span>
+        </button>
+
+        <div class="register-divider"><span>ou cadastre-se com e-mail</span></div>
+
         <form (ngSubmit)="onSubmit()" class="register-form">
           <!-- Nome Completo -->
           <div class="field">

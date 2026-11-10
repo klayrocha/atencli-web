@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Adicionado
+
+- Cadastro com Google como primeira opção na tela de criação de conta, reutilizando o fluxo de autenticação do login e mantendo o formulário convencional logo abaixo.
+
 ## [0.10.0] - 2026-11-09
 
 ### Adicionado
