@@ -26,10 +26,6 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/invite/invite.component').then(m => m.InviteComponent),
   },
   {
-    path: 'invite/:token',
-    loadComponent: () => import('./pages/invite/invite.component').then(m => m.InviteComponent),
-  },
-  {
     path: 'login',
     component: LoginComponent,
     canActivate: [guestGuard]

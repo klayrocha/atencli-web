@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
+import { ActivatedRoute, provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { InviteComponent } from './invite.component';
 import { InvitationDetailsResponse, WizardService } from '../wizard-shared/wizard.service';
@@ -15,23 +15,26 @@ describe('Public invitation flow', () => {
     api = jasmine.createSpyObj('WizardService', ['getInvitationDetails', 'acceptLocalInvitation', 'startGoogleInvitation']);
     api.getInvitationDetails.and.resolveTo(invitation);
     api.acceptLocalInvitation.and.resolveTo();
-    component = new InviteComponent({ paramMap: of(convertToParamMap({ token: 'test-token' })) } as ActivatedRoute, api);
+    component = new InviteComponent({ fragment: of('token=test-token') } as unknown as ActivatedRoute, api);
     component.ngOnInit();
     await component.load();
   });
   afterEach(() => component.ngOnDestroy());
   it('registers the invitation outside both authentication guards', () => {
-    for (const path of ['invite', 'invite/:token']) {
-      const route = routes.find(r => r.path === path);
-      expect(route).toBeDefined(); expect(route?.canActivate).toBeUndefined(); expect(route?.loadComponent).toBeDefined();
-    }
+    const route = routes.find(r => r.path === 'invite');
+    expect(route).toBeDefined(); expect(route?.canActivate).toBeUndefined(); expect(route?.loadComponent).toBeDefined();
   });
-  it('reads the token after "#", which the browser never sends to the server', async () => {
-    const fromFragment = new InviteComponent({ paramMap: of(convertToParamMap({})),
-      snapshot: { fragment: 'token=fragment-token' } } as unknown as ActivatedRoute, api);
-    fromFragment.ngOnInit(); await fromFragment.load();
-    expect(api.getInvitationDetails).toHaveBeenCalledWith('fragment-token');
-    fromFragment.ngOnDestroy();
+  it('no longer accepts the token in the path', () => {
+    expect(routes.find(r => r.path === 'invite/:token')).toBeUndefined();
+  });
+  it('reads the token after "#", which the browser never sends to the server', () => {
+    expect(api.getInvitationDetails).toHaveBeenCalledWith('test-token');
+  });
+  it('rejects a link without "#token="', async () => {
+    const withoutToken = new InviteComponent({ fragment: of(null) } as unknown as ActivatedRoute, api);
+    withoutToken.ngOnInit(); await withoutToken.load();
+    expect(withoutToken.error).toBe('Link de convite inválido.');
+    withoutToken.ngOnDestroy();
   });
   it('loads invitation details without accepting on page opening', () => {
     expect(api.getInvitationDetails).toHaveBeenCalledWith('test-token');
