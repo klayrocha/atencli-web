@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+## Proporções e tipografia do cadastro — 2026-11-11
+
+### Alterado
+
+- Fontes da tela de cadastro reduzidas em 10%, mantendo as dimensões dos campos e botões.
+- Espaçamento superior do formulário alinhado ao da logo no painel esquerdo, com ajuste compacto em telas mais baixas.
+- Painel verde com 65% da largura e painel branco com 35% no desktop, com espaçamento lateral do formulário semelhante ao superior.
+
 ## Cadastro compacto e grafia da marca — 2026-11-11
 
 ### Alterado
