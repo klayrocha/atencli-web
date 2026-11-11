@@ -2,8 +2,6 @@ import { TestBed } from '@angular/core/testing';
 import { AuthService } from '../../auth/auth.service';
 import { SubscriptionComponent } from './subscription.component';
 import { BillingInterval, PlanCode, Subscription, SubscriptionPlan, SubscriptionService } from './subscription.service';
-import { convertToParamMap } from '@angular/router';
-import { SubscriptionJourneyService } from './subscription-journey.service';
 
 const plan = (code: PlanCode, monthlyPriceCents: number, yearlyPriceCents: number): SubscriptionPlan => ({
   code, name: code, monthlyPriceCents, yearlyPriceCents, maxUsers: 2, monthlyAiMessages: 3000,
@@ -90,15 +88,4 @@ describe('SubscriptionComponent yearly plans', () => {
     expect(component.aiUsage).toBeNull();
   });
 
-  it('restores the site selection for review without starting checkout', () => {
-    const journey = TestBed.inject(SubscriptionJourneyService);
-    journey.capture(convertToParamMap({ plan: 'PLUS', billing: 'YEARLY' }));
-    spyOn(component, 'load').and.resolveTo();
-    const subscribe = spyOn(component, 'subscribe').and.resolveTo();
-    component.ngOnInit();
-    expect(component.interval).toBe('YEARLY');
-    expect(component.requestedChoice).toEqual({ plan: 'PLUS', billing: 'YEARLY' });
-    expect(journey.read()).toBeNull();
-    expect(subscribe).not.toHaveBeenCalled();
-  });
 });

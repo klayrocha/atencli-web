@@ -1,88 +1,39 @@
 <div class="register-shell">
 
-  <!-- Painel esquerdo: Vantagens e Apresentação da Atenclin -->
-  <div class="register-brand">
+  <aside class="register-brand" aria-labelledby="register-brand-title">
     <div class="brand-content">
       <div class="brand-logo">
-        <img src="logo.png" alt="Atenclin" class="brand-logo-img" />
-        <span class="brand-name">Atenclin</span>
+        <img src="logo.png" alt="" class="brand-logo-img" width="64" height="64" />
+        <span class="brand-name">AtenClin</span>
       </div>
-
-      <div class="brand-badge">
-        <i class="pi pi-check-circle"></i>
-        <span>Plataforma completa para sua clínica</span>
-      </div>
-
-      <h2 class="brand-headline">Transforme a gestão e o atendimento da sua clínica</h2>
-      <p class="brand-sub">
-        Junte-se a centenas de clínicas que automatizam agendamentos, centralizam canais de atendimento e aumentam a fidelização de pacientes com inteligência artificial.
-      </p>
-
-      <!-- Lista detalhada de vantagens -->
-      <div class="advantages-list">
-        <div class="advantage-card">
-          <div class="advantage-icon">
-            <i class="pi pi-whatsapp"></i>
-          </div>
+      <span class="brand-eyebrow">CUIDE DOS PACIENTES. A GENTE AJUDA COM A ROTINA.</span>
+      <h2 id="register-brand-title" class="brand-headline">Mais tempo para cuidar.<br /><span>Mais organização para sua clínica.</span></h2>
+      <p class="brand-sub">Conversas, agenda e equipe no mesmo lugar, com inteligência artificial para ajudar no atendimento.</p>
+      <ul class="advantages-list">
+        <li class="advantage-card">
+          <span class="advantage-icon"><i class="pi pi-comments" aria-hidden="true"></i></span>
           <div class="advantage-info">
-            <h4>WhatsApp Integrado e Centralizado</h4>
-            <p>Atenda múltiplos pacientes ao mesmo tempo com uma única linha oficial e histórico unificado.</p>
+            <h3>Atenda com sua equipe</h3>
+            <p>Acompanhe as conversas e continue o atendimento quando o cliente precisar de você.</p>
           </div>
-        </div>
-
-        <div class="advantage-card">
-          <div class="advantage-icon">
-            <i class="pi pi-sparkles"></i>
-          </div>
+        </li>
+        <li class="advantage-card">
+          <span class="advantage-icon"><i class="pi pi-calendar" aria-hidden="true"></i></span>
           <div class="advantage-info">
-            <h4>Atendente Virtual com IA 24/7</h4>
-            <p>Responda dúvidas frequentes, confirme consultas e realize agendamentos automaticamente a qualquer hora.</p>
+            <h3>Organize os agendamentos</h3>
+            <p>Reúna serviços, profissionais e horários para acompanhar as consultas da clínica.</p>
           </div>
-        </div>
-
-        <div class="advantage-card">
-          <div class="advantage-icon">
-            <i class="pi pi-calendar-plus"></i>
-          </div>
+        </li>
+        <li class="advantage-card">
+          <span class="advantage-icon"><i class="pi pi-sparkles" aria-hidden="true"></i></span>
           <div class="advantage-info">
-            <h4>Gestão Ágil de Agenda e Fila</h4>
-            <p>Reduza faltas com lembretes automáticos e organize horários de médicos e especialistas sem conflitos.</p>
+            <h3>Conte com a ajuda da IA</h3>
+            <p>Use as informações da sua clínica para responder dúvidas e orientar seus clientes.</p>
           </div>
-        </div>
-
-        <div class="advantage-card">
-          <div class="advantage-icon">
-            <i class="pi pi-chart-pie"></i>
-          </div>
-          <div class="advantage-info">
-            <h4>Indicadores e Métricas em Tempo Real</h4>
-            <p>Acompanhe taxa de comparecimento, volume de atendimentos e desempenho da equipe em dashboards intuitivos.</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="brand-stats">
-        <div class="stat-item">
-          <strong>+80%</strong>
-          <span>Redução em no-show</span>
-        </div>
-        <div class="stat-divider"></div>
-        <div class="stat-item">
-          <strong>24/7</strong>
-          <span>Atendimento contínuo</span>
-        </div>
-        <div class="stat-divider"></div>
-        <div class="stat-item">
-          <strong>100%</strong>
-          <span>Seguro & Conforme LGPD</span>
-        </div>
-      </div>
+        </li>
+      </ul>
     </div>
-
-    <!-- Decoração de fundo -->
-    <div class="brand-bg-circle brand-bg-circle--1"></div>
-    <div class="brand-bg-circle brand-bg-circle--2"></div>
-  </div>
+  </aside>
 
   <!-- Painel direito: Formulário de Cadastro -->
   <div class="register-form-panel">
@@ -117,7 +68,6 @@
           Verifique sua caixa de entrada (e também a pasta de spam/lixo eletrônico). Se este e-mail já tinha
           cadastro, a mensagem explica como entrar ou recuperar a senha.
         </p>
-        <p class="journey-success" *ngIf="subscriptionChoice">Após ativar sua conta e entrar, você terá 5 dias grátis do plano Profissional e poderá revisar e contratar o plano {{ journey.names[subscriptionChoice.plan] }} quando quiser. Nenhuma cobrança foi realizada.</p>
         <a routerLink="/login" class="submit-btn direct-link">
           Ir para o login
         </a>
@@ -125,17 +75,6 @@
 
       <!-- ESTADO: FORMULÁRIO DE CADASTRO -->
       <ng-container *ngIf="!registered()">
-        <section *ngIf="subscriptionChoice" class="signup-journey" aria-labelledby="signup-journey-title">
-          <ol aria-label="Etapas da contratação">
-            <li aria-current="step"><span>1</span> Crie sua conta</li>
-            <li><span>2</span> Revise e contrate</li>
-          </ol>
-          <h2 id="signup-journey-title">Seu próximo passo é criar sua conta</h2>
-          <p>Você escolheu o plano <strong>{{ journey.names[subscriptionChoice.plan] }}</strong>, com pagamento <strong>{{ subscriptionChoice.billing === 'YEARLY' ? 'anual' : 'mensal' }}</strong>.</p>
-          <p>Cadastre-se com Google ou preencha o formulário abaixo. Depois de entrar, você poderá revisar o plano e seguir para o pagamento.</p>
-          <small>Criar a conta não gera cobrança e já libera 5 dias grátis do plano Profissional. Você confirma a contratação na próxima etapa.</small>
-          <a routerLink="/login">Já tem uma conta? Entre para continuar</a>
-        </section>
         <div class="form-header">
           <h1 class="form-title">Crie sua conta</h1>
           <p class="form-sub">Experimente o poder da Atenclin na sua clínica</p>

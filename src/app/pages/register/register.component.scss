@@ -1,21 +1,13 @@
+/* O documento faz a rolagem; os painéis não criam barras próprias. */
+:host { display: block; min-width: 0; font-size: 16px; }
+:host *, :host *::before, :host *::after { box-sizing: border-box; }
 .register-shell {
-  display: flex;
-  height: 100vh;
-  overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  min-height: 100dvh;
+  width: 100%;
   background: #fff;
 }
-
-.signup-journey { margin-bottom: 1.5rem; padding: 1.25rem; border: 1px solid #bef264; border-radius: 16px; background: #f7fee7; color: #334155;
-  ol { display: flex; flex-wrap: wrap; gap: 1rem; padding: 0; margin: 0 0 1rem; list-style: none; font-size: .875rem; }
-  li { display: flex; align-items: center; gap: .5rem; }
-  li[aria-current] { color: #3f6212; font-weight: 700; }
-  li span { display: grid; place-items: center; width: 26px; height: 26px; background: white; border-radius: 50%; }
-  h2 { font-size: 1.25rem; margin: 0 0 .75rem; color: #1e293b; }
-  p { line-height: 1.6; margin: 0 0 .75rem; }
-  small { display: block; font-size: .875rem; line-height: 1.5; }
-  a { display: inline-block; margin-top: .75rem; color: #3f6212; font-weight: 600; text-decoration: underline; }
-}
-.journey-success { padding: 1rem; border-radius: 12px; background: #f7fee7; line-height: 1.6; color: #3f6212; }
 
 .google-register-btn {
   display: flex;
@@ -35,7 +27,7 @@
   transition: background .15s, border-color .15s;
 
   svg { flex-shrink: 0; }
-  &:hover:not(:disabled) { background: #f8fafc; border-color: #94a3b8; }
+  &:hover:not(:disabled) { background: #f8fafc; border-color: #64748b; }
   &:focus-visible { outline: 3px solid #65a30d; outline-offset: 3px; }
   &:disabled { opacity: .6; cursor: not-allowed; }
 }
@@ -46,224 +38,50 @@
   gap: .75rem;
   margin: 1.25rem 0;
   color: #64748b;
-  font-size: .875rem;
+  font-size: 16px;
   text-align: center;
 
   &::before, &::after { content: ''; flex: 1; height: 1px; background: #e2e8f0; }
 }
 
-// ─── Painel esquerdo (branding & vantagens) ──────────────────────────────────
+// Painel de apresentação: conteúdo curto, alto contraste e leitura confortável.
 .register-brand {
-  flex: 1.1;
-  position: relative;
-  background: linear-gradient(145deg, #132403 0%, #1e3a0a 45%, #2d5016 100%);
+  min-width: 0;
+  min-height: 100dvh;
+  padding: clamp(32px, 5vw, 80px);
   display: flex;
-  align-items: center;
   justify-content: center;
-  overflow-y: auto;
-  padding: 3rem 3.5rem;
-
-  @media (max-width: 960px) {
-    display: none;
-  }
-}
-
-.brand-bg-circle {
-  position: absolute;
-  border-radius: 50%;
-  opacity: 0.12;
-  background: #84cc16;
-
-  &--1 {
-    width: 550px;
-    height: 550px;
-    bottom: -180px;
-    right: -150px;
-  }
-
-  &--2 {
-    width: 350px;
-    height: 350px;
-    top: -80px;
-    left: -80px;
-  }
-}
-
-.brand-content {
-  position: relative;
-  z-index: 2;
-  max-width: 520px;
-}
-
-.brand-logo {
-  display: flex;
-  align-items: center;
-  gap: 0.875rem;
-  margin-bottom: 1.5rem;
-
-  .brand-logo-img {
-    width: 52px;
-    height: 52px;
-    object-fit: contain;
-  }
-
-  .brand-name {
-    font-size: 1.5rem;
-    font-weight: 800;
-    color: #fff;
-    letter-spacing: -0.5px;
-  }
-}
-
-.brand-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: rgba(132, 204, 22, 0.15);
-  border: 1px solid rgba(132, 204, 22, 0.3);
-  padding: 0.35rem 0.85rem;
-  border-radius: 999px;
-  color: #bef264;
-  font-size: 0.8rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-
-  i {
-    font-size: 0.85rem;
-  }
-}
-
-.brand-headline {
-  font-size: 2rem;
-  font-weight: 800;
+  background: linear-gradient(155deg, #142b12, #26451c);
   color: #fff;
-  line-height: 1.25;
-  margin: 0 0 0.85rem;
-  letter-spacing: -0.5px;
 }
+.brand-content { width: 100%; max-width: 560px; }
+.brand-logo { display: flex; align-items: center; gap: 12px; margin-bottom: 48px; }
+.brand-logo-img { width: 64px; height: 64px; object-fit: contain; flex-shrink: 0; }
+.brand-name { font-size: 28px; font-weight: 800; letter-spacing: -.5px; }
+.brand-eyebrow { display: block; color: #d9f99d; font-size: 16px; font-weight: 700; line-height: 1.6; letter-spacing: .06em; margin-bottom: 18px; }
+.brand-headline { font-size: clamp(32px, 3.25vw, 48px); line-height: 1.18; letter-spacing: -1px; margin: 0 0 24px; font-weight: 750; color: #fff; }
+.brand-headline span { color: #d9f99d; }
+.brand-sub { font-size: 18px; line-height: 1.7; color: #e2ebde; margin: 0 0 36px; max-width: 46ch; }
+.advantages-list { list-style: none; display: grid; gap: 28px; padding: 0; margin: 0; }
+.advantage-card { display: flex; gap: 16px; align-items: flex-start; min-width: 0; }
+.advantage-icon { display: grid; place-items: center; flex-shrink: 0; width: 48px; height: 48px; border-radius: 14px; background: #ffffff12; border: 1px solid #ffffff24; color: #d9f99d; i { font-size: 22px; } }
+.advantage-info { min-width: 0; h3 { color: #fff; font-size: 20px; line-height: 1.4; margin: 0 0 6px; } p { font-size: 16px; line-height: 1.7; color: #e2ebde; margin: 0; } }
 
-.brand-sub {
-  font-size: 0.95rem;
-  color: rgba(255, 255, 255, 0.72);
-  line-height: 1.6;
-  margin: 0 0 1.75rem;
-}
-
-// ─── Vantagens list ──────────────────────────────────────────────────────────
-.advantages-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.advantage-card {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
-  padding: 0.85rem 1rem;
-  backdrop-filter: blur(8px);
-  transition: transform 0.2s, background 0.2s;
-
-  &:hover {
-    background: rgba(255, 255, 255, 0.07);
-    transform: translateX(4px);
-  }
-}
-
-.advantage-icon {
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
-  background: rgba(132, 204, 22, 0.18);
-  border: 1px solid rgba(132, 204, 22, 0.35);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  margin-top: 2px;
-
-  i {
-    color: #a3e635;
-    font-size: 1.05rem;
-  }
-}
-
-.advantage-info {
-  h4 {
-    margin: 0 0 0.2rem;
-    font-size: 0.925rem;
-    font-weight: 700;
-    color: #f8fafc;
-    letter-spacing: -0.2px;
-  }
-
-  p {
-    margin: 0;
-    font-size: 0.825rem;
-    color: rgba(255, 255, 255, 0.65);
-    line-height: 1.45;
-  }
-}
-
-// ─── Métricas no banner ──────────────────────────────────────────────────────
-.brand-stats {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1rem 1.25rem;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-
-  .stat-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-
-    strong {
-      font-size: 1.15rem;
-      font-weight: 800;
-      color: #a3e635;
-    }
-
-    span {
-      font-size: 0.725rem;
-      color: rgba(255, 255, 255, 0.6);
-      margin-top: 0.1rem;
-    }
-  }
-
-  .stat-divider {
-    width: 1px;
-    height: 28px;
-    background: rgba(255, 255, 255, 0.1);
-  }
-}
-
-// ─── Painel direito (formulário) ──────────────────────────────────────────────
 .register-form-panel {
-  width: 500px;
-  flex-shrink: 0;
+  min-width: 0;
   display: flex;
-  align-items: center;
   justify-content: center;
-  padding: 2.5rem 2rem;
+  align-items: flex-start;
+  padding: clamp(24px, 4vw, 64px);
   background: #fff;
-  overflow-y: auto;
-
-  @media (max-width: 960px) {
-    width: 100%;
-  }
 }
-
-.register-form-wrapper {
-  width: 100%;
-  max-width: 380px;
+.register-form-wrapper { width: 100%; max-width: 480px; min-width: 0; }
+@media (max-width: 960px) {
+  .register-shell { grid-template-columns: minmax(0, 1fr); }
+  .register-brand { display: none; }
+}
+@media (max-width: 400px) {
+  .register-form-panel { padding: 24px 16px; }
 }
 
 // Mobile logo
@@ -292,14 +110,14 @@
   align-items: center;
   gap: 0.45rem;
   color: #64748b;
-  font-size: 0.825rem;
+  font-size: 16px;
   font-weight: 600;
   text-decoration: none;
   margin-bottom: 1.25rem;
   transition: color 0.15s;
 
   i {
-    font-size: 0.8rem;
+    font-size: 16px;
   }
 
   &:hover {
@@ -313,7 +131,7 @@
 }
 
 .form-title {
-  font-size: 1.625rem;
+  font-size: 32px;
   font-weight: 800;
   color: #1e293b;
   margin: 0 0 0.3rem;
@@ -321,7 +139,7 @@
 }
 
 .form-sub {
-  font-size: 0.875rem;
+  font-size: 16px;
   color: #64748b;
   margin: 0;
 }
@@ -336,7 +154,7 @@
   border: 1px solid #fecaca;
   border-radius: 10px;
   margin-bottom: 1.25rem;
-  font-size: 0.825rem;
+  font-size: 16px;
   color: #dc2626;
   line-height: 1.45;
 
@@ -364,7 +182,7 @@
   }
 
   i {
-    font-size: 0.8rem;
+    font-size: 16px;
   }
 }
 
@@ -400,13 +218,16 @@
 }
 
 .success-desc {
-  font-size: 0.875rem;
+  font-size: 16px;
   color: #64748b;
   line-height: 1.55;
   margin: 0 0 0.85rem;
 }
 
 .email-highlight {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  span { min-width: 0; }
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -416,7 +237,7 @@
   border-radius: 8px;
   color: #0f172a;
   font-weight: 700;
-  font-size: 0.875rem;
+  font-size: 16px;
   margin-bottom: 1rem;
 
   i {
@@ -425,8 +246,8 @@
 }
 
 .success-hint {
-  font-size: 0.8rem;
-  color: #94a3b8;
+  font-size: 16px;
+  color: #64748b;
   margin: 0 0 1.5rem;
   line-height: 1.45;
 }
@@ -450,7 +271,7 @@
   gap: 0.4rem;
 
   label {
-    font-size: 0.825rem;
+    font-size: 16px;
     font-weight: 600;
     color: #374151;
   }
@@ -464,18 +285,19 @@
     left: 0.875rem;
     top: 50%;
     transform: translateY(-50%);
-    color: #94a3b8;
-    font-size: 0.9rem;
+    color: #64748b;
+    font-size: 16px;
     pointer-events: none;
     z-index: 1;
   }
 
   input[pInputText] {
     width: 100%;
-    padding: 0.65rem 0.875rem 0.65rem 2.5rem;
+    min-height: 48px;
+    padding: 12px 44px 12px 40px;
     border: 1px solid #e2e8f0;
     border-radius: 10px;
-    font-size: 0.875rem;
+    font-size: 16px;
     color: #1e293b;
     background: #f8fafc;
     transition: all 0.15s;
@@ -483,7 +305,7 @@
     font-family: inherit;
 
     &::placeholder {
-      color: #94a3b8;
+      color: #64748b;
     }
 
     &:focus {
@@ -503,7 +325,7 @@
   border: none;
   padding: 0.25rem;
   cursor: pointer;
-  color: #94a3b8;
+  color: #64748b;
   display: flex;
   align-items: center;
 
@@ -512,7 +334,7 @@
   }
 
   i {
-    font-size: 0.9rem;
+    font-size: 16px;
   }
 }
 
@@ -531,12 +353,12 @@
     display: flex;
     align-items: center;
     gap: 0.45rem;
-    font-size: 0.75rem;
-    color: #94a3b8;
+    font-size: 16px;
+    color: #64748b;
     transition: color 0.15s;
 
     i {
-      font-size: 0.7rem;
+      font-size: 16px;
     }
 
     &.valid {
@@ -555,11 +377,11 @@
   align-items: center;
   gap: 0.35rem;
   margin-top: 0.25rem;
-  font-size: 0.75rem;
+  font-size: 16px;
   color: #dc2626;
 
   i {
-    font-size: 0.75rem;
+    font-size: 16px;
   }
 }
 
@@ -571,7 +393,7 @@
   border: none;
   border-radius: 10px;
   color: #fff;
-  font-size: 0.925rem;
+  font-size: 16px;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s;
@@ -605,7 +427,7 @@
   gap: 0.5rem;
 
   i {
-    font-size: 0.9rem;
+    font-size: 16px;
   }
 }
 
@@ -613,7 +435,7 @@
 .signin-link {
   margin-top: 1.5rem;
   text-align: center;
-  font-size: 0.825rem;
+  font-size: 16px;
   color: #64748b;
 
   a {
@@ -626,3 +448,5 @@
     }
   }
 }
+
+button:focus-visible, a:focus-visible { outline: 3px solid #65a30d; outline-offset: 3px; }

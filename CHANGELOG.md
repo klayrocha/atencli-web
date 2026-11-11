@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+## Cadastro e acesso para teste grátis — 2026-11-11
+
+### Alterado
+
+- Tela de cadastro com painel esquerdo redesenhado, conteúdo simplificado, títulos maiores e benefícios em linguagem direta; removidas métricas promocionais do painel.
+- Layout responsivo com uma única rolagem vertical, sem painéis com rolagem independente, colunas flexíveis e textos do formulário ampliados.
+- Removida a seleção de plano e período recebida do site e a jornada que direcionava cadastro e login à contratação; o acesso volta ao início da aplicação para uso do teste grátis de 5 dias.
+
+## Jornada de contratação — 2026-11-10
+
 ### Adicionado
 
 - Jornada de contratação em dois passos para visitantes do site: cadastro ou acesso seguido da revisão e contratação do plano.
