@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## Cadastro compacto e grafia da marca — 2026-11-11
+
+### Alterado
+
+- Grafia da marca padronizada como “Atenclin” nos textos da aplicação.
+- Botão do formulário de cadastro renomeado para “Cadastrar”, com espaço adicional de 13 px antes do título.
+- Cadastro mais compacto, com menos margens, campos de 44 px e requisitos de senha em duas colunas; mantida a fonte de 16 px e a possibilidade de rolagem quando necessária em telas menores ou com zoom.
+- Pequeno respiro entre subtítulo, botão Google, separador e início do formulário de cadastro.
+
 ## Cadastro e acesso para teste grátis — 2026-11-11
 
 ### Alterado
@@ -26,7 +35,7 @@
 
 ### Adicionado
 
-- Assistente flutuante com a logo do AtenClin, dicas por etapa do wizard e acesso ao guia de configuração.
+- Assistente flutuante com a logo do Atenclin, dicas por etapa do wizard e acesso ao guia de configuração.
 - Ícones por área na lista de serviços, incluindo dente para odontologia e estetoscópio para medicina.
 - Opção “Descartar e sair” na confirmação de alterações, com remoção dos rascunhos locais.
 

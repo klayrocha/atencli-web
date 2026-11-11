@@ -8,7 +8,7 @@ const GUIDANCE: Record<string, { title: string; text: string; guide: string }> =
   'wizard-step-2-specialty': { title: 'Sua área de atuação', text: 'Selecione as especialidades da sua clínica para receber sugestões de serviços adequadas ao seu atendimento.', guide: 'primeiros-passos' },
   'wizard-step-3-services': { title: 'Serviços do seu jeito', text: 'Revise os serviços sugeridos para suas especialidades. Confira os preços e a duração de cada atendimento antes de continuar.', guide: 'servicos' },
   'wizard-step-4-schedule': { title: 'Vamos conferir os horários?', text: 'Confira os dias, horários e intervalos de atendimento. Ajuste o que precisar para que a agenda acompanhe a rotina da sua clínica.', guide: 'horarios' },
-  'wizard-step-5-team': { title: 'Sua equipe por perto', text: 'Convide quem vai usar o AtenClin e escolha as permissões de cada pessoa. Confira os e-mails antes de enviar os convites.', guide: 'equipe' },
+  'wizard-step-5-team': { title: 'Sua equipe por perto', text: 'Convide quem vai usar o Atenclin e escolha as permissões de cada pessoa. Confira os e-mails antes de enviar os convites.', guide: 'equipe' },
   'wizard-step-6-professionals': { title: 'Quem realiza os atendimentos?', text: 'Cadastre os profissionais e associe os serviços que cada um oferece para organizar os agendamentos.', guide: 'primeiros-passos' },
   'wizard-step-6-whatsapp': { title: 'Conecte seu WhatsApp', text: 'Conecte o número da clínica e confira as mensagens de atendimento. A conexão precisa da sua autorização para ser concluída.', guide: 'whatsapp' },
   'wizard-step-7-instagram': { title: 'Seu Instagram conectado', text: 'Conecte a conta profissional da clínica e autorize o acesso às mensagens para centralizar os atendimentos.', guide: 'instagram' },

@@ -4,7 +4,7 @@
     <div class="brand-content">
       <div class="brand-logo">
         <img src="logo.png" alt="" class="brand-logo-img" width="64" height="64" />
-        <span class="brand-name">AtenClin</span>
+        <span class="brand-name">Atenclin</span>
       </div>
       <span class="brand-eyebrow">CUIDE DOS PACIENTES. A GENTE AJUDA COM A ROTINA.</span>
       <h2 id="register-brand-title" class="brand-headline">Mais tempo para cuidar.<br /><span>Mais organização para sua clínica.</span></h2>
@@ -193,15 +193,15 @@
               </div>
               <div class="req-item" [class.valid]="hasUppercase">
                 <i [class]="hasUppercase ? 'pi pi-check' : 'pi pi-circle'"></i>
-                <span>Pelo menos 1 letra maiúscula</span>
+                <span>1 letra maiúscula</span>
               </div>
               <div class="req-item" [class.valid]="hasLowercase">
                 <i [class]="hasLowercase ? 'pi pi-check' : 'pi pi-circle'"></i>
-                <span>Pelo menos 1 letra minúscula</span>
+                <span>1 letra minúscula</span>
               </div>
               <div class="req-item" [class.valid]="hasNumber">
                 <i [class]="hasNumber ? 'pi pi-check' : 'pi pi-circle'"></i>
-                <span>Pelo menos 1 número</span>
+                <span>1 número</span>
               </div>
               <div class="req-item" [class.valid]="hasNoSpaces">
                 <i [class]="hasNoSpaces ? 'pi pi-check' : 'pi pi-circle'"></i>
@@ -248,7 +248,7 @@
             [disabled]="loading()"
             [class.loading]="loading()"
           >
-            <span *ngIf="!loading()">Criar conta agora</span>
+            <span *ngIf="!loading()">Cadastrar</span>
             <span *ngIf="loading()" class="loading-content">
               <i class="pi pi-spin pi-spinner"></i>
               Cadastrando...

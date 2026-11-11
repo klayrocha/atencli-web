@@ -1,4 +1,4 @@
-<aside *ngIf="guidance() as tip" class="assistant" aria-label="Assistente de configuração AtenClin">
+<aside *ngIf="guidance() as tip" class="assistant" aria-label="Assistente de configuração Atenclin">
   <section *ngIf="expanded()" id="wizard-assistant-message" class="bubble" aria-live="polite">
     <button type="button" class="close" aria-label="Recolher dicas de configuração" (click)="expanded.set(false)">
       <i class="pi pi-times" aria-hidden="true"></i>
@@ -14,8 +14,8 @@
   </section>
   <div class="avatar-row">
     <button *ngIf="!expanded()" type="button" class="show-tip" (click)="expanded.set(true)" aria-controls="wizard-assistant-message" [attr.aria-expanded]="expanded()">Mostrar dica</button>
-    <a class="avatar" [href]="'ajuda-docs/artigos/' + tip.guide" target="_blank" rel="noopener noreferrer" aria-label="Abrir guia de configuração AtenClin em outra aba">
-      <img src="logo.png" alt="AtenClin" width="64" height="64">
+    <a class="avatar" [href]="'ajuda-docs/artigos/' + tip.guide" target="_blank" rel="noopener noreferrer" aria-label="Abrir guia de configuração Atenclin em outra aba">
+      <img src="logo.png" alt="Atenclin" width="64" height="64">
       <span class="badge" aria-hidden="true"><i class="pi pi-question"></i></span>
     </a>
   </div>
