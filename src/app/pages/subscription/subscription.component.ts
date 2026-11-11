@@ -19,8 +19,9 @@ export class SubscriptionComponent implements OnInit {
   requestedChoice: SubscriptionChoice | null = null;
   readonly planNames = this.journey.names;
   @ViewChild('upgradeDialog', { static: true }) upgradeDialog!: ElementRef<HTMLDialogElement>;
-  readonly statusLabels: Record<SubscriptionStatus, string> = {
-    PENDING: 'Aguardando pagamento', ACTIVE: 'Ativa', PAST_DUE: 'Pagamento pendente', SUSPENDED: 'Suspensa', CANCELED: 'Cancelada'
+  readonly statusLabels: Record<SubscriptionStatus | 'TRIAL_EXPIRED', string> = {
+    PENDING: 'Aguardando pagamento', TRIALING: 'Teste grátis', TRIAL_EXPIRED: 'Teste encerrado', ACTIVE: 'Ativa',
+    PAST_DUE: 'Pagamento pendente', SUSPENDED: 'Suspensa', CANCELED: 'Cancelada'
   };
   readonly supportLabels: Record<string, string> = {
     STANDARD: 'Suporte padrão', PRIORITY: 'Suporte prioritário', ONBOARDING_PRIORITY: 'Onboarding + suporte prioritário'
@@ -65,7 +66,26 @@ export class SubscriptionComponent implements OnInit {
   /** Backend sem o preço anual (versão anterior ao plano anual): só o mensal é oferecido. */
   get hasYearlyPrices() { return this.plans.length > 0 && this.plans.every(plan => plan.yearlyPriceCents > 0); }
   get isYearlyView() { return this.interval === 'YEARLY' && this.hasYearlyPrices; }
-  get canManagePayment() { return this.isAdmin() && this.subscription?.status !== 'PENDING' && !!this.subscription?.plan; }
+  /** No teste ainda não existe cliente na Stripe: não há pagamento para gerenciar. */
+  get canManagePayment() {
+    const status = this.subscription?.status;
+    return this.isAdmin() && status !== 'PENDING' && status !== 'TRIALING' && !!this.subscription?.plan;
+  }
+
+  get isTrial() { return this.subscription?.status === 'TRIALING'; }
+  /** Teste acabou sem pagamento: o backend corta o acesso como o de quem não pagou. */
+  get isTrialExpired() { return this.isTrial && !this.subscription?.hasAccess; }
+  /** Chave do cartão de status (rótulo, ícone e cor); separa o teste vigente do encerrado. */
+  get statusKey(): SubscriptionStatus | 'TRIAL_EXPIRED' | null {
+    if (!this.subscription) return null;
+    return this.isTrialExpired ? 'TRIAL_EXPIRED' : this.subscription.status;
+  }
+  /** Dias restantes de teste, arredondados para cima (0 quando acabou). */
+  get trialDaysLeft() {
+    const end = this.subscription?.trialEndsAt;
+    if (!this.isTrial || !end) return 0;
+    return Math.max(0, Math.ceil((new Date(end).getTime() - Date.now()) / 86_400_000));
+  }
 
   isCurrent(plan: SubscriptionPlan) { return plan.code === this.currentPlanCode && this.interval === this.currentInterval; }
   /** Mesma regra do backend: plano superior no mesmo ciclo, ou de mensal para anual (mesmo plano ou superior). */

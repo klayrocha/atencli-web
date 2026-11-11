@@ -5,7 +5,8 @@ import { AuthService } from '../../auth/auth.service';
 import { environment } from '../../../environments/environment.development';
 
 export type PlanCode = 'STARTER' | 'PROFESSIONAL' | 'PLUS';
-export type SubscriptionStatus = 'PENDING' | 'ACTIVE' | 'PAST_DUE' | 'SUSPENDED' | 'CANCELED';
+/** TRIALING: teste grátis de 5 dias do plano Profissional, concedido no cadastro, sem cartão. */
+export type SubscriptionStatus = 'PENDING' | 'TRIALING' | 'ACTIVE' | 'PAST_DUE' | 'SUSPENDED' | 'CANCELED';
 export type BillingInterval = 'MONTHLY' | 'YEARLY';
 export interface SubscriptionPlan {
   code: PlanCode;
@@ -29,6 +30,8 @@ export interface Subscription {
   currentPeriodEnd: string | null;
   paidUntil: string | null;
   accessUntil: string | null;
+  /** Fim do teste grátis; null para clínicas que não tiveram teste. */
+  trialEndsAt?: string | null;
   cancelAtPeriodEnd: boolean;
   pendingInvoiceUrl: string | null;
   /** Mensagens de IA usadas no ciclo atual; a cota renova todo mês no dia do pagamento. */

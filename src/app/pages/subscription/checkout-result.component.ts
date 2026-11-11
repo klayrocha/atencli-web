@@ -1,7 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Subscription, SubscriptionService } from './subscription.service';
+import { PlanAccessService } from './plan-access.service';
 
 type ResultState = 'confirming' | 'confirmed' | 'processing' | 'canceled';
 const POLL_INTERVAL_MS = 3000;
@@ -65,6 +66,7 @@ export class CheckoutResultComponent implements OnInit, OnDestroy {
   subscription: Subscription | null = null;
   private timer: ReturnType<typeof setTimeout> | null = null;
   private attempts = 0;
+  private readonly planAccess = inject(PlanAccessService, { optional: true });
 
   constructor(private route: ActivatedRoute, private api: SubscriptionService) {}
 
@@ -78,7 +80,13 @@ export class CheckoutResultComponent implements OnInit, OnDestroy {
     this.attempts++;
     try {
       this.subscription = await this.api.current();
-      if (this.subscription.hasAccess) { this.state = 'confirmed'; return; }
+      // No teste grátis a clínica já tem acesso: só o status pago confirma o pagamento.
+      if (this.subscription.hasAccess && this.subscription.status !== 'TRIALING') {
+        this.state = 'confirmed';
+        // Atualiza travas de plano e a faixa de teste da sidebar.
+        void this.planAccess?.load();
+        return;
+      }
     } catch {
       // Falha transitória: tenta novamente até o limite.
     }

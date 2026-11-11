@@ -15,20 +15,30 @@
       <p>Você escolheu {{ planNames[requestedChoice.plan] }} com pagamento {{ requestedChoice.billing === 'YEARLY' ? 'anual' : 'mensal' }}. Confira os valores e benefícios abaixo. Você pode alterar sua escolha antes de seguir para o pagamento.</p>
       <p>Nenhuma cobrança é feita nesta tela. Clique em Assinar para revisar e confirmar o pagamento na próxima página.</p>
     </section>
-    <article class="status-card" *ngIf="subscription" [attr.data-status]="subscription.status">
+    <article class="status-card" *ngIf="subscription" [attr.data-status]="statusKey">
       <div class="status-main">
         <span class="status-icon"><i class="pi" aria-hidden="true" [ngClass]="{
           'pi-check-circle': subscription.status === 'ACTIVE',
+          'pi-gift': statusKey === 'TRIALING',
+          'pi-hourglass': statusKey === 'TRIAL_EXPIRED',
           'pi-exclamation-triangle': subscription.status === 'PAST_DUE',
           'pi-lock': subscription.status === 'SUSPENDED',
           'pi-clock': subscription.status === 'PENDING',
           'pi-times-circle': subscription.status === 'CANCELED' }"></i></span>
         <div>
-          <span class="status-badge">{{ statusLabels[subscription.status] }}</span>
-          <h2>{{ subscription.plan && subscription.status !== 'PENDING'
-            ? 'Plano ' + subscription.plan.name + (subscription.billingInterval === 'YEARLY' ? ' · Anual' : ' · Mensal')
-            : 'Nenhum plano contratado' }}</h2>
-          <p [ngSwitch]="subscription.status">
+          <span class="status-badge">{{ statusKey ? statusLabels[statusKey] : '' }}</span>
+          <h2>{{ isTrial
+            ? (isTrialExpired ? 'Teste grátis encerrado' : 'Teste grátis · Plano ' + (subscription.plan?.name ?? ''))
+            : subscription.plan && subscription.status !== 'PENDING'
+              ? 'Plano ' + subscription.plan.name + (subscription.billingInterval === 'YEARLY' ? ' · Anual' : ' · Mensal')
+              : 'Nenhum plano contratado' }}</h2>
+          <p [ngSwitch]="statusKey">
+            <ng-container *ngSwitchCase="'TRIALING'">
+              Seu teste termina em {{ date(subscription.trialEndsAt ?? null) }}
+              ({{ trialDaysLeft === 1 ? 'resta 1 dia' : 'restam ' + trialDaysLeft + ' dias' }}).
+              Para continuar depois disso, escolha um plano abaixo. Nada é cobrado antes da sua confirmação.
+            </ng-container>
+            <ng-container *ngSwitchCase="'TRIAL_EXPIRED'">Seu teste grátis terminou. Escolha um plano abaixo para voltar a usar os recursos; seus dados foram preservados.</ng-container>
             <ng-container *ngSwitchCase="'ACTIVE'">
               <ng-container *ngIf="!subscription.cancelAtPeriodEnd">Próxima renovação em {{ date(subscription.currentPeriodEnd) }}.</ng-container>
               <ng-container *ngIf="subscription.cancelAtPeriodEnd">Cancelamento agendado: o acesso continua até {{ date(subscription.paidUntil) }}.</ng-container>
@@ -56,7 +66,10 @@
         <p [ngSwitch]="usage.level">
           <ng-container *ngSwitchCase="'full'">Limite atingido. Até {{ localDate(subscription.aiUsageCycleEnd) }} as novas conversas vão direto para a equipe. Faça o upgrade para continuar com a IA.</ng-container>
           <ng-container *ngSwitchCase="'high'">Você já usou {{ usage.percent }}% da cota. Ela renova em {{ localDate(subscription.aiUsageCycleEnd) }}.</ng-container>
-          <ng-container *ngSwitchDefault>A cota renova em {{ localDate(subscription.aiUsageCycleEnd) }}, todo mês no dia do pagamento.</ng-container>
+          <ng-container *ngSwitchDefault>
+            <ng-container *ngIf="!isTrial">A cota renova em {{ localDate(subscription.aiUsageCycleEnd) }}, todo mês no dia do pagamento.</ng-container>
+            <ng-container *ngIf="isTrial">Durante o teste você usa a cota mensal do plano {{ subscription.plan?.name }}.</ng-container>
+          </ng-container>
         </p>
       </div>
       <dl class="status-details" *ngIf="subscription.paidUntil && subscription.status !== 'CANCELED'">

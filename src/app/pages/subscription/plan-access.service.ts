@@ -28,6 +28,12 @@ export class PlanAccessService {
     return subscription?.hasAccess && subscription.plan ? subscription.plan.maxUsers : 1;
   });
 
+  /** Fim do teste grátis quando a clínica está (ou esteve) em teste; null fora dele. */
+  readonly trialEndsAt = computed(() => {
+    const subscription = this.current();
+    return subscription?.status === 'TRIALING' ? subscription.trialEndsAt ?? null : null;
+  });
+
   /** Recarrega a cada tela para refletir pagamentos e upgrades recentes. */
   async load(): Promise<void> {
     try {

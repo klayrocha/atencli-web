@@ -10,6 +10,7 @@ export const unrestrictedPlanAccess = {
     allows: () => true,
     hasAccess: () => true,
     userLimit: () => Number.POSITIVE_INFINITY,
+    trialEndsAt: () => null,
   },
 };
 

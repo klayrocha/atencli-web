@@ -4,6 +4,7 @@ import { WaitingConversationsService } from '../../whatsapp/waiting-conversation
 import { CommonModule } from '@angular/common';
 import { RouterModule, RouterLink, RouterLinkActive } from '@angular/router';
 import { TooltipModule } from 'primeng/tooltip';
+import { PlanAccessService } from '../../pages/subscription/plan-access.service';
 
 interface MenuItem {
   label: string;
@@ -46,6 +47,17 @@ interface MenuItem {
         </li>
       </ul>
 
+      <!-- Teste grátis: dias restantes, ou aviso de teste encerrado. Atendentes não contratam, então não veem. -->
+      <a *ngIf="trialBanner() as trial" routerLink="/subscription" class="trial-banner" [class.expired]="trial.expired"
+        [class.last-day]="!trial.expired && trial.daysLeft <= 1"
+        [pTooltip]="collapsed ? trial.title : ''" tooltipPosition="right" [attr.aria-label]="trial.title + '. ' + trial.action">
+        <i class="pi" [class.pi-gift]="!trial.expired" [class.pi-hourglass]="trial.expired" aria-hidden="true"></i>
+        <span class="trial-text" *ngIf="!collapsed">
+          <strong>{{ trial.title }}</strong>
+          <span>{{ trial.action }}</span>
+        </span>
+      </a>
+
       <!-- Bottom actions -->
       <div class="sidebar-footer">
         <button class="collapse-btn" (click)="toggleCollapse()">
@@ -78,12 +90,28 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   private readonly auth = inject(AuthService);
   readonly waiting = inject(WaitingConversationsService);
+  private readonly planAccess = inject(PlanAccessService);
 
-  ngOnInit(): void { this.waiting.watch(); }
+  ngOnInit(): void {
+    this.waiting.watch();
+    if (!this.auth.isAttendant()) void this.planAccess.load();
+  }
   ngOnDestroy(): void { this.waiting.unwatch(); }
   readonly visibleMenuItems = computed(() => this.auth.isAttendant()
     ? this.menuItems.filter(item => !['/agenda', '/tarefas', '/wizard-step-9-review', '/subscription'].includes(item.route))
     : this.menuItems);
+
+  /** Recalculado a cada renderização, para o teste virar "encerrado" sem recarregar a página. */
+  trialBanner(): { daysLeft: number; expired: boolean; title: string; action: string } | null {
+    const end = this.planAccess.trialEndsAt();
+    if (!end || this.auth.isAttendant()) return null;
+    const msLeft = new Date(end).getTime() - Date.now();
+    if (Number.isNaN(msLeft)) return null;
+    if (msLeft <= 0) return { daysLeft: 0, expired: true, title: 'Teste grátis encerrado', action: 'Escolha um plano' };
+    const daysLeft = Math.ceil(msLeft / 86_400_000);
+    const title = daysLeft === 1 ? 'Último dia de teste' : `${daysLeft} dias de teste grátis`;
+    return { daysLeft, expired: false, title, action: 'Assinar agora' };
+  }
 
   toggleCollapse() {
     this.collapsed = !this.collapsed;

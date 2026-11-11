@@ -117,7 +117,7 @@
           Verifique sua caixa de entrada (e também a pasta de spam/lixo eletrônico). Se este e-mail já tinha
           cadastro, a mensagem explica como entrar ou recuperar a senha.
         </p>
-        <p class="journey-success" *ngIf="subscriptionChoice">Após ativar sua conta e entrar, você seguirá para revisar e contratar o plano {{ journey.names[subscriptionChoice.plan] }}. Nenhuma cobrança foi realizada.</p>
+        <p class="journey-success" *ngIf="subscriptionChoice">Após ativar sua conta e entrar, você terá 5 dias grátis do plano Profissional e poderá revisar e contratar o plano {{ journey.names[subscriptionChoice.plan] }} quando quiser. Nenhuma cobrança foi realizada.</p>
         <a routerLink="/login" class="submit-btn direct-link">
           Ir para o login
         </a>
@@ -133,7 +133,7 @@
           <h2 id="signup-journey-title">Seu próximo passo é criar sua conta</h2>
           <p>Você escolheu o plano <strong>{{ journey.names[subscriptionChoice.plan] }}</strong>, com pagamento <strong>{{ subscriptionChoice.billing === 'YEARLY' ? 'anual' : 'mensal' }}</strong>.</p>
           <p>Cadastre-se com Google ou preencha o formulário abaixo. Depois de entrar, você poderá revisar o plano e seguir para o pagamento.</p>
-          <small>Criar a conta não gera cobrança. Você confirma a contratação na próxima etapa.</small>
+          <small>Criar a conta não gera cobrança e já libera 5 dias grátis do plano Profissional. Você confirma a contratação na próxima etapa.</small>
           <a routerLink="/login">Já tem uma conta? Entre para continuar</a>
         </section>
         <div class="form-header">

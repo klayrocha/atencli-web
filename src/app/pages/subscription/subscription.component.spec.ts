@@ -65,6 +65,31 @@ describe('SubscriptionComponent yearly plans', () => {
     expect(component.isYearlyView).toBeFalse();
     expect(component.maxYearlySavingsPercent).toBe(0);
   });
+  it('shows the running trial without a payment to manage and offers checkout', () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({ providers: [{ provide: AuthService, useValue: { currentProfile: () => ({ roles: ['ADMIN'] }) } }] });
+    component = TestBed.runInInjectionContext(() => new SubscriptionComponent({} as SubscriptionService));
+    component.plans = [starter, professional, plus];
+    const trialEndsAt = new Date(Date.now() + 2.5 * 86_400_000).toISOString();
+    component.subscription = { ...active(professional, 'MONTHLY'), status: 'TRIALING', trialEndsAt };
+    expect(component.statusKey).toBe('TRIALING');
+    expect(component.trialDaysLeft).toBe(3);
+    expect(component.canManagePayment).toBeFalse();
+    expect(component.hasLiveSubscription).toBeFalse();
+    expect(component.isCurrent(professional)).toBeFalse();
+    expect(component.isUpgrade(plus)).toBeFalse();
+  });
+
+  it('treats an ended trial as no access', () => {
+    component.subscription = {
+      ...active(professional, 'MONTHLY'), status: 'TRIALING', hasAccess: false,
+      trialEndsAt: new Date(Date.now() - 1000).toISOString(),
+    };
+    expect(component.statusKey).toBe('TRIAL_EXPIRED');
+    expect(component.trialDaysLeft).toBe(0);
+    expect(component.aiUsage).toBeNull();
+  });
+
   it('restores the site selection for review without starting checkout', () => {
     const journey = TestBed.inject(SubscriptionJourneyService);
     journey.capture(convertToParamMap({ plan: 'PLUS', billing: 'YEARLY' }));
