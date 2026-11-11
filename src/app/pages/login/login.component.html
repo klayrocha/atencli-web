@@ -55,7 +55,8 @@
 
         <div class="form-header">
           <h1 class="form-title">Boas-vindas de volta</h1>
-          <p class="form-sub">Acesse sua clínica para continuar</p>
+          <p class="form-sub" *ngIf="!subscriptionChoice">Acesse sua clínica para continuar</p>
+          <p class="form-sub" *ngIf="subscriptionChoice">Entre para revisar e contratar o plano {{ journey.names[subscriptionChoice.plan] }}. O pagamento só acontece após sua confirmação.</p>
         </div>
 
         <!-- Mensagem de erro -->

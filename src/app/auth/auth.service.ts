@@ -1,4 +1,5 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { Injectable, computed, inject, signal } from '@angular/core';
+import { SubscriptionJourneyService } from '../pages/subscription/subscription-journey.service';
 import { HttpClient, HttpErrorResponse, HttpResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
@@ -38,6 +39,13 @@ export interface UserProfile {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
+  private readonly subscriptionJourney = inject(SubscriptionJourneyService);
+
+  private navigateAfterLogin(): void {
+    const choice = this.subscriptionJourney.read();
+    if (choice) void this.router.navigate(['/subscription'], { queryParams: choice });
+    else void this.router.navigate(['/']);
+  }
 
   private readonly STORAGE_KEY   = 'ch_user';
   private readonly TOKEN_KEY     = 'ch_token';
@@ -93,7 +101,7 @@ export class AuthService {
 
       this.setSession(user, token);
       await this.fetchAndStoreProfile(payload.userUuid ?? payload.sub, token);
-      this.router.navigate(['/']);
+      this.navigateAfterLogin();
 
     } catch (err) {
       if (err instanceof HttpErrorResponse) {
@@ -196,7 +204,7 @@ export class AuthService {
       };
       this.setSession(user, token);
       await this.fetchAndStoreProfile(payload.userUuid ?? payload.sub, token);
-      this.router.navigate(['/']);
+      this.navigateAfterLogin();
     } catch {
       this.router.navigate(['/login']);
     }

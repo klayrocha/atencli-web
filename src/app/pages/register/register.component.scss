@@ -5,6 +5,18 @@
   background: #fff;
 }
 
+.signup-journey { margin-bottom: 1.5rem; padding: 1.25rem; border: 1px solid #bef264; border-radius: 16px; background: #f7fee7; color: #334155;
+  ol { display: flex; flex-wrap: wrap; gap: 1rem; padding: 0; margin: 0 0 1rem; list-style: none; font-size: .875rem; }
+  li { display: flex; align-items: center; gap: .5rem; }
+  li[aria-current] { color: #3f6212; font-weight: 700; }
+  li span { display: grid; place-items: center; width: 26px; height: 26px; background: white; border-radius: 50%; }
+  h2 { font-size: 1.25rem; margin: 0 0 .75rem; color: #1e293b; }
+  p { line-height: 1.6; margin: 0 0 .75rem; }
+  small { display: block; font-size: .875rem; line-height: 1.5; }
+  a { display: inline-block; margin-top: .75rem; color: #3f6212; font-weight: 600; text-decoration: underline; }
+}
+.journey-success { padding: 1rem; border-radius: 12px; background: #f7fee7; line-height: 1.6; color: #3f6212; }
+
 .google-register-btn {
   display: flex;
   align-items: center;

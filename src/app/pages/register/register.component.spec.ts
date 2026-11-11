@@ -2,6 +2,8 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { AuthService } from '../../auth/auth.service';
 import { RegisterComponent } from './register.component';
+import { convertToParamMap } from '@angular/router';
+import { SubscriptionJourneyService } from '../subscription/subscription-journey.service';
 
 describe('Registration options', () => {
   let auth: jasmine.SpyObj<AuthService>;
@@ -12,6 +14,20 @@ describe('Registration options', () => {
       imports: [RegisterComponent],
       providers: [provideRouter([]), { provide: AuthService, useValue: auth }],
     }).compileComponents();
+  });
+
+  afterEach(() => TestBed.inject(SubscriptionJourneyService).clear());
+
+  it('explains the two steps and chosen plan for a visitor from the site', () => {
+    TestBed.inject(SubscriptionJourneyService).capture(convertToParamMap({ plan: 'PROFESSIONAL', billing: 'YEARLY' }));
+    const fixture = TestBed.createComponent(RegisterComponent);
+    fixture.detectChanges();
+    const intro = fixture.nativeElement.querySelector('.signup-journey');
+    expect(intro.textContent).toContain('Profissional');
+    expect(intro.textContent).toContain('anual');
+    expect(intro.querySelectorAll('li').length).toBe(2);
+    expect(fixture.nativeElement.querySelector('.google-register-btn')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('form')).not.toBeNull();
   });
 
   it('offers Google before the conventional form and uses the existing OAuth flow', () => {

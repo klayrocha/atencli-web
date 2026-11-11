@@ -1,7 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { Router, provideRouter } from '@angular/router';
+import { Router, convertToParamMap, provideRouter } from '@angular/router';
+import { SubscriptionJourneyService } from '../pages/subscription/subscription-journey.service';
 import { AuthService } from './auth.service';
 import { environment } from '../../environments/environment.development';
 
@@ -44,5 +45,44 @@ describe('AuthService logout', () => {
     auth.logout();
     http.expectNone(`${environment.apiBaseUrl}/api/v1/auth/logout`);
     expect(sessionStorage.getItem('ch_token')).toBeNull();
+  });
+});
+
+describe('Authentication resumes the subscription journey', () => {
+  let auth: AuthService;
+  let http: HttpTestingController;
+  let router: Router;
+  let journey: SubscriptionJourneyService;
+
+  beforeEach(() => {
+    sessionStorage.clear();
+    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])] });
+    auth = TestBed.inject(AuthService);
+    http = TestBed.inject(HttpTestingController);
+    router = TestBed.inject(Router);
+    journey = TestBed.inject(SubscriptionJourneyService);
+    journey.clear();
+    spyOn(router, 'navigate').and.resolveTo(true);
+    spyOn(auth, 'fetchAndStoreProfile').and.resolveTo();
+  });
+  afterEach(() => { http.verify(); sessionStorage.clear(); journey.clear(); });
+
+  it('continues to the selected annual plan after email login', async () => {
+    journey.capture(convertToParamMap({ plan: 'PROFESSIONAL', billing: 'YEARLY' }));
+    const pending = auth.loginWithEmail('ana@clinic.com', 'test-only');
+    http.expectOne(`${environment.apiBaseUrl}/api/v1/auth`).flush('', { headers: { Authorization: `Bearer ${token(600)}` } });
+    await pending;
+    expect(router.navigate).toHaveBeenCalledWith(['/subscription'], { queryParams: { plan: 'PROFESSIONAL', billing: 'YEARLY' } });
+  });
+
+  it('continues to the selected plan after Google authentication', async () => {
+    journey.capture(convertToParamMap({ plan: 'STARTER', billing: 'MONTHLY' }));
+    await auth.handleGoogleCallback(token(600));
+    expect(router.navigate).toHaveBeenCalledWith(['/subscription'], { queryParams: { plan: 'STARTER', billing: 'MONTHLY' } });
+  });
+
+  it('keeps the normal home destination without a plan choice', async () => {
+    await auth.handleGoogleCallback(token(600));
+    expect(router.navigate).toHaveBeenCalledWith(['/']);
   });
 });

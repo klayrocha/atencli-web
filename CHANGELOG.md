@@ -4,6 +4,12 @@
 
 ### Adicionado
 
+- Jornada de contratação em dois passos para visitantes do site: cadastro ou acesso seguido da revisão e contratação do plano.
+- Plano e período escolhidos preservados por até 24 horas durante cadastro, login e autenticação Google, com destaque na tela de Assinatura e sem cobrança automática.
+- Cadastro por e-mail orienta sobre ativação da conta antes de entrar e continuar a contratação.
+
+### Adicionado
+
 - Cadastro com Google como primeira opção na tela de criação de conta, reutilizando o fluxo de autenticação do login e mantendo o formulário convencional logo abaixo.
 
 ## [0.10.0] - 2026-11-09

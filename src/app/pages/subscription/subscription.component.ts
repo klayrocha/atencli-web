@@ -1,6 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component, ElementRef, OnInit, ViewChild, computed, inject } from '@angular/core';
 import { AuthService } from '../../auth/auth.service';
+import { ActivatedRoute } from '@angular/router';
+import { SubscriptionChoice, SubscriptionJourneyService } from './subscription-journey.service';
 import { BillingInterval, PlanCode, Subscription, SubscriptionPlan, SubscriptionService, SubscriptionStatus, subscriptionErrorMessage } from './subscription.service';
 
 const PLAN_ORDER: PlanCode[] = ['STARTER', 'PROFESSIONAL', 'PLUS'];
@@ -12,6 +14,10 @@ const LIVE_STATUSES: SubscriptionStatus[] = ['ACTIVE', 'PAST_DUE', 'SUSPENDED'];
   templateUrl: './subscription.component.html', styleUrl: './subscription.component.scss'
 })
 export class SubscriptionComponent implements OnInit {
+  private readonly journey = inject(SubscriptionJourneyService);
+  private readonly route = inject(ActivatedRoute, { optional: true });
+  requestedChoice: SubscriptionChoice | null = null;
+  readonly planNames = this.journey.names;
   @ViewChild('upgradeDialog', { static: true }) upgradeDialog!: ElementRef<HTMLDialogElement>;
   readonly statusLabels: Record<SubscriptionStatus, string> = {
     PENDING: 'Aguardando pagamento', ACTIVE: 'Ativa', PAST_DUE: 'Pagamento pendente', SUSPENDED: 'Suspensa', CANCELED: 'Cancelada'
@@ -32,7 +38,14 @@ export class SubscriptionComponent implements OnInit {
   interval: BillingInterval = 'MONTHLY';
 
   constructor(private api: SubscriptionService) {}
-  ngOnInit() { void this.load(); }
+  ngOnInit() {
+    this.requestedChoice = (this.route ? this.journey.capture(this.route.snapshot.queryParamMap) : null) ?? this.journey.read();
+    if (this.requestedChoice) {
+      this.interval = this.requestedChoice.billing;
+      this.journey.clear();
+    }
+    void this.load();
+  }
 
   async load() {
     this.loading = true; this.error = '';

@@ -1,4 +1,5 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
+import { SubscriptionJourneyService } from '../subscription/subscription-journey.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -28,6 +29,8 @@ import { AuthService } from '../../auth/auth.service';
   styleUrls: ['./login.component.scss'],
 })
 export class LoginComponent {
+  readonly journey = inject(SubscriptionJourneyService);
+  readonly subscriptionChoice = this.journey.read();
 
   // ── Login
   email = '';

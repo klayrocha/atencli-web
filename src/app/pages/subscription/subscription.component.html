@@ -9,6 +9,12 @@
   <p class="feedback" role="status" *ngIf="!loading && !isAdmin()">Somente o administrador da clínica pode contratar ou alterar a assinatura.</p>
 
   <ng-container *ngIf="!loading; else skeleton">
+    <section class="purchase-journey" *ngIf="requestedChoice && !hasLiveSubscription" aria-labelledby="purchase-journey-title">
+      <span class="journey-step">1. Conta criada ou acessada <i class="pi pi-check" aria-hidden="true"></i></span>
+      <h2 id="purchase-journey-title">2. Revise e contrate seu plano</h2>
+      <p>Você escolheu {{ planNames[requestedChoice.plan] }} com pagamento {{ requestedChoice.billing === 'YEARLY' ? 'anual' : 'mensal' }}. Confira os valores e benefícios abaixo. Você pode alterar sua escolha antes de seguir para o pagamento.</p>
+      <p>Nenhuma cobrança é feita nesta tela. Clique em Assinar para revisar e confirmar o pagamento na próxima página.</p>
+    </section>
     <article class="status-card" *ngIf="subscription" [attr.data-status]="subscription.status">
       <div class="status-main">
         <span class="status-icon"><i class="pi" aria-hidden="true" [ngClass]="{
@@ -70,7 +76,8 @@
     </div>
 
     <div class="plans-grid" aria-label="Planos disponíveis">
-      <article class="plan-card" *ngFor="let plan of plans" [class.current]="isCurrent(plan)" [class.featured]="plan.code === 'PROFESSIONAL'">
+      <article class="plan-card" *ngFor="let plan of plans" [class.current]="isCurrent(plan)" [class.featured]="plan.code === 'PROFESSIONAL'" [class.requested]="!hasLiveSubscription && requestedChoice?.plan === plan.code">
+        <p class="chosen-plan" *ngIf="!hasLiveSubscription && requestedChoice?.plan === plan.code">Sua escolha no site</p>
         <span class="plan-tag" *ngIf="isCurrent(plan)">Plano atual</span>
         <span class="plan-tag featured-tag" *ngIf="!isCurrent(plan) && plan.code === 'PROFESSIONAL'">Mais escolhido</span>
         <h2>{{ plan.name }}</h2>
