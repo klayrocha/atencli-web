@@ -9,7 +9,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
 import { WizardStep, WIZARD_STEPS_DEFAULT } from '../wizard-shared/wizard.models';
 import { WizardSummaryComponent } from '../wizard-shared/wizard-summary/wizard-summary.component';
-import { AvailabilityRequest, ClientAvailabilityOption, WizardService } from '../wizard-shared/wizard.service';
+import { AvailabilityRequest, ClientAvailabilityOption, HolidaySettings, NationalHoliday, WizardService } from '../wizard-shared/wizard.service';
 
 export interface DaySchedule {
   key: string;
@@ -36,6 +36,8 @@ export interface ScheduleException {
   description: string;
 }
 
+export type HolidayStatus = 'EXCEPTION_CLOSED' | 'EXCEPTION_HOURS' | 'AUTO_CLOSED' | 'DAY_OFF' | 'OPEN';
+
 export interface ExceptionTypeOption {
   label: string;
   value: 'WORKING_HOURS' | 'CLOSED';
@@ -54,7 +56,7 @@ export interface ExceptionTypeOption {
   styleUrls: ['./wizard-step-4-schedule.component.scss'],
 })
 export class WizardStep4ScheduleComponent implements OnInit {
-  readonly configurationChanges = new ConfigurationChanges(() => [this.days, this.breaks, this.exceptions, this.intervalEnabled, this.intervalMinutes, this.newException], () => this.saveConfiguration());
+  readonly configurationChanges = new ConfigurationChanges(() => [this.days, this.breaks, this.exceptions, this.intervalEnabled, this.intervalMinutes, this.newException, this.blockNationalHolidays], () => this.saveConfiguration());
 
 
   loading = signal(true);
@@ -224,6 +226,16 @@ export class WizardStep4ScheduleComponent implements OnInit {
     description: '',
   };
 
+  /** Configuração de feriados da agenda; null quando não pôde ser carregada (a seção fica oculta). */
+  holidaySettings: HolidaySettings | null = null;
+  blockNationalHolidays = true;
+  readonly holidayYears = [new Date().getFullYear(), new Date().getFullYear() + 1];
+  holidayYear = this.holidayYears[0];
+  holidays: NationalHoliday[] = [];
+  readonly holidaysLoading = signal(false);
+  readonly holidaysError = signal('');
+  readonly holidayMessage = signal('');
+
   previewOpen = signal(false);
   showExceptionPanel = signal(true);
 
@@ -241,6 +253,7 @@ export class WizardStep4ScheduleComponent implements OnInit {
       this.savedAvailability = await this.wizardService.getClientAvailability();
       this.restoreSavedAvailability();
       this.exceptionDraftBaseline = JSON.stringify(this.newException);
+      await this.loadHolidaySettings();
       this.configurationChanges.markSaved();
     } catch {
       this.loadFailed.set(true);
@@ -300,6 +313,109 @@ export class WizardStep4ScheduleComponent implements OnInit {
 
   removeException(id: number): void {
     this.exceptions = this.exceptions.filter(e => e.id !== id);
+  }
+
+  // ─── Feriados nacionais ─────────────────────────────────────────────────
+
+  /** Falhas aqui não impedem a edição dos horários: a seção de feriados apenas não é exibida. */
+  private async loadHolidaySettings(): Promise<void> {
+    try {
+      this.holidaySettings = await this.wizardService.getHolidaySettings();
+      this.blockNationalHolidays = this.holidaySettings.blockNationalHolidays !== false;
+    } catch {
+      this.holidaySettings = null;
+      return;
+    }
+    await this.loadHolidays();
+  }
+
+  async loadHolidays(): Promise<void> {
+    this.holidaysLoading.set(true);
+    this.holidaysError.set('');
+    this.holidayMessage.set('');
+    try {
+      this.holidays = await this.wizardService.getNationalHolidays(this.holidayYear);
+    } catch {
+      this.holidays = [];
+      this.holidaysError.set('Não foi possível carregar os feriados. Tente novamente mais tarde.');
+    } finally {
+      this.holidaysLoading.set(false);
+    }
+  }
+
+  async changeHolidayYear(year: number | string): Promise<void> {
+    this.holidayYear = Number(year);
+    await this.loadHolidays();
+  }
+
+  holidayStatus(holiday: NationalHoliday): HolidayStatus {
+    const exception = this.exceptions.find(item => item.date === holiday.date);
+    if (exception) return exception.type === 'CLOSED' ? 'EXCEPTION_CLOSED' : 'EXCEPTION_HOURS';
+    if (this.blockNationalHolidays && !holiday.optional) return 'AUTO_CLOSED';
+    if (!this.isWorkingDate(holiday.date)) return 'DAY_OFF';
+    return 'OPEN';
+  }
+
+  holidayStatusLabel(holiday: NationalHoliday): string {
+    switch (this.holidayStatus(holiday)) {
+      case 'EXCEPTION_CLOSED': return 'Fechado (exceção)';
+      case 'EXCEPTION_HOURS': return 'Horário especial';
+      case 'AUTO_CLOSED': return 'Fechado automaticamente';
+      case 'DAY_OFF': return 'Sem expediente neste dia';
+      default: return 'Atendimento normal';
+    }
+  }
+
+  isPastHoliday(holiday: NationalHoliday): boolean {
+    return holiday.date < this.todayIso();
+  }
+
+  /** Feriados que ainda abririam a agenda e podem virar exceção "Fechado". */
+  private closableHolidays(): NationalHoliday[] {
+    return this.holidays.filter(holiday => !this.isPastHoliday(holiday) && this.holidayStatus(holiday) === 'OPEN');
+  }
+
+  get closableHolidayCount(): number {
+    return this.closableHolidays().length;
+  }
+
+  canCloseHoliday(holiday: NationalHoliday): boolean {
+    return !this.isPastHoliday(holiday) && this.holidayStatus(holiday) === 'OPEN';
+  }
+
+  closeHoliday(holiday: NationalHoliday): void {
+    if (this.loading() || this.saving() || this.loadFailed() || !this.canCloseHoliday(holiday)) return;
+    this.addHolidayExceptions([holiday]);
+  }
+
+  closeAllHolidays(): void {
+    if (this.loading() || this.saving() || this.loadFailed()) return;
+    const added = this.addHolidayExceptions(this.closableHolidays());
+    this.holidayMessage.set(added
+      ? `${added} ${added === 1 ? 'feriado adicionado' : 'feriados adicionados'} às exceções como "Fechado". Remova os dias em que vai atender e salve.`
+      : 'Nenhum feriado pendente: todos já estão fechados ou não têm expediente.');
+  }
+
+  private addHolidayExceptions(holidays: NationalHoliday[]): number {
+    const base = Date.now();
+    const added = holidays.map((holiday, index): ScheduleException => ({
+      id: base + index, date: holiday.date, type: 'CLOSED', start: '08:00', end: '19:00',
+      description: `Feriado: ${holiday.name}`,
+    }));
+    if (added.length) {
+      this.exceptions = [...this.exceptions, ...added].sort((a, b) => a.date.localeCompare(b.date));
+    }
+    return added.length;
+  }
+
+  changeBlockNationalHolidays(): void {
+    this.holidayMessage.set('');
+    this.error.set('');
+  }
+
+  private isWorkingDate(iso: string): boolean {
+    const date = new Date(`${iso}T00:00:00Z`);
+    return !!this.days[(date.getUTCDay() + 6) % 7]?.active;
   }
 
   private restoreSavedAvailability(): void {
@@ -437,6 +553,11 @@ export class WizardStep4ScheduleComponent implements OnInit {
           ? await this.wizardService.updateAvailability(existing.id, request)
           : await this.wizardService.createAvailability(request);
         this.savedAvailability = [...this.savedAvailability.filter(item => item.id !== saved.id), saved];
+      }
+      if (this.holidaySettings && this.holidaySettings.blockNationalHolidays !== this.blockNationalHolidays) {
+        this.holidaySettings = await this.wizardService.updateHolidaySettings({
+          ...this.holidaySettings, blockNationalHolidays: this.blockNationalHolidays,
+        });
       }
       this.configurationChanges.markSaved(snapshot);
       return true;

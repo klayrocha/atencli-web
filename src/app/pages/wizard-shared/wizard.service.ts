@@ -166,6 +166,21 @@ export interface ClientAvailabilityOption {
   description: string | null;
 }
 
+/** Feriado nacional ou ponto facultativo calculado pelo backend. */
+export interface NationalHoliday {
+  date: string;
+  name: string;
+  /** Ponto facultativo (Carnaval, Corpus Christi): nunca é fechado automaticamente. */
+  optional: boolean;
+  blockedAutomatically: boolean;
+  nonWorkingDayId: number | null;
+}
+
+export interface HolidaySettings {
+  source: 'INTERNAL' | 'GOOGLE';
+  blockNationalHolidays: boolean;
+}
+
 @Injectable({ providedIn: 'root' })
 export class WizardService {
 
@@ -337,6 +352,29 @@ export class WizardService {
         { headers: this.headers }
       )
     );
+  }
+
+  async getHolidaySettings(): Promise<HolidaySettings> {
+    return firstValueFrom(this.http.get<HolidaySettings>(
+      `${environment.apiBaseUrl}/api/v1/calendar/configuration`,
+      { headers: this.headers },
+    ));
+  }
+
+  /** O backend exige a fonte da agenda no PUT; ela é reenviada sem alteração. */
+  async updateHolidaySettings(settings: HolidaySettings): Promise<HolidaySettings> {
+    return firstValueFrom(this.http.put<HolidaySettings>(
+      `${environment.apiBaseUrl}/api/v1/calendar/configuration`,
+      { source: settings.source, blockNationalHolidays: settings.blockNationalHolidays },
+      { headers: this.headers },
+    ));
+  }
+
+  async getNationalHolidays(year: number): Promise<NationalHoliday[]> {
+    return firstValueFrom(this.http.get<NationalHoliday[]>(
+      `${environment.apiBaseUrl}/api/v1/calendar/holidays`,
+      { headers: this.headers, params: { year } },
+    ));
   }
 
   async getTeam(): Promise<TeamResponse> {

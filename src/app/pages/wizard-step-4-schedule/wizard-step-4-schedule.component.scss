@@ -955,3 +955,11 @@
   background: #f1f5f9;
   color: #64748b;
 }
+
+// Feriados: reaproveita a lista de exceções.
+.holidays { padding: 0 1.5rem 1.5rem; }
+.holidays-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: .75rem; margin-top: 1.25rem; }
+.holidays-close-all { margin-left: auto; width: auto; }
+.holidays .interval-error { font-size: .8rem; color: #b91c1c; }
+.holiday-item--past { opacity: .55; }
+.exc-type--muted { background: #f1f5f9; color: #475569; }

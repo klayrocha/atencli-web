@@ -360,6 +360,71 @@
 
     </div>
 
+    <!-- ═══ Feriados nacionais ═══════════════════════════════════════════════ -->
+    <section class="section-card" aria-labelledby="holidays-title" *ngIf="holidaySettings">
+      <div class="section-header">
+        <div class="section-header-left">
+          <div class="section-icon section-icon--orange"><i class="pi pi-flag" aria-hidden="true"></i></div>
+          <div>
+            <h2 id="holidays-title" class="section-title">Feriados nacionais</h2>
+            <p class="section-desc">Defina se a agenda e a IA devem considerar a clínica fechada nos feriados nacionais.</p>
+          </div>
+        </div>
+      </div>
+      <div class="holidays">
+        <label class="interval-option">
+          <input type="checkbox" role="switch" class="interval-switch" [(ngModel)]="blockNationalHolidays"
+            (ngModelChange)="changeBlockNationalHolidays()" [disabled]="loading() || saving() || loadFailed()">
+          <span>Não atender em feriados nacionais</span>
+        </label>
+        <p class="interval-hint">
+          <ng-container *ngIf="blockNationalHolidays">Os feriados nacionais ficam fechados para agendamento automaticamente. Pontos facultativos (Carnaval e Corpus Christi) continuam abertos, a menos que você os marque como fechados.</ng-container>
+          <ng-container *ngIf="!blockNationalHolidays">Os feriados só ficam fechados se estiverem nas exceções de horário. Use "Fechar" para marcar os dias em que a clínica não vai atender.</ng-container>
+          Feriados estaduais e municipais devem ser cadastrados como exceção.
+        </p>
+
+        <div class="holidays-toolbar">
+          <label class="field-label" for="holiday-year">Ano</label>
+          <select id="holiday-year" class="field-input" [ngModel]="holidayYear"
+            (ngModelChange)="changeHolidayYear($event)" [disabled]="holidaysLoading()">
+            <option *ngFor="let year of holidayYears" [ngValue]="year">{{ year }}</option>
+          </select>
+          <button type="button" class="btn-add-exception holidays-close-all" (click)="closeAllHolidays()"
+            [disabled]="loading() || saving() || loadFailed() || holidaysLoading() || closableHolidayCount === 0">
+            <i class="pi pi-ban" aria-hidden="true"></i>
+            Fechar {{ blockNationalHolidays ? 'pontos facultativos' : 'todos os feriados' }} de {{ holidayYear }}
+          </button>
+        </div>
+
+        <p class="interval-hint" role="status" *ngIf="holidayMessage()">{{ holidayMessage() }}</p>
+        <p class="interval-error" role="alert" *ngIf="holidaysError()">{{ holidaysError() }}</p>
+        <p class="interval-hint" *ngIf="holidaysLoading()">Carregando feriados…</p>
+
+        <div class="exceptions-list" *ngIf="!holidaysLoading() && holidays.length > 0">
+          <div class="exceptions-list-header">
+            <span class="exceptions-list-title">Feriados de {{ holidayYear }}</span>
+          </div>
+          <div class="exception-item" *ngFor="let holiday of holidays" [class.holiday-item--past]="isPastHoliday(holiday)">
+            <div class="exc-date">
+              <i class="pi pi-calendar" aria-hidden="true"></i>
+              <span>{{ formatDateBr(holiday.date) }}</span>
+            </div>
+            <div class="exc-type" [class.exc-type--closed]="holidayStatus(holiday) === 'EXCEPTION_CLOSED' || holidayStatus(holiday) === 'AUTO_CLOSED'"
+              [class.exc-type--muted]="holidayStatus(holiday) === 'DAY_OFF'">
+              <span>{{ holidayStatusLabel(holiday) }}</span>
+            </div>
+            <div class="exc-times">{{ holiday.name }}</div>
+            <div class="exc-desc"><span *ngIf="holiday.optional">Ponto facultativo</span></div>
+            <button type="button" class="exc-remove" *ngIf="canCloseHoliday(holiday)" (click)="closeHoliday(holiday)"
+              [disabled]="loading() || saving() || loadFailed()" [title]="'Marcar ' + holiday.name + ' como fechado'"
+              [attr.aria-label]="'Marcar ' + holiday.name + ' como fechado'">
+              <i class="pi pi-ban" aria-hidden="true"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- ═══ SEÇÃO 3: Preview do Calendário ════════════════════════════════ -->
     <div class="section-card section-card--accordion">
 
