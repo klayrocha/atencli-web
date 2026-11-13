@@ -31,6 +31,18 @@ describe('Wizard AI configuration', () => {
   it('starts new AI rules in limited automatic mode', () => {
     expect(component.model.mode).toBe('LIMITED_AUTOMATIC');
   });
+  it('defaults to always attending even when the API default follows clinic hours', async () => {
+    api.getConfiguration.and.resolveTo({ ...data, schedulePolicy: 'FOLLOW_CLINIC_HOURS', usingDefaults: true });
+    await component.load();
+    expect(component.model.schedulePolicy).toBe('ALWAYS');
+    await component.save();
+    expect(api.save.calls.mostRecent().args[0].schedulePolicy).toBe('ALWAYS');
+  });
+  it('preserves the schedule policy when the clinic already saved its choice', async () => {
+    api.getConfiguration.and.resolveTo({ ...data, schedulePolicy: 'FOLLOW_CLINIC_HOURS', usingDefaults: false });
+    await component.load();
+    expect(component.model.schedulePolicy).toBe('FOLLOW_CLINIC_HOURS');
+  });
   it('uses limited automatic mode when backend returns default assistant rules', async () => {
     api.getConfiguration.and.resolveTo({ ...data, mode: 'ASSISTANT', usingDefaults: true });
     await component.load();

@@ -1,11 +1,12 @@
-<aside *ngIf="guidance() as tip" class="assistant" aria-label="Assistente de configuração Atenclin">
+<aside *ngIf="guidance() as tip" class="assistant" [class.expanded]="expanded()" aria-label="Assistente de configuração Atenclin"
+  (pointerenter)="onPointerEnter($event)" (pointerleave)="onPointerLeave()" (focusin)="onFocusIn()" (focusout)="onFocusOut($event)"
+  (keydown.escape)="expanded.set(false)">
   <section *ngIf="expanded()" id="wizard-assistant-message" class="bubble" aria-live="polite">
     <button type="button" class="close" aria-label="Recolher dicas de configuração" (click)="expanded.set(false)">
       <i class="pi pi-times" aria-hidden="true"></i>
     </button>
     <span class="eyebrow">ASSISTENTE ATENCLIN</span>
     <h2>{{ tip.title }}</h2>
-    <p>Os dados já vêm previamente configurados com as melhores práticas. Se desejar alterar, fique à vontade!</p>
     <p>{{ tip.text }}</p>
     <a class="guide" [href]="'ajuda-docs/artigos/' + tip.guide" target="_blank" rel="noopener noreferrer">
       Ver guia de configuração <i class="pi pi-external-link" aria-hidden="true"></i>
@@ -13,10 +14,9 @@
     </a>
   </section>
   <div class="avatar-row">
-    <button *ngIf="!expanded()" type="button" class="show-tip" (click)="expanded.set(true)" aria-controls="wizard-assistant-message" [attr.aria-expanded]="expanded()">Mostrar dica</button>
-    <a class="avatar" [href]="'ajuda-docs/artigos/' + tip.guide" target="_blank" rel="noopener noreferrer" aria-label="Abrir guia de configuração Atenclin em outra aba">
+    <button type="button" class="avatar" (click)="expanded.set(true)" [attr.aria-controls]="expanded() ? 'wizard-assistant-message' : null" [attr.aria-expanded]="expanded()" aria-label="Mostrar dicas de configuração Atenclin">
       <img src="logo.png" alt="Atenclin" width="64" height="64">
       <span class="badge" aria-hidden="true"><i class="pi pi-question"></i></span>
-    </a>
+    </button>
   </div>
 </aside>

@@ -2,6 +2,23 @@
 
 ## [Unreleased]
 
+## Assistente, horários, IA e login — 2026-11-13
+
+### Corrigido
+
+- “Lembrar de mim” no login salva somente o e-mail em localStorage, restaura o preenchimento e a opção marcada e remove o e-mail salvo ao desmarcar.
+- Configuração de horários detecta APIs sem suporte a feriados antes de consultar o endpoint, evitando chamadas incompatíveis que poderiam causar logout no ambiente local.
+
+### Alterado
+
+- “Quando a IA atende” passa a sugerir “Atender sempre” para configurações novas, preservando a opção já salva pelas clínicas.
+- Mensagens de boas-vindas e do assistente na IA com tom mais leve, destacando as boas práticas já configuradas e a liberdade para personalizar.
+- Mesmo aviso animado aplicado à configuração da IA, com mensagem própria sobre as sugestões iniciais e limite independente de três visitas em localStorage.
+- Assistente da etapa de horários informa a rotina sugerida e orienta revisar apenas o que precisar de ajuste.
+- Box de boas-vindas com imagem do assistente e animação curta na tela de horários, exibido nas três primeiras visitas e depois ocultado por contagem em localStorage.
+- Mensagens do assistente revisadas por etapa, sem introdução repetitiva; horários e IA explicam suas sugestões iniciais.
+- Assistente de configuração inicia recolhido no canto inferior da janela, com movimento lateral sutil; ao passar o mouse, a animação pausa e o balão abre. Dicas também acessíveis por toque e teclado, com respeito à preferência por movimento reduzido.
+
 ## Proporções e tipografia do cadastro — 2026-11-11
 
 ### Alterado

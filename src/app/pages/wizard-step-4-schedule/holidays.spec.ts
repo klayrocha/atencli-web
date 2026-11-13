@@ -89,4 +89,13 @@ describe('Schedule national holidays', () => {
     expect(await component.saveConfiguration()).toBeTrue();
     expect(api.updateHolidaySettings).not.toHaveBeenCalled();
   });
+  it('does not request holidays from an older API and preserves normal schedule editing', async () => {
+    api.getHolidaySettings.and.resolveTo({ source: 'INTERNAL' } as Awaited<ReturnType<WizardService['getHolidaySettings']>>);
+    await component.ngOnInit();
+    expect(component.holidaySettings).toBeNull();
+    expect(component.loadFailed()).toBeFalse();
+    expect(api.getNationalHolidays).not.toHaveBeenCalled();
+    expect(await component.saveConfiguration()).toBeTrue();
+    expect(api.updateHolidaySettings).not.toHaveBeenCalled();
+  });
 });

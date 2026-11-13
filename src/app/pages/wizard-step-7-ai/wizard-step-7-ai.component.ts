@@ -1,3 +1,4 @@
+import { ConfigurationWelcomeComponent } from '../wizard-shared/configuration-welcome.component';
 import { Optional } from '@angular/core';
 import { OnboardingProgressService } from '../wizard-shared/onboarding-progress.service';
 import { ConfigurationChanges } from '../wizard-shared/configuration-changes';
@@ -24,7 +25,7 @@ export const SUGGESTED_OUTSIDE_HOURS_MESSAGE = 'Olá! Agradecemos o seu contato.
 @Component({
   selector: 'app-wizard-step-7-ai',
   standalone: true,
-  imports: [WizardStepperComponent, CommonModule, FormsModule, RouterLink, WizardSummaryComponent],
+  imports: [ConfigurationWelcomeComponent, WizardStepperComponent, CommonModule, FormsModule, RouterLink, WizardSummaryComponent],
   templateUrl: './wizard-step-7-ai.component.html',
   styleUrls: ['./wizard-step-7-ai.component.scss'],
 })
@@ -58,7 +59,7 @@ export class WizardStep7AiComponent implements OnInit {
   readonly days = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
   model: AiConfigurationPayload = {
     mode: this.automaticMode, tone: SUGGESTED_TONE, responseLength: 'SHORT',
-    schedulePolicy: 'FOLLOW_CLINIC_HOURS', serviceStartTime: '07:00', serviceEndTime: '22:00',
+    schedulePolicy: 'ALWAYS', serviceStartTime: '07:00', serviceEndTime: '22:00',
     activeDays: [1, 2, 3, 4, 5], introductionMessage: SUGGESTED_INTRODUCTION_MESSAGE, outsideHoursMessage: SUGGESTED_OUTSIDE_HOURS_MESSAGE,
     allowedTopics: [], handoffTriggers: [...this.requiredTriggers],
   };
@@ -88,7 +89,7 @@ export class WizardStep7AiComponent implements OnInit {
     const suggested = data.usingDefaults;
     this.model = {
       mode: this.automaticMode, tone: suggested ? SUGGESTED_TONE : data.tone, responseLength: data.responseLength,
-      schedulePolicy: data.schedulePolicy,
+      schedulePolicy: suggested ? 'ALWAYS' : data.schedulePolicy,
       serviceStartTime: data.serviceStartTime?.slice(0, 5) || '07:00',
       serviceEndTime: data.serviceEndTime?.slice(0, 5) || '22:00',
       activeDays: [...data.activeDays],

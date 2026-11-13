@@ -17,6 +17,7 @@
 
     <!-- Stepper horizontal numerado (1 a 8) -->
     <app-wizard-stepper [currentStepId]="4"></app-wizard-stepper>
+    <app-configuration-welcome *ngIf="!loading() && !loadFailed()"></app-configuration-welcome>
 
     <!-- ═══ SEÇÃO 1: Horários Padrão ═══════════════════════════════════════ -->
     <div class="section-card">

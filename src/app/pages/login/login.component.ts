@@ -10,6 +10,8 @@ import { MessageModule } from 'primeng/message';
 import { DividerModule } from 'primeng/divider';
 import { AuthService } from '../../auth/auth.service';
 
+const REMEMBERED_EMAIL_KEY = 'atenclin:login:remembered-email';
+
 @Component({
   selector: 'app-login',
   standalone: true,
@@ -44,10 +46,40 @@ export class LoginComponent {
   get loading() { return this.auth.loading; }
   get error()   { return this.auth.error;   }
 
-  constructor(public auth: AuthService) {}
+  constructor(public auth: AuthService) {
+    try {
+      const email = localStorage.getItem(REMEMBERED_EMAIL_KEY)?.trim();
+      if (email) {
+        this.email = email;
+        this.rememberMe = true;
+      }
+    } catch { /* O login continua disponível quando o armazenamento está bloqueado. */ }
+  }
+
+  onRememberMeChange(remember: boolean): void {
+    this.rememberMe = remember;
+    this.storeRememberedEmail();
+  }
+
+  onEmailChange(email: string): void {
+    this.email = email;
+    this.storeRememberedEmail();
+    this.clearError();
+  }
+
+  private storeRememberedEmail(): void {
+    try {
+      if (this.rememberMe && this.email.trim()) {
+        localStorage.setItem(REMEMBERED_EMAIL_KEY, this.email.trim());
+      } else {
+        localStorage.removeItem(REMEMBERED_EMAIL_KEY);
+      }
+    } catch { /* Não bloqueia a autenticação se o navegador impedir a persistência. */ }
+  }
 
   // ── Login
   async onEmailLogin(): Promise<void> {
+    this.storeRememberedEmail();
     if (!this.email || !this.password) {
       this.auth.error.set('Preencha e-mail e senha.');
       return;

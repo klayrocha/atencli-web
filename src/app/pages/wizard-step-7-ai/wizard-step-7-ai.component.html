@@ -5,6 +5,7 @@
       <div><h1 class="header-title">Configure a inteligência artificial</h1><p class="header-subtitle">Defina como a IA conversa, quando atende e quando chama sua equipe.</p></div>
     </header>
     <app-wizard-stepper [currentStepId]="9"></app-wizard-stepper>
+    <app-configuration-welcome kind="ai" *ngIf="loaded && canManage"></app-configuration-welcome>
     <div class="notice" *ngIf="!canManage" role="status"><i class="pi pi-lock"></i>Somente administradores e gestores podem acessar a configuração da IA.</div>
     <div class="notice" *ngIf="loading" role="status">Carregando configuração da IA...</div>
     <div class="notice error" *ngIf="error && !loaded" role="alert">{{ error }} <button *ngIf="!loaded && canManage" type="button" (click)="load()" [disabled]="busy">Tentar novamente</button></div>

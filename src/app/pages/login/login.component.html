@@ -94,11 +94,11 @@
                 id="email"
                 type="email"
                 pInputText
-                [(ngModel)]="email"
+                [ngModel]="email"
+                (ngModelChange)="onEmailChange($event)"
                 name="email"
                 placeholder="seu@email.com"
                 autocomplete="email"
-                (input)="clearError()"
                 class="w-full" />
             </div>
           </div>
@@ -128,7 +128,7 @@
 
           <div class="remember-row">
             <label class="remember-label">
-              <input type="checkbox" [(ngModel)]="rememberMe" name="rememberMe" />
+              <input type="checkbox" [ngModel]="rememberMe" (ngModelChange)="onRememberMeChange($event)" name="rememberMe" />
               <span>Lembrar de mim</span>
             </label>
           </div>

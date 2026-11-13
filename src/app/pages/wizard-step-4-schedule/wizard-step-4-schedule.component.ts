@@ -1,4 +1,5 @@
 import { InputMaskModule } from 'primeng/inputmask';
+import { ConfigurationWelcomeComponent } from '../wizard-shared/configuration-welcome.component';
 import { Optional } from '@angular/core';
 import { OnboardingProgressService } from '../wizard-shared/onboarding-progress.service';
 import { ConfigurationChanges } from '../wizard-shared/configuration-changes';
@@ -46,7 +47,7 @@ export interface ExceptionTypeOption {
 @Component({
   selector: 'app-wizard-step-4-schedule',
   standalone: true,
-  imports: [InputMaskModule, WizardStepperComponent,
+  imports: [ConfigurationWelcomeComponent, InputMaskModule, WizardStepperComponent,
     CommonModule,
     FormsModule,
     RouterModule,
@@ -320,8 +321,16 @@ export class WizardStep4ScheduleComponent implements OnInit {
   /** Falhas aqui não impedem a edição dos horários: a seção de feriados apenas não é exibida. */
   private async loadHolidaySettings(): Promise<void> {
     try {
-      this.holidaySettings = await this.wizardService.getHolidaySettings();
-      this.blockNationalHolidays = this.holidaySettings.blockNationalHolidays !== false;
+      const settings = await this.wizardService.getHolidaySettings();
+      // APIs anteriores retornam a configuração da agenda sem suporte a feriados.
+      // Não consulte um endpoint inexistente: o despacho de erro pode resultar em 401.
+      if (typeof settings.blockNationalHolidays !== 'boolean') {
+        this.holidaySettings = null;
+        this.holidays = [];
+        return;
+      }
+      this.holidaySettings = settings;
+      this.blockNationalHolidays = settings.blockNationalHolidays;
     } catch {
       this.holidaySettings = null;
       return;
