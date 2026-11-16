@@ -332,6 +332,9 @@ export class ConversationsComponent implements OnInit, OnDestroy, AfterViewCheck
       if (error.status === 401) return 'Sua sessão expirou. Entre novamente.';
       if (error.status === 403) return 'Você não tem permissão para esta ação.';
       if (error.status === 404) return 'Conversa não encontrada. Atualize a lista.';
+      // 422/502: the backend explains why Meta refused the send (payment account, expired connection...).
+      if ((error.status === 422 || error.status === 502) && typeof error.error?.message === 'string'
+        && error.error.message.trim()) return error.error.message;
       if (error.status === 400) return 'Não foi possível concluir a ação. Verifique se a integração está ativa e se a janela de atendimento de 24 horas está aberta.';
     }
     return `Não foi possível ${action}. Tente novamente.`;

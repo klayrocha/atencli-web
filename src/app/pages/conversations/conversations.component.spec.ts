@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../auth/auth.service';
 import { ActivatedRoute } from '@angular/router';
 import { ConversationsComponent } from './conversations.component';
@@ -91,6 +92,15 @@ describe('Conversations API integration', () => {
     expect(component.draft).toBe('Resposta');
     expect(component.sendError).toBeTruthy();
     expect(component.messages.length).toBe(1);
+  });
+  it('shows the reason returned by the backend when Meta refuses the send', async () => {
+    await component.select(summary(1));
+    const reason = 'A conexão com o WhatsApp expirou ou foi removida. Reconecte o WhatsApp nas configurações.';
+    api.send.and.rejectWith(new HttpErrorResponse({ status: 422, error: { status: 422, message: reason, errors: [] } }));
+    component.draft = 'Resposta';
+    await component.send();
+    expect(component.sendError).toBe(reason);
+    expect(component.draft).toBe('Resposta');
   });
   it('prepends older messages and removes overlapping IDs', async () => {
     api.messages.and.resolveTo(page([message(2)], 0, 2));
