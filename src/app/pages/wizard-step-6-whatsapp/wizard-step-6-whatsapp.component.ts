@@ -30,6 +30,7 @@ export class WizardStep6WhatsappComponent implements OnInit, OnDestroy {
   loading = signal(true);
   preparing = signal(false);
   updating = signal(false);
+  disconnecting = signal(false);
   error = signal('');
   pin = '';
   pinRequired = signal(false);
@@ -43,7 +44,7 @@ export class WizardStep6WhatsappComponent implements OnInit, OnDestroy {
   get verifiedName() { return this.integration?.verifiedName; }
   get displayPhoneNumber() { return this.integration?.displayPhoneNumber; }
   get connectionMode() { return this.integration?.onboardingMode; }
-  get busy() { return this.loading() || this.preparing() || this.connecting() || this.updating(); }
+  get busy() { return this.loading() || this.preparing() || this.connecting() || this.updating() || this.disconnecting(); }
   get synchronizationLabel() {
     if (this.connectionMode !== 'COEXISTENCE') return 'Não se aplica';
     const contacts = this.integration?.contactsSyncRequestId ? 'Contatos: solicitada' : 'Contatos: não solicitada';
@@ -88,7 +89,7 @@ export class WizardStep6WhatsappComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void { this.destroyed = true; this.meta.cancel(); this.pin = ''; }
 
   async load(): Promise<void> {
-    if (this.connecting() || this.updating() || this.preparing()) return;
+    if (this.connecting() || this.updating() || this.preparing() || this.disconnecting()) return;
     this.loading.set(true);
     this.error.set('');
     try {
@@ -171,6 +172,25 @@ export class WizardStep6WhatsappComponent implements OnInit, OnDestroy {
     finally { this.updating.set(false); }
   }
 
+  /** Keeps the conversation history; afterwards the same number or another one can be connected. */
+  async disconnectIntegration(): Promise<void> {
+    if (!this.canManageIntegration || this.busy || !this.integration?.configured) return;
+    const number = this.displayPhoneNumber || 'o número atual';
+    const confirmed = window.confirm(
+      `Desconectar ${number} do Atenclin?\n\n`
+      + 'O histórico de conversas será mantido. Enquanto estiver desconectado, a IA e a equipe não recebem nem enviam '
+      + 'mensagens por este número no Atenclin.\n\n'
+      + 'Depois você pode conectar o mesmo número ou outro.'
+    );
+    if (!confirmed) return;
+    this.disconnecting.set(true);
+    this.error.set('');
+    this.connectionNotice.set(false);
+    try { this.integration = await this.api.disconnect(); }
+    catch (error) { this.error.set(this.errorMessage(error)); }
+    finally { this.disconnecting.set(false); }
+  }
+
   private errorMessage(error: unknown): string {
     const restriction = planRestrictionMessage(error);
     if (restriction) return restriction;
@@ -184,7 +204,7 @@ export class WizardStep6WhatsappComponent implements OnInit, OnDestroy {
       401: 'Sua sessão expirou. Entre novamente.',
       403: 'Somente administradores e gestores podem alterar esta conexão.',
       404: 'Integração não encontrada. Atualize o status e tente novamente.',
-      409: 'Este número já está vinculado a uma clínica ou existe outro número conectado. Não é possível trocar o número por aqui.',
+      409: 'Este número já está vinculado a outra clínica, ou já existe outro número conectado. Para trocar o número, clique em "Desconectar número" e conecte o novo.',
     };
     return messages[error.status] ?? 'Não foi possível concluir a operação com o WhatsApp. Tente novamente mais tarde.';
   }

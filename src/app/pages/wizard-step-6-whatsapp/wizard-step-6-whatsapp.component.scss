@@ -249,6 +249,14 @@
 .btn-manage { border: 1px solid #86efac; background: #fff; color: #166534; }
 .btn-disconnect { border: 1px solid #fecaca; background: #fff; color: #b91c1c; }
 
+.disconnected-note {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: #64748b;
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
 .connection-details {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));

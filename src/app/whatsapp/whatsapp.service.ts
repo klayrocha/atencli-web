@@ -59,4 +59,7 @@ export class WhatsAppService {
   setEnabled(enabled: boolean) {
     return firstValueFrom(this.http.patch<WhatsAppIntegration>(`${this.url}/integration/status`, { enabled }, this.options));
   }
+  disconnect() {
+    return firstValueFrom(this.http.post<WhatsAppIntegration>(`${this.url}/integration/disconnect`, {}, this.options));
+  }
 }

@@ -48,3 +48,30 @@ describe('WhatsApp conditional PIN', () => {
     expect(component.error()).not.toContain('PIN');
   });
 });
+
+describe('WhatsApp disconnect', () => {
+  let component: WizardStep6WhatsappComponent;
+  let api: jasmine.SpyObj<WhatsAppService>;
+  beforeEach(() => {
+    api = jasmine.createSpyObj('WhatsAppService', ['disconnect']);
+    const meta = jasmine.createSpyObj('MetaEmbeddedSignupService', ['start', 'cancel']);
+    const auth = { currentProfile: () => ({ roles: ['ADMIN'] }) } as unknown as AuthService;
+    component = withPlanAccess(() => new WizardStep6WhatsappComponent({} as Router, auth, api, meta));
+    component.integration = { configured: true, enabled: true, connectionStatus: 'CONNECTED', displayPhoneNumber: '+55 61 9999-0000' } as WhatsAppIntegration;
+    component.loading.set(false);
+  });
+  it('disconnects only after confirmation and shows the disconnected state', async () => {
+    spyOn(window, 'confirm').and.returnValue(true);
+    api.disconnect.and.resolveTo({ configured: true, enabled: false, connectionStatus: 'DISCONNECTED' } as WhatsAppIntegration);
+    await component.disconnectIntegration();
+    expect(api.disconnect).toHaveBeenCalledTimes(1);
+    expect(component.connectionStatus).toBe('DISCONNECTED');
+    expect(component.disconnecting()).toBeFalse();
+  });
+  it('keeps the connection when the user cancels', async () => {
+    spyOn(window, 'confirm').and.returnValue(false);
+    await component.disconnectIntegration();
+    expect(api.disconnect).not.toHaveBeenCalled();
+    expect(component.connectionStatus).toBe('CONNECTED');
+  });
+});

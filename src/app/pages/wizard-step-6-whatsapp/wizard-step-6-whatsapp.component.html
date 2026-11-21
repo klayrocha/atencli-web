@@ -52,13 +52,19 @@
             <i class="pi" [class.pi-spin]="connecting()" [class.pi-spinner]="connecting()" [class.pi-external-link]="!connecting()"></i>
             <span>{{ connecting() ? 'Conectando com a Meta...' : 'Conectar WhatsApp Business' }}</span>
           </button>
-          <div class="connection-actions" *ngIf="connectionStatus !== 'NOT_CONFIGURED'">
+          <div class="connection-actions" *ngIf="connectionStatus !== 'NOT_CONFIGURED' && connectionStatus !== 'DISCONNECTED'">
             <button type="button" class="btn-manage" (click)="toggleIntegration()" [disabled]="!canManageIntegration || busy || (!integration.enabled && !!planLock)">
               <i class="pi" [class.pi-pause]="connectionStatus === 'CONNECTED'" [class.pi-play]="connectionStatus === 'PAUSED'"></i>
               <span>{{ updating() ? 'Salvando...' : integration.enabled ? 'Pausar integração' : 'Ativar integração' }}</span>
             </button>
-
+            <button type="button" class="btn-disconnect" (click)="disconnectIntegration()" [disabled]="!canManageIntegration || busy">
+              <i class="pi" [class.pi-spin]="disconnecting()" [class.pi-spinner]="disconnecting()" [class.pi-sign-out]="!disconnecting()"></i>
+              <span>{{ disconnecting() ? 'Desconectando...' : 'Desconectar número' }}</span>
+            </button>
           </div>
+          <p class="disconnected-note" *ngIf="connectionStatus === 'DISCONNECTED'">
+            Número desconectado. O histórico de conversas foi mantido. Conecte o mesmo número ou outro para voltar a atender pelo WhatsApp.
+          </p>
           <app-plan-lock-notice *ngIf="planLock" [message]="planLock" />
         </div>
 
